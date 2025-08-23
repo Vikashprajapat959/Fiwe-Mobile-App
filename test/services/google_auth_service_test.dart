@@ -1,0 +1,95 @@
+import 'package:flutter_test/flutter_test.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import '../../lib/src/services/google_auth_service.dart';
+import '../../lib/src/services/shared_pref_service.dart';
+import '../../lib/src/utils/constants.dart';
+
+void main() {
+  group('GoogleAuthService Persistence Tests', () {
+    late GoogleAuthService authService;
+
+    setUp(() async {
+      // Initialize SharedPreferences for testing
+      SharedPreferences.setMockInitialValues({});
+      authService = GoogleAuthService();
+    });
+
+    tearDown(() async {
+      // Clean up after each test
+      await SharedPrefService.clear();
+      authService.dispose();
+    });
+
+    test('hasStoredAuthData should return false when no data is stored', () async {
+      final hasData = await authService.hasStoredAuthData();
+      expect(hasData, false);
+    });
+
+    test('hasStoredAuthData should return true when auth data is stored', () async {
+      // Simulate stored auth data
+      await SharedPrefService.setString(Constants.loginEmailKey, 'test@example.com');
+      await SharedPrefService.setString(Constants.loginTokenKey, 'mock_token');
+
+      final hasData = await authService.hasStoredAuthData();
+      expect(hasData, true);
+    });
+
+    test('hasStoredAuthData should return false when only partial data is stored', () async {
+      // Store only email, no token
+      await SharedPrefService.setString(Constants.loginEmailKey, 'test@example.com');
+
+      final hasData = await authService.hasStoredAuthData();
+      expect(hasData, false);
+    });
+
+    test('SharedPrefService should store and retrieve data correctly', () async {
+      const testEmail = 'test@example.com';
+      const testToken = 'mock_token_123';
+      const testUserId = 'user_123';
+      const testUsername = 'Test User';
+
+      // Store test data
+      await SharedPrefService.setString(Constants.loginEmailKey, testEmail);
+      await SharedPrefService.setString(Constants.loginTokenKey, testToken);
+      await SharedPrefService.setString(Constants.loginUserIdKey, testUserId);
+      await SharedPrefService.setString(Constants.loginUsernameKey, testUsername);
+
+      // Retrieve and verify data
+      final email = await SharedPrefService.getString(Constants.loginEmailKey);
+      final token = await SharedPrefService.getString(Constants.loginTokenKey);
+      final userId = await SharedPrefService.getString(Constants.loginUserIdKey);
+      final username = await SharedPrefService.getString(Constants.loginUsernameKey);
+
+      expect(email, testEmail);
+      expect(token, testToken);
+      expect(userId, testUserId);
+      expect(username, testUsername);
+    });
+
+    test('SharedPrefService should clear data correctly', () async {
+      // Store test data
+      await SharedPrefService.setString(Constants.loginEmailKey, 'test@example.com');
+      await SharedPrefService.setString(Constants.loginTokenKey, 'mock_token');
+
+      // Verify data is stored
+      expect(await SharedPrefService.getString(Constants.loginEmailKey), isNotNull);
+      expect(await SharedPrefService.getString(Constants.loginTokenKey), isNotNull);
+
+      // Clear specific keys
+      await SharedPrefService.remove(Constants.loginEmailKey);
+      await SharedPrefService.remove(Constants.loginTokenKey);
+
+      // Verify data is cleared
+      expect(await SharedPrefService.getString(Constants.loginEmailKey), isNull);
+      expect(await SharedPrefService.getString(Constants.loginTokenKey), isNull);
+    });
+
+    test('GoogleAuthService should handle authentication state properly', () async {
+      // Test initial state
+      expect(authService.supportsAuthenticate, isA<bool>());
+      
+      // Test stream access
+      expect(authService.userStream, isA<Stream>());
+    });
+  });
+}

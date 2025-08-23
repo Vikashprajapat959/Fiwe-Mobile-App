@@ -1,7 +1,8 @@
 import 'dart:async';
 
-import 'package:flutter/foundation.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'shared_pref_service.dart';
+import '../utils/constants.dart';
 
 class GoogleAuthService {
   final GoogleSignIn _googleSignIn = GoogleSignIn.instance;
@@ -13,6 +14,46 @@ class GoogleAuthService {
 
   Stream<GoogleSignInAccount?> get userStream => _userStream.stream;
 
+  /// Save authentication data to SharedPreferences
+  Future<void> _saveAuthData(GoogleSignInAccount account) async {
+    try {
+      await SharedPrefService.setString(Constants.loginEmailKey, account.email);
+      await SharedPrefService.setString(Constants.loginUserIdKey, account.id);
+      await SharedPrefService.setString(Constants.loginUsernameKey, account.displayName ?? '');
+      
+      // Get authentication token if available
+      final auth = await account.authentication;
+      if (auth.idToken != null) {
+        await SharedPrefService.setString(Constants.loginTokenKey, auth.idToken!);
+      }
+    } catch (e) {
+      // Error saving authentication data
+    }
+  }
+
+  /// Clear authentication data from SharedPreferences
+  Future<void> _clearAuthData() async {
+    try {
+      await SharedPrefService.remove(Constants.loginEmailKey);
+      await SharedPrefService.remove(Constants.loginUserIdKey);
+      await SharedPrefService.remove(Constants.loginUsernameKey);
+      await SharedPrefService.remove(Constants.loginTokenKey);
+    } catch (e) {
+      // Error clearing authentication data
+    }
+  }
+
+  /// Check if user has stored authentication data
+  Future<bool> hasStoredAuthData() async {
+    try {
+      final email = await SharedPrefService.getString(Constants.loginEmailKey);
+      final token = await SharedPrefService.getString(Constants.loginTokenKey);
+      return email != null && token != null;
+    } catch (e) {
+      return false;
+    }
+  }
+
   void dispose() {
     if (!_isDisposed) {
       _userStream.close();
@@ -22,40 +63,39 @@ class GoogleAuthService {
 
   Future<GoogleSignInAccount?> initialize() async {
     try {
-      // Clear any previous sign-in state first
-      await _googleSignIn.signOut();
-      
       // Initialize Google Sign-In
       await _googleSignIn.initialize();
-      
-      debugPrint("Google Sign-In initialized successfully");
       
       // Set up authentication event listeners
       _googleSignIn.authenticationEvents
           .listen(_handleAuthEvent)
           .onError(_handleAuthError);
-          
-      // Attempt lightweight authentication (auto sign-in)
-      final account = await _googleSignIn.attemptLightweightAuthentication();
-      if (account != null) {
-        debugPrint("Auto sign-in successful for: ${account.email}");
-      } else {
-        debugPrint("No existing authentication found");
+      
+      // First check if we have stored authentication data
+      final hasStoredAuth = await hasStoredAuthData();
+      if (hasStoredAuth) {
+        // Attempt lightweight authentication (auto sign-in)
+        final account = await _googleSignIn.attemptLightweightAuthentication();
+        if (account != null) {
+          // Refresh stored auth data with current session
+          await _saveAuthData(account);
+          return account;
+        } else {
+          await _clearAuthData();
+        }
       }
       
-      return account;
+      return null;
     } catch (e) {
-      debugPrint('Google Sign-In initialization error: $e');
+      // Clear potentially corrupted stored data
+      await _clearAuthData();
       return null;
     }
   }
 
   Future<GoogleSignInAccount?> signIn() async {
     try {
-      debugPrint('Starting Google Sign-In process...');
-      
       if (!_googleSignIn.supportsAuthenticate()) {
-        debugPrint('Google Sign-In authenticate not supported on this platform');
         throw Exception("Google Sign-In authenticate not supported on this platform.");
       }
       
@@ -67,36 +107,38 @@ class GoogleAuthService {
         scopeHint: ['email', 'profile'],
       );
       
+      // Save authentication data to SharedPreferences on successful sign-in
       if (account != null) {
-        debugPrint('Sign-in successful for: ${account.email}');
-      } else {
-        debugPrint('Sign-in returned null account');
+        await _saveAuthData(account);
       }
       
       return account;
     } on GoogleSignInException catch (e) {
-      debugPrint('Google SignIn Exception: ${e.code}, ${e.description}');
-      
       // Handle specific error codes
       if (e.code == GoogleSignInExceptionCode.canceled) {
-        debugPrint('User cancelled the sign-in process');
+        // User cancelled the sign-in process
       } else {
-        debugPrint('Google Sign-In error: ${e.code} - ${e.description}');
+        // Google Sign-In error
       }
       
       rethrow;
     } catch (e) {
-      debugPrint('Generic SignIn error: $e');
       rethrow;
     }
   }
 
   Future<void> signOut() async {
-    await _googleSignIn.signOut();
+    try {
+      await _googleSignIn.signOut();
+      await _clearAuthData();
+    } catch (e) {
+      // Even if Google sign-out fails, clear local data
+      await _clearAuthData();
+      rethrow;
+    }
   }
 
   void _handleAuthError(dynamic error) {
-    debugPrint('Google Auth Error: $error');
     if (!_isDisposed) {
       _userStream.add(null);
     }
