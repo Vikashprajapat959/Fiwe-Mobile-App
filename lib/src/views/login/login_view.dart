@@ -7,11 +7,11 @@ class LoginView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final controller = Get.put(AuthController());
+    final AuthController controller = Get.find();
     return Scaffold(
       body: Center(
         child: ElevatedButton(
-          onPressed: () => controller.signInWithGoogle(),
+          onPressed: () => controller.signIn(),
           child: Text("Login"),
         ),
       ),
