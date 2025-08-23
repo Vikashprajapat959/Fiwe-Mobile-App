@@ -20,6 +20,12 @@ class AuthController extends GetxController {
     _initAuth();
   }
 
+  @override
+  void onClose() {
+    _authService.dispose();
+    super.onClose();
+  }
+
   Future<void> signIn() async {
     try {
       final account = await _authService.signIn();
@@ -60,16 +66,18 @@ class AuthController extends GetxController {
   }
 
   Future<void> _initAuth() async {
-    _user(await _authService.initialize());
-    var user = _user();
-    _authService.userStream.listen((account) {
-      _user(account);
-      var user = _user();
-      if (account != null) {
-        Get.offAll(() => HomeView());
-      } else {
-        Get.offAll(() => LoginView());
-      }
-    });
+    try {
+      _user(await _authService.initialize());
+      _authService.userStream.listen((account) {
+        _user(account);
+        if (account != null) {
+          Get.offAll(() => HomeView());
+        } else {
+          Get.offAll(() => LoginView());
+        }
+      });
+    } catch (e) {
+      Get.snackbar('Initialization Error', 'Failed to initialize authentication: $e');
+    }
   }
 }

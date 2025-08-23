@@ -1,7 +1,7 @@
 /// Exception thrown when the request is malformed (400)
 class BadRequestException extends BaseHttpException {
-  BadRequestException(String message, {Uri? uri})
-    : super(message, uri: uri, statusCode: 400);
+  BadRequestException(super.message, {super.uri})
+    : super(statusCode: 400);
 
   @override
   String toString() {
@@ -35,8 +35,8 @@ class BaseHttpException implements Exception {
 
 /// Exception thrown when there's a conflict with the current state (409)
 class ConflictException extends BaseHttpException {
-  ConflictException(String message, {Uri? uri})
-    : super(message, uri: uri, statusCode: 409);
+  ConflictException(super.message, {super.uri})
+    : super(statusCode: 409);
 
   @override
   String toString() {
@@ -46,8 +46,8 @@ class ConflictException extends BaseHttpException {
 
 /// Exception thrown when access is forbidden (403)
 class ForbiddenException extends BaseHttpException {
-  ForbiddenException(String message, {Uri? uri})
-    : super(message, uri: uri, statusCode: 403);
+  ForbiddenException(super.message, {super.uri})
+    : super(statusCode: 403);
 
   @override
   String toString() {
@@ -57,8 +57,8 @@ class ForbiddenException extends BaseHttpException {
 
 /// Exception thrown when resource is not found (404)
 class NotFoundException extends BaseHttpException {
-  NotFoundException(String message, {Uri? uri})
-    : super(message, uri: uri, statusCode: 404);
+  NotFoundException(super.message, {super.uri})
+    : super(statusCode: 404);
 
   @override
   String toString() {
@@ -68,8 +68,8 @@ class NotFoundException extends BaseHttpException {
 
 /// Exception thrown when server encounters an error (500)
 class ServerException extends BaseHttpException {
-  ServerException(String message, {Uri? uri})
-    : super(message, uri: uri, statusCode: 500);
+  ServerException(super.message, {super.uri})
+    : super(statusCode: 500);
 
   @override
   String toString() {
@@ -79,8 +79,8 @@ class ServerException extends BaseHttpException {
 
 /// Exception thrown when authentication fails (401)
 class UnauthorizedException extends BaseHttpException {
-  UnauthorizedException(String message, {Uri? uri})
-    : super(message, uri: uri, statusCode: 401);
+  UnauthorizedException(super.message, {super.uri})
+    : super(statusCode: 401);
 
   @override
   String toString() {

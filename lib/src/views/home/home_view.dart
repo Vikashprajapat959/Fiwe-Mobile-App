@@ -11,10 +11,10 @@ class HomeView extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         actions: [
-          TextButton(onPressed: controller.signOut, child: Text('Sign Out')),
+          TextButton(onPressed: controller.signOut, child: const Text('Sign Out')),
         ],
       ),
-      body: Center(child: Text("Home")),
+      body: const Center(child: Text("Home")),
     );
   }
 }

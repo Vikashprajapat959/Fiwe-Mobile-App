@@ -12,7 +12,7 @@ class LoginView extends StatelessWidget {
       body: Center(
         child: ElevatedButton(
           onPressed: () => controller.signIn(),
-          child: Text("Login"),
+          child: const Text("Login"),
         ),
       ),
     );
