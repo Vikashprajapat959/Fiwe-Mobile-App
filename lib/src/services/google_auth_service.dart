@@ -16,7 +16,8 @@ class GoogleAuthService {
   }
 
   Future<GoogleSignInAccount?> initialize() async {
-    await _googleSignIn.initialize();
+    unawaited(_googleSignIn.initialize());
+
     print("Initialize");
     _googleSignIn.authenticationEvents
         .listen(_handleAuthEvent)
