@@ -1,0 +1,47 @@
+# Images Directory
+
+Place your PNG, JPG, and WebP image files here.
+
+## Recommended Images to Add:
+
+### App Branding
+- `logo.png` - Main app logo
+- `logo_white.png` - White version of logo
+- `splash_background.png` - Splash screen background
+
+### Authentication
+- `login_background.png` - Login screen background
+- `signup_background.png` - Signup screen background
+- `auth_illustration.png` - General auth illustration
+
+### User Interface
+- `default_avatar.png` - Default user profile picture
+- `profile_placeholder.png` - Profile picture placeholder
+- `hero_image.png` - Main hero/banner image
+
+### Onboarding
+- `onboarding_1.png` - First onboarding screen
+- `onboarding_2.png` - Second onboarding screen  
+- `onboarding_3.png` - Third onboarding screen
+- `welcome_image.png` - Welcome screen image
+
+### Empty States
+- `empty_state.png` - General empty state
+- `no_connection.png` - No internet connection
+- `error_illustration.png` - Error state illustration
+
+### Features
+- `feature_1.png` - Feature illustration 1
+- `feature_2.png` - Feature illustration 2
+- `feature_3.png` - Feature illustration 3
+
+## File Naming Convention
+- Use snake_case (e.g., `login_background.png`)
+- Be descriptive but concise
+- Include density variants: `logo.png`, `logo@2x.png`, `logo@3x.png`
+
+## Recommended Sizes
+- Logo: 512x512px (square)
+- Background images: 1080x1920px (9:16 ratio)
+- Profile pictures: 256x256px (square)
+- Icons within images: 128x128px to 512x512px
