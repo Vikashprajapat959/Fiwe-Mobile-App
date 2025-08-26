@@ -3,7 +3,6 @@ import 'package:fiwe/src/utils/assets.dart';
 import 'package:fiwe/src/utils/colors.dart';
 import 'package:fiwe/src/views/login/login_view.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';
 
 class SplashView extends StatefulWidget {
@@ -21,7 +20,9 @@ class _SplashViewState extends State<SplashView> {
       body: GetX<AuthController>(
         builder: (controller) {
           if (!controller.isInitializing) {
-            return Center(child: SvgPicture.asset(Assets.svgs.logoSvg));
+            return Center(
+              child: Image.asset(Assets.images.logo, width: Get.width * 0.5),
+            );
           }
 
           // This should not be reached as navigation happens in controller,

@@ -1,11 +1,12 @@
+import 'package:fiwe/src/utils/colors.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import '../../controllers/signup_controller.dart';
-import '../../utils/strings.dart';
 import '../../utils/constants.dart';
-import '../../widgets/custom_text_field.dart';
+import '../../utils/strings.dart';
 import '../../widgets/custom_button.dart';
+import '../../widgets/custom_text_field.dart';
 
 class SignUpView extends StatelessWidget {
   const SignUpView({super.key});
@@ -13,122 +14,116 @@ class SignUpView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     // Use Get.find to get existing controller or Get.put with tag to ensure singleton
-    final SignUpController controller = Get.isRegistered<SignUpController>() 
+    final SignUpController controller = Get.isRegistered<SignUpController>()
         ? Get.find<SignUpController>()
         : Get.put(SignUpController(), permanent: false);
-    
+
     return Scaffold(
-      backgroundColor: Color(Constants.backgroundColor),
+      backgroundColor: AppColors.surface,
       body: SafeArea(
         child: SingleChildScrollView(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 24),
-            child: Form(
-              key: controller.formKey,
-              child: Column(
-                children: [
-                  const SizedBox(height: 40),
-                  
-                  // Profile Image Picker with GetX
-                  Obx(() => GestureDetector(
+          padding: EdgeInsets.symmetric(horizontal: 14),
+          child: Form(
+            key: controller.formKey,
+            child: Column(
+              children: [
+                const SizedBox(height: 16),
+                // Profile Image Picker with GetX
+                Obx(
+                  () => GestureDetector(
                     onTap: controller.selectProfileImage,
                     child: _buildProfileImageWidget(controller),
-                  )),
-                  
-                  const SizedBox(height: 40),
-                  
-                  // Title
-                  Text(
-                    Strings.signUpTitle,
-                    style: TextStyle(
-                      fontSize: 32,
-                      fontWeight: FontWeight.bold,
-                      color: Color(Constants.textColor),
-                    ),
                   ),
-                  
-                  const SizedBox(height: 8),
-                  
-                  // Subtitle
-                  Text(
-                    Strings.signUpSubtitle,
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontSize: 16,
-                      color: Color(Constants.hintTextColor),
-                      height: 1.4,
-                    ),
+                ),
+
+                const SizedBox(height: 40),
+
+                // Title
+                Text(
+                  Strings.signUpTitle,
+                  style: TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.w600,
+                    // color: Color(Constants.textColor),
                   ),
-                  
-                  const SizedBox(height: 40),
-                  
-                  // Name Field
-                  CustomTextField(
-                    hintText: Strings.nameHint,
-                    prefixIcon: Icons.person_outline,
-                    controller: controller.nameController,
-                    validator: controller.validateName,
-                    textCapitalization: TextCapitalization.words,
+                ),
+
+                const SizedBox(height: 12),
+
+                // Subtitle
+                Text(
+                  Strings.signUpSubtitle,
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 14,
+                    // color: Color(Constants.hintTextColor),
+                    height: 1.4,
                   ),
-                  
-                  // Email Field
-                  CustomTextField(
-                    hintText: Strings.emailHint,
-                    prefixIcon: Icons.email_outlined,
-                    controller: controller.emailController,
-                    keyboardType: TextInputType.emailAddress,
-                    validator: controller.validateEmail,
-                    readOnly: true, // Pre-filled from Google Sign-In
-                  ),
-                  
-                  // Date of Birth Field
-                  CustomTextField(
-                    hintText: Strings.dateOfBirthHint,
-                    prefixIcon: Icons.calendar_today_outlined,
-                    controller: controller.dateOfBirthController,
-                    readOnly: true,
-                    onTap: controller.selectDateOfBirth,
-                    validator: controller.validateDateOfBirth,
-                  ),
-                  
-                  // Pin Code Field
-                  CustomTextField(
-                    hintText: Strings.pinCodeHint,
-                    prefixIcon: Icons.location_on_outlined,
-                    controller: controller.pinCodeController,
-                    keyboardType: TextInputType.number,
-                    validator: controller.validatePinCode,
-                  ),
-                  
-                  const SizedBox(height: 24),
-                  
-                  // Terms and Conditions Checkbox with GetX
-                  Obx(() => _buildTermsCheckbox(controller)),
-                  
-                  const SizedBox(height: 32),
-                  
-                  // Sign Up Button with GetX
-                  Obx(() => CustomButton(
-                    text: Strings.signUpButton,
-                    onPressed: controller.isLoading ? null : controller.handleSignUp,
-                    isLoading: controller.isLoading,
-                  )),
-                  
-                  const SizedBox(height: 24),
-                  
-                  // Sign In Link
-                  _buildSignInLink(controller),
-                  
-                  const SizedBox(height: 32),
-                ],
-              ),
+                ),
+
+                const SizedBox(height: 8),
+
+                // Name Field
+                AppTextField(
+                  hintText: Strings.nameHint,
+                  prefixIcon: Icons.person_outline,
+                  controller: controller.nameController,
+                  validator: controller.validateName,
+                  textCapitalization: TextCapitalization.words,
+                ).paddingOnly(bottom: 14),
+
+                // Email Field
+                AppTextField(
+                  hintText: Strings.emailHint,
+                  prefixIcon: Icons.email_outlined,
+                  controller: controller.emailController,
+                  keyboardType: TextInputType.emailAddress,
+                  validator: controller.validateEmail,
+                  readOnly: true, // Pre-filled from Google Sign-In
+                ).paddingOnly(bottom: 14),
+
+                // Date of Birth Field
+                AppTextField(
+                  hintText: Strings.dateOfBirthHint,
+                  prefixIcon: Icons.calendar_today_outlined,
+                  controller: controller.dateOfBirthController,
+                  readOnly: true,
+                  onTap: controller.selectDateOfBirth,
+                  validator: controller.validateDateOfBirth,
+                ).paddingOnly(bottom: 14),
+
+                // Pin Code Field
+                AppTextField(
+                  hintText: Strings.pinCodeHint,
+                  prefixIcon: Icons.location_on_outlined,
+                  controller: controller.pinCodeController,
+                  keyboardType: TextInputType.number,
+                  validator: controller.validatePinCode,
+                  maxLength: 6,
+                ),
+
+                const SizedBox(height: 24),
+
+                // Terms and Conditions Checkbox with GetX
+                Obx(() => _buildTermsCheckbox(controller)),
+
+                const SizedBox(height: 32),
+
+                // Sign Up Button with GetX
+                AppButtonElevated(
+                  text: Strings.signUpButton,
+                  onPressed: controller.handleSignUp,
+                ),
+
+                const SizedBox(height: 24),
+              ],
             ),
           ),
         ),
       ),
     );
   }
-  
+
   /// Build profile image widget with GetX state
   Widget _buildProfileImageWidget(SignUpController controller) {
     return Stack(
@@ -138,11 +133,8 @@ class SignUpView extends StatelessWidget {
           height: Constants.profileImageSize,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
-            color: const Color(0xFFF5F5F5),
-            border: Border.all(
-              color: const Color(0xFFE5E7EB),
-              width: 2,
-            ),
+            color: AppColors.surface,
+            border: Border.all(color: AppColors.borderDark, width: 1),
             image: controller.selectedProfileImage != null
                 ? DecorationImage(
                     image: FileImage(controller.selectedProfileImage!),
@@ -151,34 +143,28 @@ class SignUpView extends StatelessWidget {
                 : null,
           ),
           child: controller.selectedProfileImage == null
-              ? const Icon(
-                  Icons.person_outline,
-                  size: 48,
-                  color: Color(0xFF0891B2),
+              ? Container(
+                  margin: const EdgeInsets.all(4),
+                  height: Constants.profileImageSize - 4,
+                  width: Constants.profileImageSize - 4,
+                  alignment: Alignment.center,
+                  decoration: const BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: AppColors.backgroundLight,
+                  ),
+                  child: const Icon(
+                    Icons.person_outline,
+                    size: 48,
+                    color: AppColors.primary,
+                  ),
                 )
               : null,
         ),
-        Positioned(
-          bottom: 0,
-          right: 0,
-          child: Container(
-            width: 36,
-            height: 36,
-            decoration: const BoxDecoration(
-              shape: BoxShape.circle,
-              color: Color(0xFF0891B2),
-            ),
-            child: const Icon(
-              Icons.camera_alt,
-              color: Colors.white,
-              size: 20,
-            ),
-          ),
-        ),
+        Positioned(bottom: 0, right: 0, child: const _CameraIconButton()),
       ],
     );
   }
-  
+
   /// Build terms and conditions checkbox
   Widget _buildTermsCheckbox(SignUpController controller) {
     return Padding(
@@ -192,7 +178,7 @@ class SignUpView extends StatelessWidget {
             child: Checkbox(
               value: controller.acceptTerms,
               onChanged: controller.toggleTermsAcceptance,
-              activeColor: Color(Constants.primaryColor),
+              activeColor: AppColors.primary,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(4),
               ),
@@ -206,7 +192,7 @@ class SignUpView extends StatelessWidget {
                   Strings.privacyPolicyText,
                   style: TextStyle(
                     fontSize: 14,
-                    color: Color(Constants.textColor),
+                    // color: Color(Constants.textColor),
                   ),
                 ),
                 GestureDetector(
@@ -215,7 +201,7 @@ class SignUpView extends StatelessWidget {
                     Strings.privacyPolicy,
                     style: TextStyle(
                       fontSize: 14,
-                      color: Color(Constants.primaryColor),
+                      color: AppColors.primary,
                       decoration: TextDecoration.underline,
                     ),
                   ),
@@ -224,7 +210,7 @@ class SignUpView extends StatelessWidget {
                   Strings.andText,
                   style: TextStyle(
                     fontSize: 14,
-                    color: Color(Constants.textColor),
+                    // color: Color(Constants.textColor),
                   ),
                 ),
                 GestureDetector(
@@ -233,7 +219,7 @@ class SignUpView extends StatelessWidget {
                     Strings.termsConditions,
                     style: TextStyle(
                       fontSize: 14,
-                      color: Color(Constants.primaryColor),
+                      color: AppColors.primary,
                       decoration: TextDecoration.underline,
                     ),
                   ),
@@ -245,33 +231,22 @@ class SignUpView extends StatelessWidget {
       ),
     );
   }
-  
-  /// Build sign in link
-  Widget _buildSignInLink(SignUpController controller) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        Text(
-          Strings.haveAccountText,
-          style: TextStyle(
-            fontSize: 16,
-            color: Color(Constants.hintTextColor),
-          ),
-        ),
-        GestureDetector(
-          onTap: controller.navigateToLogin,
-          child: Text(
-            Strings.signInLink,
-            style: TextStyle(
-              fontSize: 16,
-              color: Color(Constants.primaryColor),
-              fontWeight: FontWeight.w500,
-              decoration: TextDecoration.underline,
-              decorationColor: Color(Constants.primaryColor),
-            ),
-          ),
-        ),
-      ],
+}
+
+/// Reusable camera icon button widget
+class _CameraIconButton extends StatelessWidget {
+  const _CameraIconButton();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 36,
+      height: 36,
+      decoration: const BoxDecoration(
+        shape: BoxShape.circle,
+        color: Color(0xFF0891B2),
+      ),
+      child: const Icon(Icons.camera_alt, color: Colors.white, size: 20),
     );
   }
 }

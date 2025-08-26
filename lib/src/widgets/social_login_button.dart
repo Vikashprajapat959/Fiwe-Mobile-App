@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 
 class SocialLoginButton extends StatelessWidget {
-  final VoidCallback onPressed;
+  final VoidCallback? onPressed;
   final Color? backgroundColor;
   final String title;
   final Widget icon;
   final Color? titleColor;
-  final double? width;
+
   final double? height;
   final double borderRadius;
 
@@ -17,15 +18,14 @@ class SocialLoginButton extends StatelessWidget {
     required this.title,
     required this.icon,
     this.titleColor = Colors.white,
-    this.width,
-    this.height = 50,
-    this.borderRadius = 8.0,
+    this.height = 54,
+    this.borderRadius = 12.0,
   });
 
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      width: width,
+      width: Get.width * 0.8,
       height: height,
       child: ElevatedButton(
         onPressed: onPressed,

@@ -3,6 +3,7 @@ import 'package:fiwe/firebase_options.dart';
 import 'package:fiwe/src/views/login/splash_view.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -16,6 +17,10 @@ class FiweApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return GetMaterialApp(
       debugShowCheckedModeBanner: false,
+      theme: ThemeData(
+        textTheme: GoogleFonts.interTextTheme(),
+        useMaterial3: true,
+      ),
       home: SplashView(),
     );
   }

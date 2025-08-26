@@ -1,8 +1,8 @@
+import 'package:fiwe/src/services/google_auth_service.dart';
+import 'package:fiwe/src/services/shared_pref_service.dart';
+import 'package:fiwe/src/utils/constants.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../../lib/src/services/google_auth_service.dart';
-import '../../lib/src/services/shared_pref_service.dart';
-import '../../lib/src/utils/constants.dart';
 
 void main() {
   group('GoogleAuthService Persistence Tests', () {

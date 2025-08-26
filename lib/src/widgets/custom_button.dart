@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
 
-class CustomButton extends StatelessWidget {
+class AppButtonElevated extends StatelessWidget {
   final String text;
   final VoidCallback? onPressed;
-  final bool isLoading;
   final Color? backgroundColor;
   final Color? textColor;
   final double? width;
@@ -13,19 +12,18 @@ class CustomButton extends StatelessWidget {
   final double fontSize;
   final FontWeight fontWeight;
 
-  const CustomButton({
+  const AppButtonElevated({
     super.key,
     required this.text,
     this.onPressed,
-    this.isLoading = false,
     this.backgroundColor,
     this.textColor,
     this.width,
-    this.height = 56,
+    this.height = 54,
     this.borderRadius = 16,
-    this.margin = const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
-    this.fontSize = 18,
-    this.fontWeight = FontWeight.w600,
+    this.margin = const EdgeInsets.symmetric(vertical: 16),
+    this.fontSize = 16,
+    this.fontWeight = FontWeight.w500,
   });
 
   @override
@@ -35,7 +33,7 @@ class CustomButton extends StatelessWidget {
       width: width ?? double.infinity,
       height: height,
       child: ElevatedButton(
-        onPressed: isLoading ? null : onPressed,
+        onPressed: onPressed,
         style: ElevatedButton.styleFrom(
           backgroundColor: backgroundColor ?? const Color(0xFF0891B2),
           foregroundColor: textColor ?? Colors.white,
@@ -46,22 +44,10 @@ class CustomButton extends StatelessWidget {
           ),
           disabledBackgroundColor: const Color(0xFF9CA3AF),
         ),
-        child: isLoading
-            ? const SizedBox(
-                width: 24,
-                height: 24,
-                child: CircularProgressIndicator(
-                  strokeWidth: 2,
-                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                ),
-              )
-            : Text(
-                text,
-                style: TextStyle(
-                  fontSize: fontSize,
-                  fontWeight: fontWeight,
-                ),
-              ),
+        child: Text(
+          text,
+          style: TextStyle(fontSize: fontSize, fontWeight: fontWeight),
+        ),
       ),
     );
   }

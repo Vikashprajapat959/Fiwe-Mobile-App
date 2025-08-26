@@ -7,7 +7,7 @@ class Strings {
   // Login screen
   static const String loginTitle = 'Welcome Back';
   static const String loginSubtitle = 'Million of people\nconnect on fi.we';
-  static const String loginWithGoogle = 'Sign in with Google';
+  static const String loginWithGoogle = 'Continue with Google';
   static const String loginButton = 'Login';
 
   // Signup screen

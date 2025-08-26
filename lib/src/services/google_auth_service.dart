@@ -1,8 +1,9 @@
 import 'dart:async';
 
 import 'package:google_sign_in/google_sign_in.dart';
-import 'shared_pref_service.dart';
+
 import '../utils/constants.dart';
+import 'shared_pref_service.dart';
 
 class GoogleAuthService {
   final GoogleSignIn _googleSignIn = GoogleSignIn.instance;
@@ -14,32 +15,10 @@ class GoogleAuthService {
 
   Stream<GoogleSignInAccount?> get userStream => _userStream.stream;
 
-  /// Save authentication data to SharedPreferences
-  Future<void> _saveAuthData(GoogleSignInAccount account) async {
-    try {
-      await SharedPrefService.setString(Constants.loginEmailKey, account.email);
-      await SharedPrefService.setString(Constants.loginUserIdKey, account.id);
-      await SharedPrefService.setString(Constants.loginUsernameKey, account.displayName ?? '');
-      
-      // Get authentication token if available
-      final auth = await account.authentication;
-      if (auth.idToken != null) {
-        await SharedPrefService.setString(Constants.loginTokenKey, auth.idToken!);
-      }
-    } catch (e) {
-      // Error saving authentication data
-    }
-  }
-
-  /// Clear authentication data from SharedPreferences
-  Future<void> _clearAuthData() async {
-    try {
-      await SharedPrefService.remove(Constants.loginEmailKey);
-      await SharedPrefService.remove(Constants.loginUserIdKey);
-      await SharedPrefService.remove(Constants.loginUsernameKey);
-      await SharedPrefService.remove(Constants.loginTokenKey);
-    } catch (e) {
-      // Error clearing authentication data
+  void dispose() {
+    if (!_isDisposed) {
+      _userStream.close();
+      _isDisposed = true;
     }
   }
 
@@ -51,13 +30,6 @@ class GoogleAuthService {
       return email != null && token != null;
     } catch (e) {
       return false;
-    }
-  }
-
-  void dispose() {
-    if (!_isDisposed) {
-      _userStream.close();
-      _isDisposed = true;
     }
   }
 
@@ -108,10 +80,8 @@ class GoogleAuthService {
       );
       
       // Save authentication data to SharedPreferences on successful sign-in
-      if (account != null) {
-        await _saveAuthData(account);
-      }
-      
+      await _saveAuthData(account);
+          
       return account;
     } on GoogleSignInException catch (e) {
       // Handle specific error codes
@@ -138,6 +108,18 @@ class GoogleAuthService {
     }
   }
 
+  /// Clear authentication data from SharedPreferences
+  Future<void> _clearAuthData() async {
+    try {
+      await SharedPrefService.remove(Constants.loginEmailKey);
+      await SharedPrefService.remove(Constants.loginUserIdKey);
+      await SharedPrefService.remove(Constants.loginUsernameKey);
+      await SharedPrefService.remove(Constants.loginTokenKey);
+    } catch (e) {
+      // Error clearing authentication data
+    }
+  }
+
   void _handleAuthError(dynamic error) {
     if (!_isDisposed) {
       _userStream.add(null);
@@ -151,6 +133,23 @@ class GoogleAuthService {
       } else if (event is GoogleSignInAuthenticationEventSignOut) {
         _userStream.add(null);
       }
+    }
+  }
+
+  /// Save authentication data to SharedPreferences
+  Future<void> _saveAuthData(GoogleSignInAccount account) async {
+    try {
+      await SharedPrefService.setString(Constants.loginEmailKey, account.email);
+      await SharedPrefService.setString(Constants.loginUserIdKey, account.id);
+      await SharedPrefService.setString(Constants.loginUsernameKey, account.displayName ?? '');
+      
+      // Get authentication token if available
+      final auth = account.authentication;
+      if (auth.idToken != null) {
+        await SharedPrefService.setString(Constants.loginTokenKey, auth.idToken!);
+      }
+    } catch (e) {
+      // Error saving authentication data
     }
   }
 }
