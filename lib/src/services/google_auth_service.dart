@@ -10,7 +10,7 @@ class GoogleAuthService {
 
   final _userStream = StreamController<GoogleSignInAccount?>.broadcast();
   bool _isDisposed = false;
-  
+
   bool get supportsAuthenticate => _googleSignIn.supportsAuthenticate();
 
   Stream<GoogleSignInAccount?> get userStream => _userStream.stream;
@@ -37,12 +37,10 @@ class GoogleAuthService {
     try {
       // Initialize Google Sign-In
       await _googleSignIn.initialize();
-      
+
       // Set up authentication event listeners
-      _googleSignIn.authenticationEvents
-          .listen(_handleAuthEvent)
-          .onError(_handleAuthError);
-      
+      _googleSignIn.authenticationEvents.listen(_handleAuthEvent).onError(_handleAuthError);
+
       // First check if we have stored authentication data
       final hasStoredAuth = await hasStoredAuthData();
       if (hasStoredAuth) {
@@ -56,7 +54,7 @@ class GoogleAuthService {
           await _clearAuthData();
         }
       }
-      
+
       return null;
     } catch (e) {
       // Clear potentially corrupted stored data
@@ -70,18 +68,16 @@ class GoogleAuthService {
       if (!_googleSignIn.supportsAuthenticate()) {
         throw Exception("Google Sign-In authenticate not supported on this platform.");
       }
-      
+
       // First, try to sign out any existing user to clear state
       await _googleSignIn.signOut();
-      
+
       // Attempt sign-in with proper error handling
-      final account = await _googleSignIn.authenticate(
-        scopeHint: ['email', 'profile'],
-      );
-      
+      final account = await _googleSignIn.authenticate(scopeHint: ['email', 'profile']);
+
       // Save authentication data to SharedPreferences on successful sign-in
       await _saveAuthData(account);
-          
+
       return account;
     } on GoogleSignInException catch (e) {
       // Handle specific error codes
@@ -90,7 +86,7 @@ class GoogleAuthService {
       } else {
         // Google Sign-In error
       }
-      
+
       rethrow;
     } catch (e) {
       rethrow;
@@ -111,12 +107,9 @@ class GoogleAuthService {
   /// Clear authentication data from SharedPreferences
   Future<void> _clearAuthData() async {
     try {
-      await SharedPrefService.remove(Constants.loginEmailKey);
-      await SharedPrefService.remove(Constants.loginUserIdKey);
-      await SharedPrefService.remove(Constants.loginUsernameKey);
-      await SharedPrefService.remove(Constants.loginTokenKey);
+      await SharedPrefService.clearAuthData();
     } catch (e) {
-      // Error clearing authentication data
+      // Log error but don't throw - this is cleanup operation
     }
   }
 
@@ -142,7 +135,7 @@ class GoogleAuthService {
       await SharedPrefService.setString(Constants.loginEmailKey, account.email);
       await SharedPrefService.setString(Constants.loginUserIdKey, account.id);
       await SharedPrefService.setString(Constants.loginUsernameKey, account.displayName ?? '');
-      
+
       // Get authentication token if available
       final auth = account.authentication;
       if (auth.idToken != null) {

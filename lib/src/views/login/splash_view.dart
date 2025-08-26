@@ -19,13 +19,11 @@ class _SplashViewState extends State<SplashView> {
       backgroundColor: AppColors.primary,
       body: GetX<AuthController>(
         builder: (controller) {
-          if (!controller.isInitializing) {
-            return Center(
-              child: Image.asset(Assets.images.logo, width: Get.width * 0.5),
-            );
+          if (controller.isInitializing) {
+            return Center(child: Image.asset(Assets.images.logo, width: Get.width * 0.5));
           }
 
-          // This should not be reached as navigation happens in controller,
+          // This shoulx not be reached as navigation happens in controller,
           // but keeping as fallback
           return const LoginView();
         },

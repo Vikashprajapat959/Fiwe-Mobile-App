@@ -12,8 +12,7 @@ class Strings {
 
   // Signup screen
   static const String signUpTitle = 'Sign up';
-  static const String signUpSubtitle =
-      'Enter your details to create\nyour account';
+  static const String signUpSubtitle = 'Enter your details to create\nyour account';
   static const String nameHint = 'Your Name';
   static const String emailHint = 'Your Email';
   static const String dateOfBirthHint = 'Date of birth';
@@ -34,14 +33,13 @@ class Strings {
   static const String pinCodeRequired = 'Pin code is required';
   static const String pinCodeInvalid = 'Pin code must be 6 digits';
   static const String termsRequired = 'Please accept terms and conditions';
+  static const String profilePictureRequired = 'Please select a profile picture';
 
   // Success/Error messages
   static const String signUpSuccess = 'Account created successfully!';
-  static const String signUpError =
-      'Failed to create account. Please try again.';
+  static const String signUpError = 'Failed to create account. Please try again.';
   static const String authError = 'Authentication failed. Please try again.';
-  static const String networkError =
-      'Network error. Please check your connection.';
+  static const String networkError = 'Network error. Please check your connection.';
 
   // Loading messages
   static const String signingUp = 'Creating your account...';

@@ -43,13 +43,14 @@ class AuthController extends GetxController {
     try {
       _isSigningUp(true);
 
-      // Create user profile
+      // Get current ID token
       String? idToken;
       if (_user.value != null) {
         final auth = _user.value!.authentication;
         idToken = auth.idToken;
       }
 
+      // Update the profile in controller with complete information
       final profile = SocialProfile(
         name: name,
         email: email,
@@ -61,26 +62,14 @@ class AuthController extends GetxController {
         isRegistered: true,
       );
 
-      // Save user profile to shared preferences
-      await SharedPrefService.saveUserProfile(profile);
-      await SharedPrefService.markUserAsRegistered();
-
       _userProfile(profile);
 
-      Get.snackbar(
-        'Success',
-        Strings.signUpSuccess,
-        duration: const Duration(seconds: 3),
-      );
+      Get.snackbar('Success', Strings.signUpSuccess, duration: const Duration(seconds: 3));
 
       // Navigate to home
       _navigateToHome();
     } catch (e) {
-      Get.snackbar(
-        'Error',
-        '${Strings.signUpError} $e',
-        duration: const Duration(seconds: 3),
-      );
+      Get.snackbar('Error', '${Strings.signUpError} $e', duration: const Duration(seconds: 3));
     } finally {
       _isSigningUp(false);
     }
@@ -98,11 +87,6 @@ class AuthController extends GetxController {
   /// Check if user has stored authentication data
   Future<bool> hasStoredAuthData() async {
     return await _authService.hasStoredAuthData();
-  }
-
-  /// Check if user is registered (completed signup)
-  Future<bool> isUserRegistered() async {
-    return await SharedPrefService.isUserRegistered();
   }
 
   @override
@@ -139,43 +123,31 @@ class AuthController extends GetxController {
       final body = {'id_token': idToken};
 
       // Send POST request to the backend
-      final response = await _httpService.post(
-        Endpoints.idToken, // Root endpoint of example.com
-        body: body,
-      );
-      // Parse and return the response
+      final response = await _httpService.post(Endpoints.idToken, body: body);
+
+      // Parse the response
       if (response.body.isNotEmpty) {
-        return Map<String, dynamic>.from(json.decode(response.body));
-      }
-      // Check if response contains access and refresh tokens
-      final responseData = Map<String, dynamic>.from(
-        json.decode(response.body),
-      );
+        final responseData = Map<String, dynamic>.from(json.decode(response.body));
 
-      if (responseData.containsKey('access')) {
-        await SharedPrefService.setString(
-          Constants.bearerTokenKey,
-          responseData['access'],
-        );
+        // Save tokens to SharedPreferences (only tokens, not profile)
+        if (responseData.containsKey('access')) {
+          await SharedPrefService.setString(Constants.bearerTokenKey, responseData['access']);
+        }
+
+        if (responseData.containsKey('refresh')) {
+          await SharedPrefService.setString(Constants.bearerTokenRefreshKey, responseData['refresh']);
+        }
+
+        return responseData;
       }
 
-      if (responseData.containsKey('refresh')) {
-        await SharedPrefService.setString(
-          Constants.bearerTokenRefreshKey,
-          responseData['refresh'],
-        );
-      }
       return {'success': true, 'message': 'Token sent successfully'};
     } catch (e) {
       if (kDebugMode) {
         print('Error sending ID token to backend: $e');
       }
 
-      Get.snackbar(
-        'API Error',
-        'Failed to send authentication token: $e',
-        duration: const Duration(seconds: 3),
-      );
+      Get.snackbar('API Error', 'Failed to send authentication token: $e', duration: const Duration(seconds: 3));
 
       return null;
     }
@@ -192,32 +164,12 @@ class AuthController extends GetxController {
         );
         return;
       }
+
+      // Set user - this will trigger userStream listener which handles the rest
       _user(account);
-
-      // Save basic Google account data
-      await _saveGoogleAccountData(account);
-
-      // Send ID token to backend
-      await sendIdTokenToBackend();
-
-      // Check if user has completed registration
-      final isRegistered = await SharedPrefService.isUserRegistered();
-
-      if (isRegistered) {
-        // Load complete user profile
-        _userProfile.value = await SharedPrefService.getUserProfile();
-        _navigateToHome();
-      } else {
-        // Navigate to signup to complete registration
-        _navigateToSignUp();
-      }
     } on GoogleSignInException catch (e) {
       if (e.code == GoogleSignInExceptionCode.canceled) {
-        Get.snackbar(
-          'Sign-in Cancelled',
-          'The sign-in process was cancelled.',
-          duration: const Duration(seconds: 3),
-        );
+        Get.snackbar('Sign-in Cancelled', 'The sign-in process was cancelled.', duration: const Duration(seconds: 3));
       } else {
         Get.snackbar(
           'Google Sign-In Error',
@@ -233,9 +185,9 @@ class AuthController extends GetxController {
   Future<void> signOut() async {
     try {
       await _authService.signOut();
-      await SharedPrefService.clearUserData();
-      SharedPrefService.remove(Constants.bearerTokenKey);
-      SharedPrefService.remove(Constants.bearerTokenRefreshKey);
+      // Clear tokens from SharedPreferences
+      await SharedPrefService.clearAuthData();
+      // Clear controller state
       _user(null);
       _userProfile(null);
       _navigateToLogin();
@@ -251,21 +203,51 @@ class AuthController extends GetxController {
     }
   }
 
+  /// Create social profile in controller (not saved to SharedPreferences)
+  Future<void> _createSocialProfile(GoogleSignInAccount account) async {
+    try {
+      final auth = account.authentication;
+
+      // Create profile and store only in controller observable
+      final profile = SocialProfile(
+        email: account.email,
+        displayName: account.displayName,
+        idToken: auth.idToken,
+        isRegistered: false, // Will be determined by backend
+      );
+
+      _userProfile(profile);
+    } catch (e) {
+      // Log error but don't block authentication flow
+      if (kDebugMode) {
+        print('Error creating social profile: $e');
+      }
+      throw Exception('Failed to create social profile: $e');
+    }
+  }
+
   Future<void> _handleAuthenticatedUser(GoogleSignInAccount account) async {
     try {
-      // Save Google account data
-      await _saveGoogleAccountData(account);
+      // Create social profile in controller (not saved to SharedPreferences)
+      await _createSocialProfile(account);
 
-      // Check if user has completed registration
-      final isRegistered = await SharedPrefService.isUserRegistered();
+      // Send ID token to backend and get response with is_new flag
+      final backendResponse = await sendIdTokenToBackend();
 
-      if (isRegistered) {
-        // Load complete user profile
-        _userProfile.value = await SharedPrefService.getUserProfile();
-        _navigateToHome();
+      if (backendResponse != null) {
+        // Check is_new flag from backend response
+        final isNew = backendResponse['is_new'] ?? false;
+
+        if (isNew) {
+          // New user - navigate to signup
+          _navigateToSignUp();
+        } else {
+          // Existing user - navigate to home
+          _navigateToHome();
+        }
       } else {
-        // Navigate to signup to complete registration
-        _navigateToSignUp();
+        // Fallback: If backend call fails, navigate to login
+        _navigateToLogin();
       }
     } catch (e) {
       if (kDebugMode) {
@@ -279,13 +261,15 @@ class AuthController extends GetxController {
     try {
       _isInitializing(true);
 
-      // Load stored user profile first
-      _userProfile.value = await SharedPrefService.getUserProfile();
-
       // Initialize the auth service and attempt to restore session
       final account = await _authService.initialize();
       _user(account);
-      sendIdTokenToBackend().then((value) {});
+
+      // If user is authenticated, create social profile
+      if (account != null) {
+        await _createSocialProfile(account);
+      }
+
       // Set up stream listener for auth events (only for future changes)
       _authService.userStream.listen((newAccount) {
         // Only handle changes, not initial state
@@ -306,10 +290,7 @@ class AuthController extends GetxController {
       _checkNavigationReady();
     } catch (e) {
       _isInitializing(false);
-      Get.snackbar(
-        'Initialization Error',
-        'Failed to initialize authentication: $e',
-      );
+      Get.snackbar('Initialization Error', 'Failed to initialize authentication: $e');
 
       // Check if we can navigate (wait for splash timer)
       _checkNavigationReady();
@@ -352,25 +333,6 @@ class AuthController extends GetxController {
       _handleAuthenticatedUser(_user.value!);
     } else {
       _navigateToLogin();
-    }
-  }
-
-  Future<void> _saveGoogleAccountData(GoogleSignInAccount account) async {
-    try {
-      final auth = account.authentication;
-
-      final profile = SocialProfile(
-        email: account.email,
-        displayName: account.displayName,
-        idToken: auth.idToken,
-        isRegistered: await SharedPrefService.isUserRegistered(),
-      );
-      await SharedPrefService.saveUserProfile(profile);
-    } catch (e) {
-      // Log error but don't block authentication flow
-      if (kDebugMode) {
-        print('Error saving Google account data: $e');
-      }
     }
   }
 
