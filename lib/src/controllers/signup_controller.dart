@@ -349,19 +349,19 @@ class SignUpController extends GetxController {
     }
   }
 
-  /// Pre-populate form data from Google Sign-In
+  /// Pre-populate form data from authentication provider
   void _prePopulateData() {
     final AuthController authController = Get.find();
-    final user = authController.user;
+    final userInfo = authController.currentUserInfo;
 
-    if (user != null) {
-      // Pre-fill email from Google account
-      emailController.text = user.email;
+    // Pre-fill email if available
+    if (userInfo['email'] != null) {
+      emailController.text = userInfo['email']!;
+    }
 
-      // Pre-fill name if available
-      if (user.displayName != null && user.displayName!.isNotEmpty) {
-        nameController.text = user.displayName!;
-      }
+    // Pre-fill name if available
+    if (userInfo['displayName'] != null && userInfo['displayName']!.isNotEmpty) {
+      nameController.text = userInfo['displayName']!;
     }
   }
 }

@@ -9,7 +9,9 @@ import 'package:fiwe/src/views/login/signup_view.dart';
 import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 
+import '../services/apple_auth_service.dart';
 import '../services/google_auth_service.dart';
 import '../services/http_service.dart';
 import '../services/shared_pref_service.dart';
@@ -17,20 +19,48 @@ import '../utils/constants.dart';
 import '../utils/strings.dart';
 
 class AuthController extends GetxController {
-  final GoogleAuthService _authService = GoogleAuthService();
+  final GoogleAuthService _googleAuthService = GoogleAuthService();
   final HttpService _httpService = HttpService();
-  final Rx<GoogleSignInAccount?> _user = Rx<GoogleSignInAccount?>(null);
+  final Rx<GoogleSignInAccount?> _googleUser = Rx<GoogleSignInAccount?>(null);
+  final Rx<AuthorizationCredentialAppleID?> _appleUser = Rx<AuthorizationCredentialAppleID?>(null);
   final RxBool _isInitializing = RxBool(true);
   final RxBool _isSigningUp = RxBool(false);
   final Rx<SocialProfile?> _userProfile = Rx<SocialProfile?>(null);
   final RxBool _isSplashComplete = RxBool(false);
+  final Rx<LoginProvider?> _currentProvider = Rx<LoginProvider?>(null);
+  final RxBool _isHandlingAuthentication = RxBool(false);
 
+  AuthorizationCredentialAppleID? get appleUser => _appleUser.value;
+  LoginProvider? get currentProvider => _currentProvider.value;
+
+  /// Get current user info regardless of provider
+  Map<String, String?> get currentUserInfo {
+    if (_googleUser.value != null) {
+      return {
+        'email': _googleUser.value!.email,
+        'displayName': _googleUser.value!.displayName,
+        'id': _googleUser.value!.id,
+      };
+    } else if (_appleUser.value != null) {
+      final fullName = _appleUser.value!.givenName != null && _appleUser.value!.familyName != null
+          ? '${_appleUser.value!.givenName} ${_appleUser.value!.familyName}'
+          : _appleUser.value!.givenName ?? _appleUser.value!.familyName ?? '';
+      return {
+        'email': _appleUser.value!.email,
+        'displayName': fullName.isEmpty ? null : fullName,
+        'id': _appleUser.value!.userIdentifier,
+      };
+    }
+    return {'email': null, 'displayName': null, 'id': null};
+  }
+
+  GoogleSignInAccount? get googleUser => _googleUser.value;
   bool get isInitializing => _isInitializing.value;
-  bool get isLoggedIn => _user.value != null;
+  bool get isLoggedIn => _googleUser.value != null || _appleUser.value != null;
   bool get isSigningUp => _isSigningUp.value;
   bool get isSplashComplete => _isSplashComplete.value;
-  bool get supportsAuthenticate => _authService.supportsAuthenticate;
-  GoogleSignInAccount? get user => _user.value;
+  bool get supportsAuthenticate => _googleAuthService.supportsAuthenticate;
+
   SocialProfile? get userProfile => _userProfile.value;
 
   Future<void> completeSignUp({
@@ -43,11 +73,13 @@ class AuthController extends GetxController {
     try {
       _isSigningUp(true);
 
-      // Get current ID token
+      // Get current ID token based on provider
       String? idToken;
-      if (_user.value != null) {
-        final auth = _user.value!.authentication;
+      if (_googleUser.value != null) {
+        final auth = _googleUser.value!.authentication;
         idToken = auth.idToken;
+      } else if (_appleUser.value != null) {
+        idToken = _appleUser.value!.identityToken;
       }
 
       // Update the profile in controller with complete information
@@ -57,7 +89,7 @@ class AuthController extends GetxController {
         dateOfBirth: dateOfBirth,
         pinCode: pinCode,
         profileImagePath: profileImage?.path,
-        displayName: _user.value?.displayName,
+        displayName: currentUserInfo['displayName'],
         idToken: idToken,
         isRegistered: true,
       );
@@ -84,14 +116,16 @@ class AuthController extends GetxController {
     }
   }
 
-  /// Check if user has stored authentication data
+  /// Check if user has stored authentication data from any provider
   Future<bool> hasStoredAuthData() async {
-    return await _authService.hasStoredAuthData();
+    final hasGoogle = await _googleAuthService.hasStoredAuthData();
+    final hasApple = await AppleAuthService.hasStoredAuthData();
+    return hasGoogle || hasApple;
   }
 
   @override
   void onClose() {
-    _authService.dispose();
+    _googleAuthService.dispose();
     super.onClose();
   }
 
@@ -102,25 +136,27 @@ class AuthController extends GetxController {
     _startSplashTimer();
   }
 
-  /// Send ID token to backend API
+  /// Send ID token to backend API (supports both Google and Apple)
   Future<Map<String, dynamic>?> sendIdTokenToBackend() async {
     try {
-      // Get the current signed-in user
-      final currentUser = _user.value;
-      if (currentUser == null) {
-        throw Exception('No user is currently signed in');
+      String? idToken;
+      String? provider;
+
+      if (_googleUser.value != null) {
+        final authentication = _googleUser.value!.authentication;
+        idToken = authentication.idToken;
+        provider = 'google';
+      } else if (_appleUser.value != null) {
+        idToken = _appleUser.value!.identityToken;
+        provider = 'apple';
       }
 
-      // Get fresh authentication credentials
-      final authentication = currentUser.authentication;
-      final idToken = authentication.idToken;
-
       if (idToken == null) {
-        throw Exception('Unable to get ID token from Google Sign-In');
+        throw Exception('Unable to get ID token from authentication provider');
       }
 
       // Prepare the request body
-      final body = {'id_token': idToken};
+      final body = {'id_token': idToken, 'provider': provider};
 
       // Send POST request to the backend
       final response = await _httpService.post(Endpoints.idToken, body: body);
@@ -153,20 +189,55 @@ class AuthController extends GetxController {
     }
   }
 
-  Future<void> signIn() async {
+  /// Sign in with Apple
+  Future<void> signInWithApple() async {
     try {
-      final account = await _authService.signIn();
-      if (account == null) {
+      final credential = await AppleAuthService.signIn();
+      if (credential == null) {
         Get.snackbar(
           'Authentication Failed',
-          'Unable to sign in. Please try again.',
+          'Unable to sign in with Apple. Please try again.',
           duration: const Duration(seconds: 3),
         );
         return;
       }
 
-      // Set user - this will trigger userStream listener which handles the rest
-      _user(account);
+      _appleUser(credential);
+      _googleUser(null); // Clear Google user if exists
+      _currentProvider(LoginProvider.apple);
+
+      // Create social profile and handle authentication
+      await _createSocialProfileFromApple(credential);
+      await _handleAuthenticatedUser();
+    } catch (e) {
+      if (kDebugMode) {
+        print('Apple Sign-In Error: $e');
+      }
+
+      Get.snackbar('Apple Sign-In Failed', 'Authentication failed: $e', duration: const Duration(seconds: 3));
+    }
+  }
+
+  /// Sign in with Google
+  Future<void> signInWithGoogle() async {
+    try {
+      final account = await _googleAuthService.signIn();
+      if (account == null) {
+        Get.snackbar(
+          'Authentication Failed',
+          'Unable to sign in with Google. Please try again.',
+          duration: const Duration(seconds: 3),
+        );
+        return;
+      }
+
+      _googleUser(account);
+      _appleUser(null); // Clear Apple user if exists
+      _currentProvider(LoginProvider.google);
+
+      // Create social profile and handle authentication
+      await _createSocialProfileFromGoogle(account);
+      await _handleAuthenticatedUser();
     } on GoogleSignInException catch (e) {
       if (e.code == GoogleSignInExceptionCode.canceled) {
         Get.snackbar('Sign-in Cancelled', 'The sign-in process was cancelled.', duration: const Duration(seconds: 3));
@@ -184,12 +255,25 @@ class AuthController extends GetxController {
 
   Future<void> signOut() async {
     try {
-      await _authService.signOut();
+      // Reset authentication handling flag
+      _isHandlingAuthentication(false);
+
+      // Sign out from the appropriate service
+      if (_currentProvider.value == LoginProvider.google) {
+        await _googleAuthService.signOut();
+      } else if (_currentProvider.value == LoginProvider.apple) {
+        await AppleAuthService.signOut();
+      }
+
       // Clear tokens from SharedPreferences
       await SharedPrefService.clearAuthData();
+
       // Clear controller state
-      _user(null);
+      _googleUser(null);
+      _appleUser(null);
       _userProfile(null);
+      _currentProvider(null);
+
       _navigateToLogin();
     } catch (e) {
       Get.snackbar('Error', 'Failed to sign out: $e');
@@ -203,12 +287,34 @@ class AuthController extends GetxController {
     }
   }
 
-  /// Create social profile in controller (not saved to SharedPreferences)
-  Future<void> _createSocialProfile(GoogleSignInAccount account) async {
+  /// Create social profile from Apple credential
+  Future<void> _createSocialProfileFromApple(AuthorizationCredentialAppleID credential) async {
+    try {
+      final fullName = credential.givenName != null && credential.familyName != null
+          ? '${credential.givenName} ${credential.familyName}'
+          : credential.givenName ?? credential.familyName ?? '';
+
+      final profile = SocialProfile(
+        email: credential.email,
+        displayName: fullName.isEmpty ? null : fullName,
+        idToken: credential.identityToken,
+        isRegistered: false, // Will be determined by backend
+      );
+
+      _userProfile(profile);
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error creating Apple social profile: $e');
+      }
+      throw Exception('Failed to create Apple social profile: $e');
+    }
+  }
+
+  /// Create social profile from Google account
+  Future<void> _createSocialProfileFromGoogle(GoogleSignInAccount account) async {
     try {
       final auth = account.authentication;
 
-      // Create profile and store only in controller observable
       final profile = SocialProfile(
         email: account.email,
         displayName: account.displayName,
@@ -218,18 +324,24 @@ class AuthController extends GetxController {
 
       _userProfile(profile);
     } catch (e) {
-      // Log error but don't block authentication flow
       if (kDebugMode) {
-        print('Error creating social profile: $e');
+        print('Error creating Google social profile: $e');
       }
-      throw Exception('Failed to create social profile: $e');
+      throw Exception('Failed to create Google social profile: $e');
     }
   }
 
-  Future<void> _handleAuthenticatedUser(GoogleSignInAccount account) async {
+  Future<void> _handleAuthenticatedUser() async {
+    // Prevent duplicate API calls during concurrent authentication handling
+    if (_isHandlingAuthentication.value) {
+      if (kDebugMode) {
+        print('Authentication already in progress, skipping duplicate call');
+      }
+      return;
+    }
+
     try {
-      // Create social profile in controller (not saved to SharedPreferences)
-      await _createSocialProfile(account);
+      _isHandlingAuthentication(true);
 
       // Send ID token to backend and get response with is_new flag
       final backendResponse = await sendIdTokenToBackend();
@@ -254,6 +366,8 @@ class AuthController extends GetxController {
         print('Error handling authenticated user: $e');
       }
       _navigateToLogin();
+    } finally {
+      _isHandlingAuthentication(false);
     }
   }
 
@@ -261,38 +375,69 @@ class AuthController extends GetxController {
     try {
       _isInitializing(true);
 
-      // Initialize the auth service and attempt to restore session
-      final account = await _authService.initialize();
-      _user(account);
+      // Try to restore existing authentication sessions
+      bool hasAuthentication = false;
 
-      // If user is authenticated, create social profile
-      if (account != null) {
-        await _createSocialProfile(account);
+      // Check for Google authentication
+      try {
+        final googleAccount = await _googleAuthService.initialize();
+        if (googleAccount != null) {
+          _googleUser(googleAccount);
+          _currentProvider(LoginProvider.google);
+          await _createSocialProfileFromGoogle(googleAccount);
+          hasAuthentication = true;
+        }
+      } catch (e) {
+        if (kDebugMode) {
+          print('Google auth initialization failed: $e');
+        }
       }
 
-      // Set up stream listener for auth events (only for future changes)
-      _authService.userStream.listen((newAccount) {
-        // Only handle changes, not initial state
-        if (_user.value != newAccount) {
-          _user(newAccount);
+      // If no Google auth, check for Apple auth (only if Apple Sign-In is available)
+      if (!hasAuthentication && await AppleAuthService.isAvailable) {
+        try {
+          final hasAppleAuth = await AppleAuthService.hasStoredAuthData();
+          if (hasAppleAuth) {
+            _currentProvider(LoginProvider.apple);
+            // Note: Apple doesn't provide automatic sign-in like Google
+            // We'll handle this in the navigation logic
+          }
+        } catch (e) {
+          if (kDebugMode) {
+            print('Apple auth check failed: $e');
+          }
+        }
+      }
+
+      // Set up Google stream listener for future changes
+      _googleAuthService.userStream.listen((newAccount) {
+        if (_googleUser.value != newAccount) {
+          _googleUser(newAccount);
+          _currentProvider(newAccount != null ? LoginProvider.google : null);
 
           if (newAccount != null) {
-            _handleAuthenticatedUser(newAccount);
-          } else {
-            _navigateToLogin();
+            _createSocialProfileFromGoogle(newAccount).then((_) {
+              // Only handle authentication if not already in progress and splash is complete
+              if (!_isHandlingAuthentication.value && _isSplashComplete.value) {
+                _handleAuthenticatedUser();
+              }
+            });
+          } else if (_appleUser.value == null) {
+            // Only navigate to login if no Apple user either and not handling auth
+            if (!_isHandlingAuthentication.value) {
+              _navigateToLogin();
+            }
           }
         }
       });
 
       _isInitializing(false);
-
-      // Check if we can navigate (wait for splash timer)
       _checkNavigationReady();
     } catch (e) {
       _isInitializing(false);
-      Get.snackbar('Initialization Error', 'Failed to initialize authentication: $e');
-
-      // Check if we can navigate (wait for splash timer)
+      if (kDebugMode) {
+        print('Auth initialization error: $e');
+      }
       _checkNavigationReady();
     }
   }
@@ -329,9 +474,11 @@ class AuthController extends GetxController {
 
   /// Perform navigation after both init and splash timer complete
   void _performNavigation() {
-    if (_user.value != null) {
-      _handleAuthenticatedUser(_user.value!);
+    if (isLoggedIn) {
+      // User is authenticated, proceed with backend verification
+      _handleAuthenticatedUser();
     } else {
+      // No authentication found, go to login
       _navigateToLogin();
     }
   }
@@ -344,3 +491,6 @@ class AuthController extends GetxController {
     });
   }
 }
+
+/// Enum for different login providers
+enum LoginProvider { google, apple }

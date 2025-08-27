@@ -9,6 +9,7 @@ class Strings {
   static const String loginSubtitle = 'Million of people\nconnect on fi.we';
   static const String loginWithGoogle = 'Continue with Google';
   static const String loginButton = 'Login';
+  static String loginWithApple = "Continue with Apple";
 
   // Signup screen
   static const String signUpTitle = 'Sign up';
