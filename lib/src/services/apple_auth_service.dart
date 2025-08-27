@@ -22,8 +22,8 @@ class AppleAuthService {
   /// Check if user has stored Apple authentication data
   static Future<bool> hasStoredAuthData() async {
     try {
-      final email = await SharedPrefService.getString(Constants.loginEmailKey);
-      final appleUserId = await SharedPrefService.getString(Constants.loginUserIdKey);
+      final email = await SharedPrefService.getString(Constants.storageLoginEmailKey);
+      final appleUserId = await SharedPrefService.getString(Constants.storageLoginUserIdKey);
       return email != null && appleUserId != null;
     } catch (e) {
       return false;
@@ -86,10 +86,10 @@ class AppleAuthService {
   /// Clear authentication data from SharedPreferences
   static Future<void> _clearAuthData() async {
     try {
-      await SharedPrefService.remove(Constants.loginEmailKey);
-      await SharedPrefService.remove(Constants.loginUserIdKey);
-      await SharedPrefService.remove(Constants.loginUsernameKey);
-      await SharedPrefService.remove(Constants.loginTokenKey);
+      await SharedPrefService.remove(Constants.storageLoginEmailKey);
+      await SharedPrefService.remove(Constants.storageLoginUserIdKey);
+      await SharedPrefService.remove(Constants.storageLoginUsernameKey);
+      await SharedPrefService.remove(Constants.storageLoginTokenKey);
     } catch (e) {
       // Log error but don't throw - this is cleanup operation
     }
@@ -100,12 +100,12 @@ class AppleAuthService {
     try {
       // Save email if available
       if (credential.email != null) {
-        await SharedPrefService.setString(Constants.loginEmailKey, credential.email!);
+        await SharedPrefService.setString(Constants.storageLoginEmailKey, credential.email!);
       }
 
       // Save user identifier (this should always be available)
       if (credential.userIdentifier != null && credential.userIdentifier!.isNotEmpty) {
-        await SharedPrefService.setString(Constants.loginUserIdKey, credential.userIdentifier!);
+        await SharedPrefService.setString(Constants.storageLoginUserIdKey, credential.userIdentifier!);
       }
 
       // Save display name if available
@@ -114,12 +114,12 @@ class AppleAuthService {
           : credential.givenName ?? credential.familyName ?? '';
 
       if (fullName.isNotEmpty) {
-        await SharedPrefService.setString(Constants.loginUsernameKey, fullName);
+        await SharedPrefService.setString(Constants.storageLoginUsernameKey, fullName);
       }
 
       // Save identity token if available
       if (credential.identityToken != null) {
-        await SharedPrefService.setString(Constants.loginTokenKey, credential.identityToken!);
+        await SharedPrefService.setString(Constants.storageLoginTokenKey, credential.identityToken!);
       }
     } catch (e) {
       // Log error but don't throw - authentication can proceed without local storage

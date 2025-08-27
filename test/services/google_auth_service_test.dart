@@ -27,8 +27,8 @@ void main() {
 
     test('hasStoredAuthData should return true when auth data is stored', () async {
       // Simulate stored auth data
-      await SharedPrefService.setString(Constants.loginEmailKey, 'test@example.com');
-      await SharedPrefService.setString(Constants.loginTokenKey, 'mock_token');
+      await SharedPrefService.setString(Constants.storageLoginEmailKey, 'test@example.com');
+      await SharedPrefService.setString(Constants.storageLoginTokenKey, 'mock_token');
 
       final hasData = await authService.hasStoredAuthData();
       expect(hasData, true);
@@ -36,7 +36,7 @@ void main() {
 
     test('hasStoredAuthData should return false when only partial data is stored', () async {
       // Store only email, no token
-      await SharedPrefService.setString(Constants.loginEmailKey, 'test@example.com');
+      await SharedPrefService.setString(Constants.storageLoginEmailKey, 'test@example.com');
 
       final hasData = await authService.hasStoredAuthData();
       expect(hasData, false);
@@ -49,16 +49,16 @@ void main() {
       const testUsername = 'Test User';
 
       // Store test data
-      await SharedPrefService.setString(Constants.loginEmailKey, testEmail);
-      await SharedPrefService.setString(Constants.loginTokenKey, testToken);
-      await SharedPrefService.setString(Constants.loginUserIdKey, testUserId);
-      await SharedPrefService.setString(Constants.loginUsernameKey, testUsername);
+      await SharedPrefService.setString(Constants.storageLoginEmailKey, testEmail);
+      await SharedPrefService.setString(Constants.storageLoginTokenKey, testToken);
+      await SharedPrefService.setString(Constants.storageLoginUserIdKey, testUserId);
+      await SharedPrefService.setString(Constants.storageLoginUsernameKey, testUsername);
 
       // Retrieve and verify data
-      final email = await SharedPrefService.getString(Constants.loginEmailKey);
-      final token = await SharedPrefService.getString(Constants.loginTokenKey);
-      final userId = await SharedPrefService.getString(Constants.loginUserIdKey);
-      final username = await SharedPrefService.getString(Constants.loginUsernameKey);
+      final email = await SharedPrefService.getString(Constants.storageLoginEmailKey);
+      final token = await SharedPrefService.getString(Constants.storageLoginTokenKey);
+      final userId = await SharedPrefService.getString(Constants.storageLoginUserIdKey);
+      final username = await SharedPrefService.getString(Constants.storageLoginUsernameKey);
 
       expect(email, testEmail);
       expect(token, testToken);
@@ -68,26 +68,26 @@ void main() {
 
     test('SharedPrefService should clear data correctly', () async {
       // Store test data
-      await SharedPrefService.setString(Constants.loginEmailKey, 'test@example.com');
-      await SharedPrefService.setString(Constants.loginTokenKey, 'mock_token');
+      await SharedPrefService.setString(Constants.storageLoginEmailKey, 'test@example.com');
+      await SharedPrefService.setString(Constants.storageLoginTokenKey, 'mock_token');
 
       // Verify data is stored
-      expect(await SharedPrefService.getString(Constants.loginEmailKey), isNotNull);
-      expect(await SharedPrefService.getString(Constants.loginTokenKey), isNotNull);
+      expect(await SharedPrefService.getString(Constants.storageLoginEmailKey), isNotNull);
+      expect(await SharedPrefService.getString(Constants.storageLoginTokenKey), isNotNull);
 
       // Clear specific keys
-      await SharedPrefService.remove(Constants.loginEmailKey);
-      await SharedPrefService.remove(Constants.loginTokenKey);
+      await SharedPrefService.remove(Constants.storageLoginEmailKey);
+      await SharedPrefService.remove(Constants.storageLoginTokenKey);
 
       // Verify data is cleared
-      expect(await SharedPrefService.getString(Constants.loginEmailKey), isNull);
-      expect(await SharedPrefService.getString(Constants.loginTokenKey), isNull);
+      expect(await SharedPrefService.getString(Constants.storageLoginEmailKey), isNull);
+      expect(await SharedPrefService.getString(Constants.storageLoginTokenKey), isNull);
     });
 
     test('GoogleAuthService should handle authentication state properly', () async {
       // Test initial state
       expect(authService.supportsAuthenticate, isA<bool>());
-      
+
       // Test stream access
       expect(authService.userStream, isA<Stream>());
     });

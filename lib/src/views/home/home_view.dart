@@ -1,5 +1,5 @@
-import 'package:fiwe/src/controllers/auth_controller.dart' show AuthController;
-import 'package:fiwe/src/utils/loading_overlay.dart';
+import 'package:fiwe/src/controllers/auth_controller.dart';
+import 'package:fiwe/src/views/login/login_view.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -8,27 +8,48 @@ class HomeView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final AuthController controller = Get.find();
     return Scaffold(
       appBar: AppBar(
+        title: const Text('Home'),
         actions: [
-          TextButton(
-            onPressed: controller.signOut,
-            child: const Text('Sign Out'),
-          ),
-          TextButton(
+          IconButton(
+            icon: const Icon(Icons.logout),
             onPressed: () {
-              controller.executeWithLoading(
-                Future.delayed(Duration(seconds: 15)),
-                message: "Something is loading...",
-                canDismiss: true,
+              // TODO: Implement sign out functionality
+              showDialog(
+                context: context,
+                builder: (BuildContext context) {
+                  return AlertDialog(
+                    title: const Text('Sign Out'),
+                    content: const Text('Are you sure you want to sign out?'),
+                    actions: [
+                      TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('Cancel')),
+                      TextButton(
+                        onPressed: () {
+                          // Add your sign out logic here
+                          // Call auth controller sign out method
+                          // You may need to inject AuthController or get it from a state management solution
+                          Get.find<AuthController>().signOut();
+                          // Or: context.read<AuthController>().signOut();
+                          // Or: AuthService.instance.signOut();
+
+                          // For now, adding a placeholder that can be replaced with actual auth logic
+                          debugPrint('User signed out');
+                          // Navigate to login/welcome screen after sign out
+                          Get.offAll(() => const LoginView());
+                          Navigator.of(context).pop();
+                        },
+                        child: const Text('Sign Out'),
+                      ),
+                    ],
+                  );
+                },
               );
             },
-            child: const Text('Sign In'),
           ),
         ],
       ),
-      body: const Center(child: Text("Home")),
+      body: const Center(child: Text('Welcome to Home View', style: TextStyle(fontSize: 24))),
     );
   }
 }

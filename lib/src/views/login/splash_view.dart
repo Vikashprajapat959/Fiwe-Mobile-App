@@ -1,7 +1,6 @@
 import 'package:fiwe/src/controllers/auth_controller.dart';
 import 'package:fiwe/src/utils/assets.dart';
 import 'package:fiwe/src/utils/colors.dart';
-import 'package:fiwe/src/views/login/login_view.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -17,17 +16,18 @@ class _SplashViewState extends State<SplashView> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.primary,
-      body: GetX<AuthController>(
-        builder: (controller) {
-          if (controller.isInitializing) {
-            return Center(child: Image.asset(Assets.images.logo, width: Get.width * 0.5));
-          }
+      body: Center(child: Image.asset(Assets.images.logo, width: Get.width * 0.5)),
+      // body: GetX<AuthController>(
+      //   builder: (controller) {
+      //     // if (controller.isInitializing) {
+      //     return Center(child: Image.asset(Assets.images.logo, width: Get.width * 0.5));
+      //     // }
 
-          // This shoulx not be reached as navigation happens in controller,
-          // but keeping as fallback
-          return const LoginView();
-        },
-      ),
+      //     // This should not be reached as navigation happens in controller,
+      //     // but keeping as fallback
+      //     // return const LoginView();
+      //   },
+      // ),
     );
   }
 

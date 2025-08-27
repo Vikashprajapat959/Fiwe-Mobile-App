@@ -22,16 +22,16 @@ class SharedPrefService {
   static Future<void> clearAuthData() async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      
+
       // Clear current token keys
-      await prefs.remove(Constants.bearerTokenKey);
-      await prefs.remove(Constants.bearerTokenRefreshKey);
-      
+      await prefs.remove(Constants.storageBearerTokenKey);
+      await prefs.remove(Constants.storageBearerTokenRefreshKey);
+
       // Clear legacy auth keys
-      await prefs.remove(Constants.loginTokenKey);
-      await prefs.remove(Constants.loginUserIdKey);
-      await prefs.remove(Constants.loginUsernameKey);
-      await prefs.remove(Constants.loginEmailKey);
+      await prefs.remove(Constants.storageLoginTokenKey);
+      await prefs.remove(Constants.storageLoginUserIdKey);
+      await prefs.remove(Constants.storageLoginUsernameKey);
+      await prefs.remove(Constants.storageLoginEmailKey);
     } catch (e) {
       throw Exception('Failed to clear auth data: $e');
     }

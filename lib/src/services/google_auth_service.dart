@@ -25,8 +25,8 @@ class GoogleAuthService {
   /// Check if user has stored authentication data
   Future<bool> hasStoredAuthData() async {
     try {
-      final email = await SharedPrefService.getString(Constants.loginEmailKey);
-      final token = await SharedPrefService.getString(Constants.loginTokenKey);
+      final email = await SharedPrefService.getString(Constants.storageLoginEmailKey);
+      final token = await SharedPrefService.getString(Constants.storageLoginTokenKey);
       return email != null && token != null;
     } catch (e) {
       return false;
@@ -132,14 +132,14 @@ class GoogleAuthService {
   /// Save authentication data to SharedPreferences
   Future<void> _saveAuthData(GoogleSignInAccount account) async {
     try {
-      await SharedPrefService.setString(Constants.loginEmailKey, account.email);
-      await SharedPrefService.setString(Constants.loginUserIdKey, account.id);
-      await SharedPrefService.setString(Constants.loginUsernameKey, account.displayName ?? '');
+      await SharedPrefService.setString(Constants.storageLoginEmailKey, account.email);
+      await SharedPrefService.setString(Constants.storageLoginUserIdKey, account.id);
+      await SharedPrefService.setString(Constants.storageLoginUsernameKey, account.displayName ?? '');
 
       // Get authentication token if available
       final auth = account.authentication;
       if (auth.idToken != null) {
-        await SharedPrefService.setString(Constants.loginTokenKey, auth.idToken!);
+        await SharedPrefService.setString(Constants.storageLoginTokenKey, auth.idToken!);
       }
     } catch (e) {
       // Error saving authentication data

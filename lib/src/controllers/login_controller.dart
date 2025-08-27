@@ -1,6 +1,7 @@
 import 'package:get/get.dart';
 
 import '../services/apple_auth_service.dart';
+import '../utils/constants.dart';
 import '../utils/strings.dart';
 import 'auth_controller.dart';
 
@@ -19,7 +20,7 @@ class LoginController extends GetxController {
 
   /// Show app information
   void showAppInfo() {
-    Get.snackbar(Strings.appName, 'Version 1.0.0', duration: const Duration(seconds: 2));
+    Get.snackbar(Strings.appName, Strings.appVersion, duration: Duration(seconds: Constants.appInfoDurationSeconds));
   }
 
   /// Handle Apple Sign-In
@@ -30,7 +31,11 @@ class LoginController extends GetxController {
       final AuthController authController = Get.find();
       await authController.signInWithApple();
     } catch (e) {
-      Get.snackbar('Error', '${Strings.authError} $e', duration: const Duration(seconds: 3));
+      Get.snackbar(
+        Strings.error,
+        Strings.formatErrorMessage(Strings.authError, e),
+        duration: Duration(seconds: Constants.snackbarDurationSeconds),
+      );
     } finally {
       _isLoading.value = false;
     }
@@ -44,7 +49,11 @@ class LoginController extends GetxController {
       final AuthController authController = Get.find();
       await authController.signInWithGoogle();
     } catch (e) {
-      Get.snackbar('Error', '${Strings.authError} $e', duration: const Duration(seconds: 3));
+      Get.snackbar(
+        Strings.error,
+        Strings.formatErrorMessage(Strings.authError, e),
+        duration: Duration(seconds: Constants.snackbarDurationSeconds),
+      );
     } finally {
       _isLoading.value = false;
     }
