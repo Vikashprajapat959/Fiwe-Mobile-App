@@ -1,6 +1,7 @@
 import 'package:fiwe/src/utils/colors.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import '../../controllers/signup_controller.dart';
 import '../../utils/constants.dart';
@@ -66,7 +67,7 @@ class SignUpView extends StatelessWidget {
                 // Name Field
                 AppTextField(
                   hintText: Strings.nameHint,
-                  prefixIcon: Icons.person_outline,
+                  prefixIcon: LucideIcons.userPen,
                   controller: controller.nameController,
                   validator: controller.validateName,
                   textCapitalization: TextCapitalization.words,
@@ -75,17 +76,46 @@ class SignUpView extends StatelessWidget {
                 // Email Field
                 AppTextField(
                   hintText: Strings.emailHint,
-                  prefixIcon: Icons.email_outlined,
+                  prefixIcon: LucideIcons.mail,
                   controller: controller.emailController,
                   keyboardType: TextInputType.emailAddress,
                   validator: controller.validateEmail,
                   readOnly: true, // Pre-filled from Google Sign-In
                 ).paddingOnly(bottom: 14),
 
+                // Phone Number Field
+                Obx(
+                  () => Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      AppTextField(
+                        hintText: Strings.phoneHint,
+                        prefixIcon: LucideIcons.phone,
+                        controller: controller.phoneController,
+                        keyboardType: TextInputType.phone,
+                        validator: controller.validatePhone,
+                        maxLength: Constants.phoneMaxLength,
+                        readOnly: controller.isPhoneVerified,
+                      ),
+                      if (controller.isPhoneVerified)
+                        Padding(
+                          padding: const EdgeInsets.only(top: 4, left: 16),
+                          child: Row(
+                            children: [
+                              Icon(Icons.check_circle, color: Colors.green, size: 16),
+                              SizedBox(width: 4),
+                              Text('Phone number verified', style: TextStyle(color: Colors.green, fontSize: 12)),
+                            ],
+                          ),
+                        ),
+                    ],
+                  ).paddingOnly(bottom: 14),
+                ),
+
                 // Date of Birth Field
                 AppTextField(
                   hintText: Strings.dateOfBirthHint,
-                  prefixIcon: Icons.calendar_today_outlined,
+                  prefixIcon: LucideIcons.calendar,
                   controller: controller.dateOfBirthController,
                   readOnly: true,
                   onTap: controller.selectDateOfBirth,
@@ -95,7 +125,7 @@ class SignUpView extends StatelessWidget {
                 // Pin Code Field
                 AppTextField(
                   hintText: Strings.pinCodeHint,
-                  prefixIcon: Icons.location_on_outlined,
+                  prefixIcon: LucideIcons.mapPin,
                   controller: controller.pinCodeController,
                   keyboardType: TextInputType.number,
                   validator: controller.validatePinCode,
@@ -110,10 +140,7 @@ class SignUpView extends StatelessWidget {
                 const SizedBox(height: 32),
 
                 // Sign Up Button with GetX
-                AppButtonElevated(
-                  text: Strings.signUpButton,
-                  onPressed: controller.handleSignUp,
-                ),
+                AppButtonElevated(text: Strings.signUpButton, onPressed: controller.handleSignUp),
 
                 const SizedBox(height: 24),
               ],
@@ -129,36 +156,27 @@ class SignUpView extends StatelessWidget {
     return Stack(
       children: [
         Container(
+          padding: EdgeInsets.all(2),
           width: Constants.profileImageSize,
           height: Constants.profileImageSize,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
             color: AppColors.surface,
             border: Border.all(color: AppColors.borderDark, width: 1),
-            image: controller.selectedProfileImage != null
-                ? DecorationImage(
-                    image: FileImage(controller.selectedProfileImage!),
-                    fit: BoxFit.cover,
-                  )
-                : null,
           ),
           child: controller.selectedProfileImage == null
               ? Container(
-                  margin: const EdgeInsets.all(4),
-                  height: Constants.profileImageSize - 4,
-                  width: Constants.profileImageSize - 4,
                   alignment: Alignment.center,
-                  decoration: const BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: AppColors.backgroundLight,
-                  ),
-                  child: const Icon(
-                    Icons.person_outline,
-                    size: 48,
-                    color: AppColors.primary,
-                  ),
+                  decoration: const BoxDecoration(shape: BoxShape.circle, color: AppColors.backgroundLight),
+                  child: const Icon(LucideIcons.user, size: 48, color: AppColors.primary),
                 )
-              : null,
+              : Container(
+                  decoration: BoxDecoration(
+                    image: DecorationImage(image: FileImage(controller.selectedProfileImage!), fit: BoxFit.cover),
+                    shape: BoxShape.circle,
+                    border: Border.all(color: AppColors.backgroundLight, width: 2),
+                  ),
+                ),
         ),
         Positioned(bottom: 0, right: 0, child: const _CameraIconButton()),
       ],
@@ -179,9 +197,7 @@ class SignUpView extends StatelessWidget {
               value: controller.acceptTerms,
               onChanged: controller.toggleTermsAcceptance,
               activeColor: AppColors.primary,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(4),
-              ),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
             ),
           ),
           const SizedBox(width: 12),
@@ -199,11 +215,7 @@ class SignUpView extends StatelessWidget {
                   onTap: controller.openPrivacyPolicy,
                   child: Text(
                     Strings.privacyPolicy,
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: AppColors.primary,
-                      decoration: TextDecoration.underline,
-                    ),
+                    style: TextStyle(fontSize: 14, color: AppColors.primary, decoration: TextDecoration.underline),
                   ),
                 ),
                 Text(
@@ -217,11 +229,7 @@ class SignUpView extends StatelessWidget {
                   onTap: controller.openTermsAndConditions,
                   child: Text(
                     Strings.termsConditions,
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: AppColors.primary,
-                      decoration: TextDecoration.underline,
-                    ),
+                    style: TextStyle(fontSize: 14, color: AppColors.primary, decoration: TextDecoration.underline),
                   ),
                 ),
               ],
@@ -242,11 +250,8 @@ class _CameraIconButton extends StatelessWidget {
     return Container(
       width: 36,
       height: 36,
-      decoration: const BoxDecoration(
-        shape: BoxShape.circle,
-        color: Color(0xFF0891B2),
-      ),
-      child: const Icon(Icons.camera_alt, color: Colors.white, size: 20),
+      decoration: const BoxDecoration(shape: BoxShape.circle, color: AppColors.primary),
+      child: Icon(LucideIcons.camera, color: Colors.white),
     );
   }
 }

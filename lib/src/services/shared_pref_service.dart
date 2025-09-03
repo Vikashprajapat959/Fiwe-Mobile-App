@@ -67,6 +67,16 @@ class SharedPrefService {
     }
   }
 
+  /// Get string list value
+  static Future<List<String>?> getStringList(String key) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      return prefs.getStringList(key);
+    } catch (e) {
+      return null;
+    }
+  }
+
   /// Remove specific key
   static Future<void> remove(String key) async {
     try {
@@ -104,6 +114,16 @@ class SharedPrefService {
       await prefs.setString(key, value);
     } catch (e) {
       throw Exception('Failed to set string for key $key: $e');
+    }
+  }
+
+  /// Set string list value
+  static Future<void> setStringList(String key, List<String> value) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setStringList(key, value);
+    } catch (e) {
+      throw Exception('Failed to set string list for key $key: $e');
     }
   }
 }

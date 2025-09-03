@@ -31,9 +31,7 @@ class SocialLoginButton extends StatelessWidget {
         onPressed: onPressed,
         style: ElevatedButton.styleFrom(
           backgroundColor: backgroundColor,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(borderRadius),
-          ),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(borderRadius)),
           elevation: 2,
         ),
         child: Row(
@@ -43,11 +41,7 @@ class SocialLoginButton extends StatelessWidget {
             const SizedBox(width: 12),
             Text(
               title,
-              style: TextStyle(
-                color: titleColor,
-                fontSize: 16,
-                fontWeight: FontWeight.w500,
-              ),
+              style: TextStyle(color: titleColor, fontSize: 16, fontWeight: FontWeight.w500),
             ),
           ],
         ),

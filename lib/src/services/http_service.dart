@@ -12,16 +12,12 @@ class HttpService {
   final bool enableLogging;
 
   HttpService({
-    this.baseUrl = "https://fiwe-backend.onrender.com/api",
-    this.defaultHeaders = const {'Content-Type': 'application/json'},
+    this.baseUrl = "http://139.59.64.68/api",
+    this.defaultHeaders = const {'Content-Type': 'application/json', 'accept': 'application/json'},
     this.enableLogging = kDebugMode,
   });
 
-  Future<http.Response> delete(
-    String endpoint, {
-    Map<String, dynamic>? body,
-    Map<String, String>? headers,
-  }) async {
+  Future<http.Response> delete(String endpoint, {Map<String, dynamic>? body, Map<String, String>? headers}) async {
     final uri = _buildUri(endpoint);
     final requestHeaders = {...defaultHeaders, ...?headers};
     final requestBody = body != null ? jsonEncode(body) : null;
@@ -32,11 +28,7 @@ class HttpService {
     final stopwatch = Stopwatch()..start();
 
     try {
-      final response = await http.delete(
-        uri,
-        headers: requestHeaders,
-        body: requestBody,
-      );
+      final response = await http.delete(uri, headers: requestHeaders, body: requestBody);
 
       stopwatch.stop();
 
@@ -57,11 +49,7 @@ class HttpService {
     }
   }
 
-  Future<http.Response> get(
-    String endpoint, {
-    Map<String, dynamic>? queryParams,
-    Map<String, String>? headers,
-  }) async {
+  Future<http.Response> get(String endpoint, {Map<String, dynamic>? queryParams, Map<String, String>? headers}) async {
     final uri = _buildUri(endpoint, queryParams);
     final requestHeaders = {...defaultHeaders, ...?headers};
 
@@ -92,11 +80,7 @@ class HttpService {
     }
   }
 
-  Future<http.Response> post(
-    String endpoint, {
-    Map<String, dynamic>? body,
-    Map<String, String>? headers,
-  }) async {
+  Future<http.Response> post(String endpoint, {Map<String, dynamic>? body, Map<String, String>? headers}) async {
     final uri = _buildUri(endpoint);
     final requestHeaders = {...defaultHeaders, ...?headers};
     final requestBody = body != null ? jsonEncode(body) : null;
@@ -107,11 +91,7 @@ class HttpService {
     final stopwatch = Stopwatch()..start();
 
     try {
-      final response = await http.post(
-        uri,
-        headers: requestHeaders,
-        body: requestBody,
-      );
+      final response = await http.post(uri, headers: requestHeaders, body: requestBody);
 
       stopwatch.stop();
 
@@ -132,11 +112,7 @@ class HttpService {
     }
   }
 
-  Future<http.Response> put(
-    String endpoint, {
-    Map<String, dynamic>? body,
-    Map<String, String>? headers,
-  }) async {
+  Future<http.Response> put(String endpoint, {Map<String, dynamic>? body, Map<String, String>? headers}) async {
     final uri = _buildUri(endpoint);
     final requestHeaders = {...defaultHeaders, ...?headers};
     final requestBody = body != null ? jsonEncode(body) : null;
@@ -147,11 +123,7 @@ class HttpService {
     final stopwatch = Stopwatch()..start();
 
     try {
-      final response = await http.put(
-        uri,
-        headers: requestHeaders,
-        body: requestBody,
-      );
+      final response = await http.put(uri, headers: requestHeaders, body: requestBody);
 
       stopwatch.stop();
 
@@ -179,8 +151,7 @@ class HttpService {
   void _handleError(http.Response response) {
     if (response.statusCode >= 200 && response.statusCode < 300) return;
 
-    final message =
-        'Request failed: ${response.statusCode} ${response.reasonPhrase}';
+    final message = 'Request failed: ${response.statusCode} ${response.reasonPhrase}';
     final uri = response.request?.url;
 
     switch (response.statusCode) {
@@ -197,11 +168,7 @@ class HttpService {
       case 500:
         throw ServerException(message, uri: uri);
       default:
-        throw BaseHttpException(
-          message,
-          uri: uri,
-          statusCode: response.statusCode,
-        );
+        throw BaseHttpException(message, uri: uri, statusCode: response.statusCode);
     }
   }
 
@@ -210,37 +177,20 @@ class HttpService {
     if (!enableLogging) return;
 
     final timestamp = DateTime.now().toIso8601String();
-    developer.log(
-      '\n💥 ═══════════════════════════════════════════════════════════════',
-      name: 'HTTP_ERROR',
-    );
+    developer.log('\n💥 ═══════════════════════════════════════════════════════════════', name: 'HTTP_ERROR');
     developer.log('📅 $timestamp', name: 'HTTP_ERROR');
     developer.log('🚨 Error occurred for: $uri', name: 'HTTP_ERROR');
-    developer.log(
-      '⏱️  Duration: ${duration.inMilliseconds}ms',
-      name: 'HTTP_ERROR',
-    );
+    developer.log('⏱️  Duration: ${duration.inMilliseconds}ms', name: 'HTTP_ERROR');
     developer.log('💢 Error: $error', name: 'HTTP_ERROR');
-    developer.log(
-      '═══════════════════════════════════════════════════════════════\n',
-      name: 'HTTP_ERROR',
-    );
+    developer.log('═══════════════════════════════════════════════════════════════\n', name: 'HTTP_ERROR');
   }
 
   /// Colorful logging for HTTP requests
-  void _logRequest(
-    String method,
-    Uri uri, {
-    Map<String, String>? headers,
-    String? body,
-  }) {
+  void _logRequest(String method, Uri uri, {Map<String, String>? headers, String? body}) {
     if (!enableLogging) return;
 
     final timestamp = DateTime.now().toIso8601String();
-    developer.log(
-      '\n🚀 ═══════════════════════════════════════════════════════════════',
-      name: 'HTTP_REQUEST',
-    );
+    developer.log('\n🚀 ═══════════════════════════════════════════════════════════════', name: 'HTTP_REQUEST');
     developer.log('📅 $timestamp', name: 'HTTP_REQUEST');
     developer.log('🔥 $method ${uri.toString()}', name: 'HTTP_REQUEST');
 
@@ -264,10 +214,7 @@ class HttpService {
       }
     }
 
-    developer.log(
-      '═══════════════════════════════════════════════════════════════\n',
-      name: 'HTTP_REQUEST',
-    );
+    developer.log('═══════════════════════════════════════════════════════════════\n', name: 'HTTP_REQUEST');
   }
 
   /// Colorful logging for HTTP responses
@@ -284,18 +231,9 @@ class HttpService {
       name: 'HTTP_RESPONSE',
     );
     developer.log('📅 $timestamp', name: 'HTTP_RESPONSE');
-    developer.log(
-      '⚡ ${response.request?.method} ${response.request?.url}',
-      name: 'HTTP_RESPONSE',
-    );
-    developer.log(
-      '🎯 Status: $statusCode ${response.reasonPhrase ?? ""}',
-      name: 'HTTP_RESPONSE',
-    );
-    developer.log(
-      '⏱️  Duration: ${duration.inMilliseconds}ms',
-      name: 'HTTP_RESPONSE',
-    );
+    developer.log('⚡ ${response.request?.method} ${response.request?.url}', name: 'HTTP_RESPONSE');
+    developer.log('🎯 Status: $statusCode ${response.reasonPhrase ?? ""}', name: 'HTTP_RESPONSE');
+    developer.log('⏱️  Duration: ${duration.inMilliseconds}ms', name: 'HTTP_RESPONSE');
 
     if (response.headers.isNotEmpty) {
       developer.log('📋 Response Headers:', name: 'HTTP_RESPONSE');
@@ -321,9 +259,6 @@ class HttpService {
       }
     }
 
-    developer.log(
-      '═══════════════════════════════════════════════════════════════\n',
-      name: 'HTTP_RESPONSE',
-    );
+    developer.log('═══════════════════════════════════════════════════════════════\n', name: 'HTTP_RESPONSE');
   }
 }

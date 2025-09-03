@@ -1,3 +1,6 @@
+import 'package:fiwe/src/utils/colors.dart';
+import 'package:flutter/painting.dart';
+
 class Constants {
   // API Response Keys (from backend responses)
   static const String responseAccessKey = 'access';
@@ -24,18 +27,24 @@ class Constants {
   static const String storageLoginEmailKey = 'login_email';
   static const String storageBearerTokenKey = 'bearer_token';
   static const String storageBearerTokenRefreshKey = 'bearer_token_refresh';
+  static const String storageUserSelectedInterestsKey = 'user_selected_interests';
 
   // Provider constants
   static const String googleProvider = 'google';
   static const String appleProvider = 'apple';
+  static const String countryCode = '+91';
 
   // Route names
-  static const String homeViewRoute = '/HomeView';
-  static const String loginViewRoute = '/LoginView';
-  static const String signUpViewRoute = '/SignUpView';
+  static const String homeViewRoute = '/home';
+  static const String loginViewRoute = '/login';
+  static const String signUpViewRoute = '/signup';
+  static const String interestSelectionViewRoute = '/interest-selection';
+  static const String otpBottomSheetRoute = '/otp-verification';
 
   // Timeout durations
   static const int apiTimeoutSeconds = 30;
+  static const int otpTimeoutSeconds = 60;
+  static const int otpResendTimeoutSeconds = 30;
   static const int snackbarDurationSeconds = 3;
   static const int splashDelaySeconds = 2;
   static const int navigationDelayMilliseconds = 100;
@@ -68,6 +77,8 @@ class Constants {
   static const int imageQuality = 80;
   static const int minNameLength = 2;
   static const int pinCodeLength = 6;
+  static const int phoneMaxLength = 10;
+  static const int otpMaxLength = 6;
   static const int minAgeYears = 18;
   static const int minYear = 1920;
   static const int maxDisplayStringLength = 50; // For SharedPreferences table display
@@ -80,6 +91,47 @@ class Constants {
   static const String refreshTokenKey = 'refresh_token';
 
   // UI Design tokens
+  static const BoxDecoration gradientDecoration = BoxDecoration(
+    gradient: LinearGradient(
+      begin: Alignment.topLeft,
+      end: Alignment.bottomRight,
+      colors: [
+        AppColors.primary, // primary color
+        AppColors.secondaryYellow, // secondary yellow color
+      ],
+    ),
+  );
+
+  // Notification constants
+  static const int foregroundNotificationDurationSeconds = 5;
+  static const int maxInMemoryNotifications = 20; // Limit for current session only
+  static const int notificationAnimationDurationMs = 300;
+
+  // Notification channels (Android)
+  static const String notificationChannelHighPriority = 'high_priority_channel';
+  static const String notificationChannelNormalPriority = 'normal_priority_channel';
+  static const String notificationChannelLowPriority = 'low_priority_channel';
+  static const String notificationChannelUrgentPriority = 'urgent_priority_channel';
+
+  // Notification UI dimensions
+  static const double notificationTopMargin = 8.0;
+  static const double notificationHorizontalMargin = 16.0;
+  static const double notificationElevation = 8.0;
+  static const double notificationBorderRadius = 12.0;
+  static const double notificationPadding = 16.0;
+  static const double notificationIconPadding = 8.0;
+  static const double notificationIconBorderRadius = 8.0;
+  static const double notificationIconSize = 24.0;
+  static const double notificationContentSpacing = 12.0;
+  static const double notificationTextSpacing = 4.0;
+  static const double notificationTitleFontSize = 14.0;
+  static const double notificationBodyFontSize = 12.0;
+  static const double notificationHintFontSize = 10.0;
+  static const double notificationCloseButtonPadding = 4.0;
+  static const double notificationCloseButtonBorderRadius = 6.0;
+  static const double notificationCloseButtonSize = 18.0;
+  static const double notificationMinHeight = 80.0;
+  static const double notificationMaxHeight = 120.0;
 
   // Colors
   // static const int primaryColor = 0xFF0891B2;

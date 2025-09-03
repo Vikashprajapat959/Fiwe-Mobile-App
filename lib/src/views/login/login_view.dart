@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:fiwe/src/utils/assets.dart';
 import 'package:fiwe/src/utils/colors.dart';
 import 'package:fiwe/src/widgets/social_login_button.dart';
@@ -48,7 +50,7 @@ class LoginView extends StatelessWidget {
 
             // Apple Sign-In Button (show only if available)
             Obx(() {
-              if (controller.isAppleSignInAvailable) {
+              if (controller.isAppleSignInAvailable && Platform.isIOS) {
                 return SocialLoginButton(
                   onPressed: controller.isLoading ? null : controller.signInWithApple,
                   backgroundColor: Colors.black,

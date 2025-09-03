@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
@@ -9,17 +10,22 @@ import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 
 import '../services/http_service.dart';
+import '../services/phone_auth_service.dart';
 import '../services/shared_pref_service.dart';
 import '../utils/constants.dart';
 import '../utils/endpoints.dart';
 import '../utils/loading_overlay.dart';
 import '../utils/strings.dart';
+import '../widgets/custom_button.dart';
+import '../widgets/custom_text_field.dart';
 import 'auth_controller.dart';
 
 class SignUpController extends GetxController {
   // Form controllers and key
   final nameController = TextEditingController();
   final emailController = TextEditingController();
+  final phoneController = TextEditingController();
+  final otpController = TextEditingController();
   final dateOfBirthController = TextEditingController();
   final pinCodeController = TextEditingController();
   final formKey = GlobalKey<FormState>();
@@ -29,13 +35,31 @@ class SignUpController extends GetxController {
   final _acceptTerms = RxBool(false);
   final _isLoading = RxBool(false);
 
+  // Phone verification observables
+  final _verificationId = RxString('');
+  final _isPhoneVerified = RxBool(false);
+  final _isPhoneVerifying = RxBool(false);
+  final _isOtpSent = RxBool(false);
+  final _otpResendEnabled = RxBool(false);
+  final _countdown = RxInt(0);
+  Timer? _countdownTimer;
+
   // Services
   final _picker = ImagePicker();
   final _httpService = HttpService();
+  final _phoneAuthService = PhoneAuthService();
 
   // Getters
   bool get acceptTerms => _acceptTerms.value;
+  int get countdown => _countdown.value;
   bool get isLoading => _isLoading.value;
+
+  bool get isOtpSent => _isOtpSent.value;
+  bool get isPhoneVerified => _isPhoneVerified.value;
+  bool get isPhoneVerifying => _isPhoneVerifying.value;
+  bool get otpResendEnabled => _otpResendEnabled.value;
+  // Phone verification getters
+  String get phoneNumber => phoneController.text;
   File? get selectedProfileImage => _selectedProfileImage.value;
 
   /// Call signup API with form data
@@ -83,6 +107,11 @@ class SignUpController extends GetxController {
       Get.snackbar(Strings.validationError, Strings.pleaseFixFormErrors);
       return;
     }
+
+    // if (!_isPhoneVerified.value) {
+    //   Get.snackbar(Strings.phoneVerificationRequired, Strings.pleaseVerifyPhone);
+    //   return;
+    // }
 
     if (!_acceptTerms.value) {
       Get.snackbar(Strings.termsRequiredTitle, Strings.termsRequired);
@@ -144,8 +173,11 @@ class SignUpController extends GetxController {
   void onClose() {
     nameController.dispose();
     emailController.dispose();
+    phoneController.dispose();
+    otpController.dispose();
     dateOfBirthController.dispose();
     pinCodeController.dispose();
+    _stopCountdown();
     super.onClose();
   }
 
@@ -153,6 +185,7 @@ class SignUpController extends GetxController {
   void onInit() {
     super.onInit();
     _prePopulateData();
+    _setupPhoneListener();
   }
 
   /// Open privacy policy
@@ -160,6 +193,29 @@ class SignUpController extends GetxController {
 
   /// Open terms and conditions
   void openTermsAndConditions() => Get.snackbar(Strings.info, Strings.termsConditionsInfo);
+
+  /// Resend OTP to the same phone number
+  Future<void> resendOtp() async {
+    final phone = phoneController.text.trim();
+    if (validatePhone(phone) != null) return;
+
+    try {
+      _isPhoneVerifying.value = true;
+
+      final verificationId = await executeWithLoading(_phoneAuthService.resendOtp(phone));
+
+      _verificationId.value = verificationId;
+      _startCountdown();
+      otpController.clear();
+
+      Get.snackbar(Strings.otpSent, Strings.otpSentSuccessfully);
+    } catch (e) {
+      if (kDebugMode) print(Strings.formatErrorMessage('Resend OTP Error', e));
+      Get.snackbar(Strings.otpError, Strings.formatErrorMessage(Strings.failedToSendOtp, e));
+    } finally {
+      _isPhoneVerifying.value = false;
+    }
+  }
 
   /// Select date of birth
   Future<void> selectDateOfBirth() async {
@@ -204,6 +260,30 @@ class SignUpController extends GetxController {
     }
   }
 
+  /// Send OTP to phone number
+  Future<void> sendOtp() async {
+    final phone = phoneController.text.trim();
+    if (validatePhone(phone) != null) return;
+
+    try {
+      _isPhoneVerifying.value = true;
+
+      final verificationId = await executeWithLoading(_phoneAuthService.sendOtp(phone));
+
+      _verificationId.value = verificationId;
+      _isOtpSent.value = true;
+      _startCountdown();
+      _showOtpBottomSheet();
+
+      Get.snackbar(Strings.otpSent, Strings.otpSentSuccessfully);
+    } catch (e) {
+      if (kDebugMode) print(Strings.formatErrorMessage('Send OTP Error', e));
+      Get.snackbar(Strings.otpError, Strings.formatErrorMessage(Strings.failedToSendOtp, e));
+    } finally {
+      _isPhoneVerifying.value = false;
+    }
+  }
+
   /// Toggle terms acceptance
   void toggleTermsAcceptance(bool? value) => _acceptTerms.value = value ?? false;
 
@@ -220,11 +300,121 @@ class SignUpController extends GetxController {
     return value!.trim().length < Constants.minNameLength ? Strings.nameMinLength : null;
   }
 
+  /// OTP validation
+  String? validateOtp(String? value) {
+    if (value?.trim().isEmpty ?? true) return Strings.otpRequired;
+    final otp = value!.trim();
+    if (otp.length != Constants.otpMaxLength) return Strings.otpInvalid;
+    if (!RegExp(r'^\d{6}$').hasMatch(otp)) return Strings.otpInvalidFormat;
+    return null;
+  }
+
+  /// Phone number validation
+  String? validatePhone(String? value) {
+    if (value?.trim().isEmpty ?? true) return Strings.phoneRequired;
+    final phone = value!.trim();
+    if (phone.length != Constants.phoneMaxLength) return Strings.phoneInvalid;
+    if (!RegExp(r'^[6-9]\d{9}$').hasMatch(phone)) return Strings.phoneInvalidFormat;
+    return null;
+  }
+
   String? validatePinCode(String? value) {
     if (value?.trim().isEmpty ?? true) return Strings.pinCodeRequired;
     return (value!.trim().length != Constants.pinCodeLength || !RegExp(r'^\d{6}$').hasMatch(value.trim()))
         ? Strings.pinCodeInvalid
         : null;
+  }
+
+  /// Verify OTP entered by user
+  Future<void> verifyOtp() async {
+    final otp = otpController.text.trim();
+    if (validateOtp(otp) != null) return;
+
+    try {
+      _isPhoneVerifying.value = true;
+
+      final isVerified = await executeWithLoading(_phoneAuthService.verifyOtp(_verificationId.value, otp));
+
+      if (isVerified) {
+        _isPhoneVerified.value = true;
+        _stopCountdown();
+        Get.back(); // Close bottom sheet
+        Get.snackbar(Strings.verificationSuccess, Strings.phoneVerifiedSuccessfully);
+      } else {
+        Get.snackbar(Strings.verificationFailed, Strings.invalidOtp);
+      }
+    } catch (e) {
+      if (kDebugMode) print(Strings.formatErrorMessage('Verify OTP Error', e));
+      Get.snackbar(Strings.verificationError, Strings.formatErrorMessage(Strings.failedToVerifyOtp, e));
+    } finally {
+      _isPhoneVerifying.value = false;
+    }
+  }
+
+  /// Build OTP bottom sheet widget
+  Widget _buildOtpBottomSheet() {
+    return Container(
+      padding: EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        color: Get.theme.scaffoldBackgroundColor,
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // Header
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(Strings.verifyPhoneTitle, style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600)),
+              IconButton(
+                onPressed: () {
+                  _stopCountdown();
+                  Get.back();
+                },
+                icon: Icon(Icons.close),
+              ),
+            ],
+          ),
+
+          SizedBox(height: 8),
+
+          // Phone number display
+          Text(
+            '${Strings.otpSentTo} ${Constants.countryCode} ${phoneController.text}',
+            style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+          ),
+
+          SizedBox(height: 24),
+
+          // OTP input field
+          AppTextField(
+            hintText: Strings.otpHint,
+            prefixIcon: Icons.lock_outline,
+            controller: otpController,
+            keyboardType: TextInputType.number,
+            validator: validateOtp,
+            maxLength: Constants.otpMaxLength,
+          ),
+
+          SizedBox(height: 24),
+
+          // Verify button
+          Obx(() => AppButtonElevated(text: Strings.verifyOtp, onPressed: isPhoneVerifying ? null : verifyOtp)),
+
+          SizedBox(height: 16),
+
+          // Resend OTP
+          Obx(
+            () => otpResendEnabled
+                ? TextButton(onPressed: resendOtp, child: Text(Strings.resendOtp))
+                : Text('${Strings.resendOtpIn} ${countdown}s', style: TextStyle(color: Colors.grey[600])),
+          ),
+
+          SizedBox(height: 16),
+        ],
+      ),
+    );
   }
 
   /// Helper methods
@@ -258,5 +448,46 @@ class SignUpController extends GetxController {
     if (userInfo[Constants.userInfoDisplayNameKey]?.isNotEmpty == true) {
       nameController.text = userInfo[Constants.userInfoDisplayNameKey]!;
     }
+  }
+
+  /// Setup phone number listener for automatic OTP triggering
+  void _setupPhoneListener() {
+    phoneController.addListener(() {
+      final phone = phoneController.text.trim();
+      if (phone.length == Constants.phoneMaxLength &&
+          !_isPhoneVerified.value &&
+          !_isPhoneVerifying.value &&
+          validatePhone(phone) == null) {
+        // Automatically send OTP when 10 valid digits are entered
+        sendOtp();
+      }
+    });
+  }
+
+  /// Show OTP bottom sheet
+  void _showOtpBottomSheet() {
+    Get.bottomSheet(_buildOtpBottomSheet(), isDismissible: false, enableDrag: false, isScrollControlled: true);
+  }
+
+  /// Start countdown timer for OTP resend
+  void _startCountdown() {
+    _otpResendEnabled.value = false;
+    _countdown.value = Constants.otpResendTimeoutSeconds;
+
+    _countdownTimer = Timer.periodic(Duration(seconds: 1), (timer) {
+      if (_countdown.value > 0) {
+        _countdown.value--;
+      } else {
+        _otpResendEnabled.value = true;
+        timer.cancel();
+      }
+    });
+  }
+
+  /// Stop countdown timer
+  void _stopCountdown() {
+    _countdownTimer?.cancel();
+    _countdownTimer = null;
+    _otpResendEnabled.value = true;
   }
 }

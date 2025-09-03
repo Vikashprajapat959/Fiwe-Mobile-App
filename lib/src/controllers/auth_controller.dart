@@ -15,6 +15,7 @@ import '../utils/constants.dart';
 import '../utils/endpoints.dart';
 import '../utils/strings.dart';
 import '../views/home/home_view.dart';
+import '../views/interest/interest_selection_view.dart';
 import '../views/login/login_view.dart';
 import '../views/login/signup_view.dart';
 
@@ -96,7 +97,7 @@ class AuthController extends GetxController {
       );
 
       Get.snackbar(Strings.success, Strings.signUpSuccess);
-      _navigateToHome();
+      _navigateToInterestSelection();
     } catch (e) {
       Get.snackbar(Strings.error, Strings.formatErrorMessage(Strings.signUpError, e));
     } finally {
@@ -354,6 +355,16 @@ class AuthController extends GetxController {
     if (Get.currentRoute != Constants.homeViewRoute) {
       Future.delayed(Duration(milliseconds: Constants.navigationDelayMilliseconds), () {
         if (!Get.isDialogOpen! && !Get.isBottomSheetOpen!) Get.offAll(() => const HomeView());
+      });
+    }
+  }
+
+  void _navigateToInterestSelection() {
+    if (Get.currentRoute != Constants.interestSelectionViewRoute) {
+      Future.delayed(Duration(milliseconds: Constants.navigationDelayMilliseconds), () {
+        if (!Get.isDialogOpen! && !Get.isBottomSheetOpen!) {
+          Get.offAll(() => const InterestSelectionView());
+        }
       });
     }
   }
