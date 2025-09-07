@@ -1,9 +1,9 @@
-import 'dart:ui';
-
 import 'package:fiwe/src/models/topic.model.dart';
 import 'package:fiwe/src/services/topic_service.dart';
 import 'package:fiwe/src/services/user_service.dart';
+import 'package:fiwe/src/utils/loading_overlay.dart';
 import 'package:fiwe/src/views/home/home_view.dart';
+import 'package:flutter/widgets.dart';
 import 'package:get/get.dart';
 
 /// Controller for managing interest selection screen state and logic
@@ -22,6 +22,8 @@ class InterestSelectionController extends GetxController {
   var topics = <Topic>[];
 
   final selectedCategories = <String>[].obs;
+
+  final PageController pageController = PageController();
 
   List<String> get selectedTopics => selectedTopicIds.toList();
 
@@ -62,24 +64,21 @@ class InterestSelectionController extends GetxController {
 
   VoidCallback? onContinue() {
     if (selectedTopicIds().length < 5) {
-      Get.snackbar("Error", "You must select at least 5 topics");
-      return null;
+      return () => Get.snackbar("Error", "You must select at least 5 topics");
+    } else if (selectedTopicIds().length == 5 && primaryTopicSelection() == "") {
+      return () {
+        pageController.nextPage(duration: Duration(milliseconds: 300), curve: Curves.easeIn);
+        pageIndex(1);
+      };
     } else {
       return updateUserInterests;
     }
   }
 
-  // void toggleSlectionCategory(String category) {
-  //   if (selectedCategories.contains(category)) {
-  //     selectedCategories.remove(category);
-  //   } else {
-  //     if (selectedCategories.length >= 5) {
-  //       Get.snackbar("Error", "You can only select up to 5 categories");
-  //       return;
-  //     }
-  //     selectedCategories.add(category);
-  //   }
-  // }
+  void previousPage() {
+    pageController.previousPage(duration: Duration(milliseconds: 300), curve: Curves.easeIn);
+    pageIndex(0);
+  }
 
   void toggleTopic(String topicId) {
     // can only select 5 topics
@@ -94,13 +93,13 @@ class InterestSelectionController extends GetxController {
     }
   }
 
-  void updateUserInterests() {
-    _userService.followTopics(selectedTopicIds()).then((success) {
-      if (success) {
-        Get.offAll(() => HomeView());
-      } else {
-        Get.snackbar("Error", "Something went wrong");
-      }
-    });
+  void updateUserInterests() async {
+    var success = await executeWithLoading(_userService.followTopics(selectedTopicIds(), primaryTopicSelection()));
+
+    if (success) {
+      Get.offAll(() => HomeView());
+    } else {
+      Get.snackbar("Error", "Something went wrong");
+    }
   }
 }

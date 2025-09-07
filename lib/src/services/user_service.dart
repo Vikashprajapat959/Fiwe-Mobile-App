@@ -6,13 +6,13 @@ import 'package:fiwe/src/utils/endpoints.dart';
 class UserService {
   final _httService = HttpService();
 
-  Future<bool> followTopics(List<String> topics) async {
+  Future<bool> followTopics(List<String> topics, String primaryTopic) async {
     String token = await SharedPrefService.getString(Constants.storageBearerTokenKey) ?? "";
 
     final response = await _httService.post(
       Endpoints.followTopicsBulk,
       body: {
-        "topics": topics.map((topic) => {"topic_id": topic}),
+        "topics": topics.map((topic) => {"topic_id": topic, "set_interest_is_primary": topic == primaryTopic}).toList(),
       },
       headers: {"Authorization": "Bearer $token"},
     );

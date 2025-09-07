@@ -38,84 +38,83 @@ class InterestSelectionView extends StatelessWidget {
       body: Container(
         padding: EdgeInsets.all(Constants.paddingAll).add(const EdgeInsets.only(top: 36)),
         height: MediaQuery.of(context).size.height,
-        child: Obx(
-          () => IndexedStack(
-            index: controller.pageIndex(),
-            children: [
-              FutureBuilder<List<Topic>>(
-                future: controller.loadTopics(),
-                builder: (context, snapshot) {
-                  if (snapshot.connectionState == ConnectionState.waiting) {
-                    return const Center(child: CircularProgressIndicator());
-                  }
+        child: PageView(
+          controller: controller.pageController,
+          children: [
+            FutureBuilder<List<Topic>>(
+              future: controller.loadTopics(),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(child: CircularProgressIndicator());
+                }
 
-                  if (snapshot.hasError) {
-                    return Center(child: Text('Error: ${snapshot.error}'));
-                  }
+                if (snapshot.hasError) {
+                  return Center(child: Text('Error: ${snapshot.error}'));
+                }
 
-                  if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                    return const Center(child: Text('No topics found'));
-                  }
+                if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                  return const Center(child: Text('No topics found'));
+                }
 
-                  final topics = snapshot.data!.toList();
+                final topics = snapshot.data!.toList();
 
-                  return Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        Strings.selectInterest,
-                        style: TextStyle(fontSize: 25, fontWeight: FontWeight.bold, color: AppColors.primary),
-                      ).paddingOnly(bottom: 6),
-                      Text(
-                        Strings.select5Interests,
-                        style: TextStyle(color: AppColors.textSecondary, fontSize: 16, fontWeight: FontWeight.w600),
-                      ).paddingOnly(bottom: 8),
-                      Expanded(
-                        child: GridView.builder(
-                          itemCount: topics.length,
-                          shrinkWrap: true,
-                          padding: EdgeInsets.only(bottom: 75),
-                          itemBuilder: (context, index) {
-                            final topic = topics[index];
-                            return SelactableInterestWidget(topic: topic, forPrimary: false);
-                          },
-                          gridDelegate: sliverGridDelegateWithFixedCrossAxisCount,
-                        ),
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      Strings.selectInterest,
+                      style: TextStyle(fontSize: 25, fontWeight: FontWeight.bold, color: AppColors.primary),
+                    ).paddingOnly(bottom: 6),
+                    Text(
+                      Strings.select5Interests,
+                      style: TextStyle(color: AppColors.textSecondary, fontSize: 16, fontWeight: FontWeight.w600),
+                    ).paddingOnly(bottom: 8),
+                    Expanded(
+                      child: GridView.builder(
+                        itemCount: topics.length,
+                        shrinkWrap: true,
+                        padding: EdgeInsets.only(bottom: 75),
+                        itemBuilder: (context, index) {
+                          final topic = topics[index];
+                          return SelactableInterestWidget(topic: topic, forPrimary: false);
+                        },
+                        gridDelegate: sliverGridDelegateWithFixedCrossAxisCount,
                       ),
-                    ],
-                  );
-                },
-              ),
-
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    Strings.selectInterest,
-                    style: TextStyle(fontSize: 25, fontWeight: FontWeight.bold, color: AppColors.primary),
-                  ).paddingOnly(bottom: 6),
-                  Text(
-                    Strings.select5Interests,
-                    style: TextStyle(color: AppColors.textSecondary, fontSize: 16, fontWeight: FontWeight.w600),
-                  ).paddingOnly(bottom: 8),
-                  Expanded(
-                    child: GridView.builder(
-                      itemCount: controller.getSelectedTopics().length,
-                      gridDelegate: sliverGridDelegateWithFixedCrossAxisCount,
-                      itemBuilder: (context, index) {
-                        final items = controller.getSelectedTopics();
-                        if (items.isNotEmpty) {
-                          return SelactableInterestWidget(topic: items[index], forPrimary: true);
-                        } else {
-                          return SizedBox();
-                        }
-                      },
                     ),
+                  ],
+                );
+              },
+            ),
+
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                BackButton(onPressed: controller.previousPage),
+                Text(
+                  Strings.selectInterest,
+                  style: TextStyle(fontSize: 25, fontWeight: FontWeight.bold, color: AppColors.primary),
+                ).paddingOnly(bottom: 6),
+                Text(
+                  Strings.select5Interests,
+                  style: TextStyle(color: AppColors.textSecondary, fontSize: 16, fontWeight: FontWeight.w600),
+                ).paddingOnly(bottom: 8),
+                Expanded(
+                  child: GridView.builder(
+                    itemCount: controller.getSelectedTopics().length,
+                    gridDelegate: sliverGridDelegateWithFixedCrossAxisCount,
+                    itemBuilder: (context, index) {
+                      final items = controller.getSelectedTopics();
+                      if (items.isNotEmpty) {
+                        return SelactableInterestWidget(topic: items[index], forPrimary: true);
+                      } else {
+                        return SizedBox();
+                      }
+                    },
                   ),
-                ],
-              ),
-            ],
-          ),
+                ),
+              ],
+            ),
+          ],
         ),
       ),
     );
@@ -140,8 +139,8 @@ class SelactableInterestWidget extends StatelessWidget {
               shape: BoxShape.circle,
               image: DecorationImage(fit: BoxFit.cover, image: AssetImage(Assets.images.logo)),
             ),
-            child: Obx(() {
-              return Visibility(
+            child: Obx(
+              () => Visibility(
                 visible: forPrimary ? controller.isPrimarySelected(topic.id) : controller.isTopicSelected(topic.id),
                 child: Container(
                   height: Constants.boxHeightCircle,
@@ -156,8 +155,8 @@ class SelactableInterestWidget extends StatelessWidget {
                   ),
                   child: Icon(LucideIcons.check, color: AppColors.surface, size: 45),
                 ),
-              );
-            }),
+              ),
+            ),
           ),
         ),
         Text(
