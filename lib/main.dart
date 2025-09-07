@@ -1,5 +1,6 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:fiwe/firebase_options.dart';
+import 'package:fiwe/src/utils/colors.dart';
 import 'package:fiwe/src/views/home/home_view.dart';
 import 'package:fiwe/src/views/interest/interest_selection_view.dart';
 import 'package:fiwe/src/views/login/login_view.dart';
@@ -44,7 +45,23 @@ class FiweApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return GetMaterialApp(
       debugShowCheckedModeBanner: false,
-      theme: ThemeData(textTheme: GoogleFonts.interTextTheme(), useMaterial3: true),
+      theme: ThemeData(
+        primarySwatch: MaterialColor(0xFF1398A9, <int, Color>{
+          50: Color.lerp(Colors.white, AppColors.primary, 0.1)!,
+          100: Color.lerp(Colors.white, AppColors.primary, 0.2)!,
+          200: Color.lerp(Colors.white, AppColors.primary, 0.3)!,
+          300: Color.lerp(Colors.white, AppColors.primary, 0.4)!,
+          400: Color.lerp(Colors.white, AppColors.primary, 0.6)!,
+          500: AppColors.primary,
+          600: Color.lerp(AppColors.primary, Colors.black, 0.1)!,
+          700: Color.lerp(AppColors.primary, Colors.black, 0.2)!,
+          800: Color.lerp(AppColors.primary, Colors.black, 0.3)!,
+          900: Color.lerp(AppColors.primary, Colors.black, 0.4)!,
+        }),
+        primaryColor: AppColors.primary,
+        textTheme: GoogleFonts.interTextTheme(),
+        useMaterial3: true,
+      ),
       home: SplashView(),
       // Define named routes
       getPages: [

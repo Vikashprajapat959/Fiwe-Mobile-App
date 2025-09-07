@@ -182,7 +182,8 @@ class Strings {
 
   // Notification messages
   static const String notificationPermissionTitle = 'Notification Permission';
-  static const String notificationPermissionMessage = 'Please allow notifications to receive important updates and messages.';
+  static const String notificationPermissionMessage =
+      'Please allow notifications to receive important updates and messages.';
   static const String notificationPermissionDenied = 'Notification permission denied';
   static const String notificationPermissionGranted = 'Notification permission granted';
   static const String notificationInitializationFailed = 'Failed to initialize notification service';
@@ -196,23 +197,25 @@ class Strings {
   static const String notificationClearAll = 'Clear all';
   static const String notificationSettings = 'Notification Settings';
   static const String notificationSwipeHint = 'Swipe to dismiss';
-  
+
   // Notification channel names and descriptions
   static const String notificationChannelHighPriorityName = 'High Priority';
-  static const String notificationChannelHighPriorityDescription = 'Important notifications that require immediate attention';
+  static const String notificationChannelHighPriorityDescription =
+      'Important notifications that require immediate attention';
   static const String notificationChannelNormalPriorityName = 'Normal Priority';
   static const String notificationChannelNormalPriorityDescription = 'Standard notifications and updates';
   static const String notificationChannelLowPriorityName = 'Low Priority';
   static const String notificationChannelLowPriorityDescription = 'Non-urgent notifications and information';
   static const String notificationChannelUrgentPriorityName = 'Urgent Priority';
-  static const String notificationChannelUrgentPriorityDescription = 'Critical notifications requiring immediate action';
-  
+  static const String notificationChannelUrgentPriorityDescription =
+      'Critical notifications requiring immediate action';
+
   // Notification types
   static const String notificationTypeUserMessage = 'Message';
   static const String notificationTypeSystemAlert = 'System Alert';
   static const String notificationTypePromotional = 'Promotion';
   static const String notificationTypeReminder = 'Reminder';
-  
+
   // Notification errors
   static const String notificationError = 'Notification Error';
   static const String notificationSendFailed = 'Failed to send notification';
@@ -223,13 +226,17 @@ class Strings {
   static const String notificationChannelCreationFailed = 'Failed to create notification channel';
   static const String notificationDisplayFailed = 'Failed to display notification';
   static const String notificationNavigationFailed = 'Failed to navigate from notification';
-  
+
   // Badge related strings
   static const String badgeUpdateSuccess = 'Badge updated successfully';
   static const String badgeUpdateFailed = 'Failed to update badge';
   static const String badgeClearSuccess = 'Badge cleared successfully';
   static const String badgeClearFailed = 'Failed to clear badge';
   static const String badgeNotSupported = 'Badge notifications not supported on this device';
+
+  static String selectInterest = "Let's select your interests";
+
+  static String select5Interests = "Select at least 5 interests";
 
   // Helper method to capitalize a string
   static String capitalize(String value) {

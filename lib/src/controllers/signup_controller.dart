@@ -3,11 +3,13 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:fiwe/src/utils/colors.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
+import 'package:pinput/pinput.dart';
 
 import '../services/http_service.dart';
 import '../services/phone_auth_service.dart';
@@ -17,7 +19,6 @@ import '../utils/endpoints.dart';
 import '../utils/loading_overlay.dart';
 import '../utils/strings.dart';
 import '../widgets/custom_button.dart';
-import '../widgets/custom_text_field.dart';
 import 'auth_controller.dart';
 
 class SignUpController extends GetxController {
@@ -48,6 +49,8 @@ class SignUpController extends GetxController {
   final _picker = ImagePicker();
   final _httpService = HttpService();
   final _phoneAuthService = PhoneAuthService();
+
+  String otpSentTo = '';
 
   // Getters
   bool get acceptTerms => _acceptTerms.value;
@@ -264,7 +267,7 @@ class SignUpController extends GetxController {
   Future<void> sendOtp() async {
     final phone = phoneController.text.trim();
     if (validatePhone(phone) != null) return;
-
+    otpSentTo = phone;
     try {
       _isPhoneVerifying.value = true;
 
@@ -333,7 +336,7 @@ class SignUpController extends GetxController {
     try {
       _isPhoneVerifying.value = true;
 
-      final isVerified = await executeWithLoading(_phoneAuthService.verifyOtp(_verificationId.value, otp));
+      final isVerified = await executeWithLoading(_phoneAuthService.verifyOtp(_verificationId.value, otp, phoneNumber));
 
       if (isVerified) {
         _isPhoneVerified.value = true;
@@ -388,15 +391,54 @@ class SignUpController extends GetxController {
           SizedBox(height: 24),
 
           // OTP input field
-          AppTextField(
-            hintText: Strings.otpHint,
-            prefixIcon: Icons.lock_outline,
+          // AppTextField(
+          //   hintText: Strings.otpHint,
+          //   prefixIcon: Icons.lock_outline,
+          //   controller: otpController,
+          //   keyboardType: TextInputType.number,
+          //   validator: validateOtp,
+          //   maxLength: Constants.otpMaxLength,
+          // ),
+          Pinput(
             controller: otpController,
-            keyboardType: TextInputType.number,
+            length: Constants.otpMaxLength,
             validator: validateOtp,
-            maxLength: Constants.otpMaxLength,
+            onChanged: (value) {
+              if (value.length == Constants.otpMaxLength) {
+                verifyOtp();
+              }
+            },
+            defaultPinTheme: PinTheme(
+              width: 56,
+              height: 56,
+              textStyle: TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
+              decoration: BoxDecoration(
+                border: Border.all(color: Colors.grey),
+                borderRadius: BorderRadius.circular(8),
+              ),
+            ),
+            focusedPinTheme: PinTheme(
+              width: 56,
+              height: 56,
+              textStyle: TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
+              decoration: BoxDecoration(
+                border: Border.all(color: AppColors.primary),
+                borderRadius: BorderRadius.circular(8),
+              ),
+            ),
+            submittedPinTheme: PinTheme(
+              width: 56,
+              height: 56,
+              textStyle: TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
+              decoration: BoxDecoration(
+                border: Border.all(color: Get.theme.primaryColor),
+                borderRadius: BorderRadius.circular(8),
+                color: AppColors.primary.withAlpha(50),
+              ),
+            ),
+            pinputAutovalidateMode: PinputAutovalidateMode.onSubmit,
+            showCursor: true,
           ),
-
           SizedBox(height: 24),
 
           // Verify button
@@ -457,7 +499,8 @@ class SignUpController extends GetxController {
       if (phone.length == Constants.phoneMaxLength &&
           !_isPhoneVerified.value &&
           !_isPhoneVerifying.value &&
-          validatePhone(phone) == null) {
+          validatePhone(phone) == null &&
+          phone != otpSentTo) {
         // Automatically send OTP when 10 valid digits are entered
         sendOtp();
       }

@@ -7,4 +7,6 @@ class Endpoints {
   static String getAllTopics = "/topics/";
 
   static String followTopicsBulk = "/user/topics/bulk-follow";
+
+  static String getTopicsByCategories = "/topics/categories/";
 }

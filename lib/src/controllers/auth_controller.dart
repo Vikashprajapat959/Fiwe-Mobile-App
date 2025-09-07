@@ -285,7 +285,13 @@ class AuthController extends GetxController {
       final backendResponse = await sendIdTokenToBackend();
 
       if (backendResponse != null) {
-        (backendResponse[Constants.responseIsNewKey] ?? false) ? _navigateToSignUp() : _navigateToHome();
+        if (backendResponse[Constants.responseIsNewKey]) {
+          _navigateToSignUp();
+        } else if (backendResponse['is_interests_pending']) {
+          _navigateToInterestSelection();
+        } else {
+          _navigateToHome();
+        }
       } else {
         _navigateToLogin();
       }

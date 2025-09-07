@@ -1,6 +1,8 @@
 import 'dart:convert';
 import 'dart:developer' as developer;
 
+import 'package:fiwe/src/services/shared_pref_service.dart';
+import 'package:fiwe/src/utils/constants.dart';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 
@@ -12,14 +14,19 @@ class HttpService {
   final bool enableLogging;
 
   HttpService({
-    this.baseUrl = "http://139.59.64.68/api",
+    this.baseUrl = "https://fiwe.in/api",
     this.defaultHeaders = const {'Content-Type': 'application/json', 'accept': 'application/json'},
     this.enableLogging = kDebugMode,
   });
 
-  Future<http.Response> delete(String endpoint, {Map<String, dynamic>? body, Map<String, String>? headers}) async {
+  Future<http.Response> delete(
+    String endpoint, {
+    Map<String, dynamic>? body,
+    Map<String, String>? headers,
+    bool isAuthorized = false,
+  }) async {
     final uri = _buildUri(endpoint);
-    final requestHeaders = {...defaultHeaders, ...?headers};
+    final requestHeaders = await _buildHeaders(headers, isAuthorized);
     final requestBody = body != null ? jsonEncode(body) : null;
 
     // Log the request
@@ -49,9 +56,14 @@ class HttpService {
     }
   }
 
-  Future<http.Response> get(String endpoint, {Map<String, dynamic>? queryParams, Map<String, String>? headers}) async {
+  Future<http.Response> get(
+    String endpoint, {
+    Map<String, dynamic>? queryParams,
+    Map<String, String>? headers,
+    bool isAuthorized = false,
+  }) async {
     final uri = _buildUri(endpoint, queryParams);
-    final requestHeaders = {...defaultHeaders, ...?headers};
+    final requestHeaders = await _buildHeaders(headers, isAuthorized);
 
     // Log the request
     _logRequest('GET', uri, headers: requestHeaders);
@@ -80,9 +92,14 @@ class HttpService {
     }
   }
 
-  Future<http.Response> post(String endpoint, {Map<String, dynamic>? body, Map<String, String>? headers}) async {
+  Future<http.Response> post(
+    String endpoint, {
+    Map<String, dynamic>? body,
+    Map<String, String>? headers,
+    bool isAuthorized = false,
+  }) async {
     final uri = _buildUri(endpoint);
-    final requestHeaders = {...defaultHeaders, ...?headers};
+    final requestHeaders = await _buildHeaders(headers, isAuthorized);
     final requestBody = body != null ? jsonEncode(body) : null;
 
     // Log the request
@@ -112,9 +129,14 @@ class HttpService {
     }
   }
 
-  Future<http.Response> put(String endpoint, {Map<String, dynamic>? body, Map<String, String>? headers}) async {
+  Future<http.Response> put(
+    String endpoint, {
+    Map<String, dynamic>? body,
+    Map<String, String>? headers,
+    bool isAuthorized = false,
+  }) async {
     final uri = _buildUri(endpoint);
-    final requestHeaders = {...defaultHeaders, ...?headers};
+    final requestHeaders = await _buildHeaders(headers, isAuthorized);
     final requestBody = body != null ? jsonEncode(body) : null;
 
     // Log the request
@@ -144,8 +166,25 @@ class HttpService {
     }
   }
 
+  Future<Map<String, String>> _buildHeaders(Map<String, String>? headers, bool isAuthorized) async {
+    final requestHeaders = {...defaultHeaders, ...?headers};
+
+    if (isAuthorized) {
+      final token = await _getBearerToken();
+      if (token != null) {
+        requestHeaders['Authorization'] = 'Bearer $token';
+      }
+    }
+
+    return requestHeaders;
+  }
+
   Uri _buildUri(String endpoint, [Map<String, dynamic>? queryParams]) {
     return Uri.parse('$baseUrl$endpoint').replace(queryParameters: queryParams);
+  }
+
+  Future<String?> _getBearerToken() async {
+    return await SharedPrefService.getString(Constants.storageBearerTokenKey) ?? "";
   }
 
   void _handleError(http.Response response) {

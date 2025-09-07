@@ -133,6 +133,10 @@ class Constants {
   static const double notificationMinHeight = 80.0;
   static const double notificationMaxHeight = 120.0;
 
+  static double? boxHeightCircle = 100;
+
+  static double paddingAll = 16;
+
   // Colors
   // static const int primaryColor = 0xFF0891B2;
   // static const int backgroundColor = 0xFFF9FAFB;

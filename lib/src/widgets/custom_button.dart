@@ -1,3 +1,4 @@
+import 'package:fiwe/src/utils/constants.dart';
 import 'package:flutter/material.dart';
 
 class AppButtonElevated extends StatelessWidget {
@@ -34,14 +35,21 @@ class AppButtonElevated extends StatelessWidget {
       height: height,
       child: ElevatedButton(
         onPressed: onPressed,
+
         style: ElevatedButton.styleFrom(
-          backgroundColor: backgroundColor ?? const Color(0xFF0891B2),
+          backgroundColor: backgroundColor,
+          backgroundBuilder: (context, states, child) {
+            if (backgroundColor == null) {
+              return Container(decoration: Constants.gradientDecoration, child: child);
+            } else {
+              return child!;
+            }
+          },
           foregroundColor: textColor ?? Colors.white,
           elevation: 0,
+
           shadowColor: Colors.transparent,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(borderRadius),
-          ),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(borderRadius)),
           disabledBackgroundColor: const Color(0xFF9CA3AF),
         ),
         child: Text(

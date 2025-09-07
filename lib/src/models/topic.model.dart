@@ -27,7 +27,7 @@ class Topic {
   final String? avatar;
   final int? peopleCount;
   final int? viewCount;
-  final int? popularityScore;
+  final double? popularityScore;
   final bool? isEnabled;
   final bool? isFeatured;
   final String? category;
@@ -67,7 +67,7 @@ class Topic {
       avatar: json['avatar'] as String,
       peopleCount: json['people_count'] as int,
       viewCount: json['view_count'] as int,
-      popularityScore: json['popularity_score'] as int,
+      popularityScore: json['popularity_score'] as double,
       isEnabled: json['is_enabled'] as bool,
       isFeatured: json['is_featured'] as bool,
       category: json['category'] as String?,

@@ -77,7 +77,7 @@ class PhoneAuthService {
       final data = jsonDecode(response.body);
 
       if (data['success'] == true) {
-        final verificationId = data['verification_id'] as String;
+        final verificationId = data['session_id'] as String;
         if (kDebugMode) print('OTP sent successfully, verification ID: $verificationId');
         return verificationId;
       } else {
@@ -98,7 +98,7 @@ class PhoneAuthService {
 
   /// Verify OTP with the verification ID
   /// Returns true if verification is successful
-  Future<bool> verifyOtp(String verificationId, String otp) async {
+  Future<bool> verifyOtp(String verificationId, String otp, String phone) async {
     // FIREBASE_IMPLEMENTATION: Commented out Firebase-based implementation
     /*
     try {
@@ -135,15 +135,16 @@ class PhoneAuthService {
     try {
       final response = await _httpService.post(
         Endpoints.verifyOtp,
-        body: {'verification_id': verificationId, 'otp': otp},
+        body: {'session_id': verificationId, 'otp': otp, 'phone': _formatPhoneNumber(phone)},
       );
 
       final data = jsonDecode(response.body);
 
       if (data['success'] == true) {
-        final verified = data['verified'] ?? false;
-        if (verified && kDebugMode) print('Phone verification successful');
-        return verified;
+        // final verified = data['verified'] ?? false;
+        // if (verified && kDebugMode) print('Phone verification successful');
+        // return verified;
+        return true;
       } else {
         throw _handleApiException(data);
       }
@@ -182,7 +183,7 @@ class PhoneAuthService {
   /// Handle API response exceptions
   /// Maps API error codes to user-friendly messages
   Exception _handleApiException(Map<String, dynamic> data) {
-    final errorCode = data['error_code'] as String?;
+    final errorCode = data['message'] as String?;
     String message;
 
     switch (errorCode) {

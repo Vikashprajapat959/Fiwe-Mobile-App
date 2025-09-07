@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:fiwe/src/utils/assets.dart';
 import 'package:fiwe/src/utils/colors.dart';
+import 'package:fiwe/src/utils/constants.dart';
 import 'package:fiwe/src/widgets/social_login_button.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -21,13 +22,16 @@ class LoginView extends StatelessWidget {
 
     return Scaffold(
       backgroundColor: AppColors.primary,
-      body: SizedBox.expand(
+      body: Container(
+        width: Get.width,
+        height: Get.height,
+        decoration: Constants.gradientDecoration,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
           mainAxisAlignment: MainAxisAlignment.end,
           mainAxisSize: MainAxisSize.min,
           children: [
-            Image.asset(Assets.images.logo, width: Get.width * 0.5),
+            Image.asset(Assets.images.logoTransparent, width: Get.width * 0.4),
             SizedBox(height: Get.height * .1),
             Text(
               Strings.loginSubtitle,
@@ -41,8 +45,8 @@ class LoginView extends StatelessWidget {
                 onPressed: controller.isLoading ? null : controller.signInWithGoogle,
                 backgroundColor: AppColors.surface,
                 title: Strings.loginWithGoogle,
-                icon: const Icon(Icons.login),
-                titleColor: AppColors.primary,
+                icon: Image.asset(Assets.images.googleLogo, height: 20),
+                titleColor: Colors.black,
               ),
             ),
 

@@ -1,6 +1,7 @@
 import 'package:fiwe/src/controllers/auth_controller.dart';
 import 'package:fiwe/src/utils/assets.dart';
 import 'package:fiwe/src/utils/colors.dart';
+import 'package:fiwe/src/utils/constants.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -16,7 +17,13 @@ class _SplashViewState extends State<SplashView> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.primary,
-      body: Center(child: Image.asset(Assets.images.logo, width: Get.width * 0.5)),
+      body: Container(
+        alignment: Alignment.center,
+        width: Get.width,
+        height: Get.height,
+        decoration: Constants.gradientDecoration,
+        child: Image.asset(Assets.images.logoTransparent, width: Get.width * 0.4),
+      ),
       // body: GetX<AuthController>(
       //   builder: (controller) {
       //     // if (controller.isInitializing) {
