@@ -1,11 +1,14 @@
 import 'package:firebase_messaging/firebase_messaging.dart';
 
+import 'notification_action.dart';
+
 /// Enumeration for different types of notifications
 enum NotificationType {
   userMessage,
   systemAlert,
   promotional,
   reminder,
+  roomInvite, // Added for room invite notifications
 }
 
 /// Enumeration for notification priorities
@@ -51,6 +54,12 @@ class NotificationData {
   /// User ID if this is a user-specific notification
   final String? userId;
 
+  /// Actions associated with the notification (e.g., buttons)
+  final List<NotificationAction> actions;
+
+  /// Room ID for room invite notifications
+  final String? roomId;
+
   const NotificationData({
     required this.id,
     required this.title,
@@ -63,10 +72,15 @@ class NotificationData {
     required this.priority,
     this.route,
     this.userId,
+    this.actions = const [],
+    this.roomId,
   });
 
   /// Create NotificationData from Firebase RemoteMessage
   factory NotificationData.fromRemoteMessage(RemoteMessage message) {
+    // Check if this is a room invite notification
+    final isRoomInvite = message.data['type'] == 'room_invite';
+    
     return NotificationData(
       id: message.messageId ?? DateTime.now().millisecondsSinceEpoch.toString(),
       title: message.notification?.title ?? 'New Notification',
@@ -80,11 +94,18 @@ class NotificationData {
       priority: _parseNotificationPriority(message.data['priority']),
       route: message.data['route'],
       userId: message.data['userId'],
+      actions: isRoomInvite ? _createRoomInviteActions(message.data) : const [],
+      roomId: isRoomInvite ? message.data['roomId'] : null,
     );
   }
 
   /// Create NotificationData from JSON
   factory NotificationData.fromJson(Map<String, dynamic> json) {
+    final actionsJson = json['actions'] as List<dynamic>? ?? [];
+    final actions = actionsJson
+        .map((action) => NotificationAction.fromJson(Map<String, dynamic>.from(action as Map)))
+        .toList();
+
     return NotificationData(
       id: json['id'] ?? '',
       title: json['title'] ?? '',
@@ -97,6 +118,8 @@ class NotificationData {
       priority: NotificationPriority.values[json['priority'] ?? 1],
       route: json['route'],
       userId: json['userId'],
+      actions: actions,
+      roomId: json['roomId'],
     );
   }
 
@@ -114,6 +137,8 @@ class NotificationData {
       'priority': priority.index,
       'route': route,
       'userId': userId,
+      'actions': actions.map((action) => action.toJson()).toList(),
+      'roomId': roomId,
     };
   }
 
@@ -130,6 +155,8 @@ class NotificationData {
     NotificationPriority? priority,
     String? route,
     String? userId,
+    List<NotificationAction>? actions,
+    String? roomId,
   }) {
     return NotificationData(
       id: id ?? this.id,
@@ -143,6 +170,8 @@ class NotificationData {
       priority: priority ?? this.priority,
       route: route ?? this.route,
       userId: userId ?? this.userId,
+      actions: actions ?? this.actions,
+      roomId: roomId ?? this.roomId,
     );
   }
 
@@ -157,6 +186,8 @@ class NotificationData {
         return NotificationType.promotional;
       case 'reminder':
         return NotificationType.reminder;
+      case 'room_invite':
+        return NotificationType.roomInvite;
       default:
         return NotificationType.systemAlert;
     }
@@ -176,6 +207,27 @@ class NotificationData {
       default:
         return NotificationPriority.normal;
     }
+  }
+
+  /// Create action buttons for room invite notifications
+  static List<NotificationAction> _createRoomInviteActions(Map<String, dynamic> data) {
+    final roomId = data['roomId'] as String?;
+    if (roomId == null) return const [];
+    
+    return [
+      NotificationAction(
+        id: 'join_now_${DateTime.now().millisecondsSinceEpoch}',
+        title: 'JOIN NOW',
+        actionType: 'join_room',
+        data: {'roomId': roomId},
+      ),
+      NotificationAction(
+        id: 'mute_${DateTime.now().millisecondsSinceEpoch}',
+        title: 'MUTE',
+        actionType: 'mute',
+        data: {'roomId': roomId},
+      ),
+    ];
   }
 
   /// Get Android notification channel ID based on priority
@@ -208,7 +260,7 @@ class NotificationData {
 
   @override
   String toString() {
-    return 'NotificationData(id: $id, title: $title, body: $body, type: $type, priority: $priority, isRead: $isRead)';
+    return 'NotificationData(id: $id, title: $title, body: $body, type: $type, priority: $priority, isRead: $isRead, roomId: $roomId)';
   }
 
   @override
@@ -219,7 +271,8 @@ class NotificationData {
         other.title == title &&
         other.body == body &&
         other.type == type &&
-        other.priority == priority;
+        other.priority == priority &&
+        other.roomId == roomId;
   }
 
   @override
@@ -228,6 +281,7 @@ class NotificationData {
         title.hashCode ^
         body.hashCode ^
         type.hashCode ^
-        priority.hashCode;
+        priority.hashCode ^
+        roomId.hashCode;
   }
 }

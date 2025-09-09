@@ -9,10 +9,13 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:get/get.dart';
 import 'package:permission_handler/permission_handler.dart';
 
+import '../controllers/video_room_controller.dart';
+import '../models/notification_action.dart';
 import '../models/notification_data.dart';
 import '../utils/constants.dart';
 import '../utils/strings.dart';
 import 'badge_service.dart';
+import 'http_service.dart';
 
 /// Top-level function for handling background notifications
 @pragma('vm:entry-point')
@@ -195,6 +198,21 @@ class NotificationService extends GetxService {
     }
   }
 
+  /// Get Android notification actions
+  List<AndroidNotificationAction> _getAndroidNotificationActions(NotificationData notificationData) {
+    if (notificationData.type != NotificationType.roomInvite || notificationData.actions.isEmpty) {
+      return [];
+    }
+
+    return notificationData.actions.map((action) {
+      return AndroidNotificationAction(
+        action.id,
+        action.title,
+        showsUserInterface: true, // Show UI when action is tapped
+      );
+    }).toList();
+  }
+
   /// Get channel description for priority
   String _getChannelDescription(NotificationPriority priority) {
     switch (priority) {
@@ -257,13 +275,38 @@ class NotificationService extends GetxService {
     }
   }
 
+  /// Get iOS notification actions
+  List<DarwinNotificationAction> _getIOSNotificationActions(NotificationData notificationData) {
+    if (notificationData.type != NotificationType.roomInvite || notificationData.actions.isEmpty) {
+      return [];
+    }
+
+    return notificationData.actions.map((action) {
+      return DarwinNotificationAction.plain(
+        action.id,
+        action.title,
+        options:
+            <DarwinNotificationActionOption>{
+                  DarwinNotificationActionOption.destructive, // For MUTE action
+                }
+                .where((option) => action.actionType == 'mute' || option != DarwinNotificationActionOption.destructive)
+                .toSet(),
+      );
+    }).toList();
+  }
+
   /// Handle background notifications
   Future<void> _handleBackgroundNotification(RemoteMessage message) async {
     try {
       final notificationData = NotificationData.fromRemoteMessage(message);
 
-      // Show local notification
-      await _showLocalNotification(notificationData);
+      // Handle room invite notifications specially
+      if (notificationData.type == NotificationType.roomInvite) {
+        await _handleRoomInviteNotification(notificationData, isBackground: true);
+      } else {
+        // Show local notification for regular notifications
+        await _showLocalNotification(notificationData);
+      }
 
       // Update badge count
       await _updateBadgeCount();
@@ -279,11 +322,16 @@ class NotificationService extends GetxService {
     try {
       final notificationData = NotificationData.fromRemoteMessage(message);
 
-      // Update badge count
-      _updateBadgeCount();
+      // Handle room invite notifications specially
+      if (notificationData.type == NotificationType.roomInvite) {
+        _handleRoomInviteNotification(notificationData, isBackground: false);
+      } else {
+        // Update badge count
+        _updateBadgeCount();
 
-      // Add to notification stream for in-app display
-      _notificationStreamController.add(notificationData);
+        // Add to notification stream for in-app display
+        _notificationStreamController.add(notificationData);
+      }
 
       dev.log('Foreground notification processed: ${notificationData.title}', name: 'NotificationService');
     } catch (e) {
@@ -304,6 +352,40 @@ class NotificationService extends GetxService {
     }
   }
 
+  /// Handle notification action button tap
+  void _handleNotificationActionTap(NotificationData notificationData, String actionId) {
+    try {
+      // Find the action that was tapped
+      final action = notificationData.actions.firstWhere(
+        (a) => a.id == actionId,
+        orElse: () => NotificationAction(id: '', title: '', actionType: '', data: {}),
+      );
+
+      if (action.id.isEmpty) {
+        dev.log('No action found for actionId: $actionId', name: 'NotificationService');
+        return;
+      }
+
+      dev.log('Handling notification action: ${action.title}', name: 'NotificationService');
+
+      switch (action.actionType) {
+        case 'join_room':
+          final roomId = action.data['roomId'] as String?;
+          if (roomId != null) {
+            _joinRoom(roomId);
+          }
+          break;
+        case 'mute':
+          _muteRoomInvites();
+          break;
+        default:
+          dev.log('Unknown action type: ${action.actionType}', name: 'NotificationService');
+      }
+    } catch (e) {
+      dev.log('Error handling notification action tap: $e', name: 'NotificationService');
+    }
+  }
+
   /// Handle notification tap
   void _handleNotificationTap(RemoteMessage message) {
     try {
@@ -311,6 +393,23 @@ class NotificationService extends GetxService {
       _onNotificationAction(notificationData);
     } catch (e) {
       dev.log('Error handling notification tap: $e', name: 'NotificationService');
+    }
+  }
+
+  /// Handle room invite notifications
+  Future<void> _handleRoomInviteNotification(NotificationData notificationData, {required bool isBackground}) async {
+    try {
+      dev.log('Handling room invite notification: ${notificationData.title}', name: 'NotificationService');
+
+      if (isBackground) {
+        // For background notifications, show local notification with actions
+        await _showLocalNotification(notificationData);
+      } else {
+        // For foreground notifications, add to notification stream
+        _notificationStreamController.add(notificationData);
+      }
+    } catch (e) {
+      dev.log('Error handling room invite notification: $e', name: 'NotificationService');
     }
   }
 
@@ -383,6 +482,34 @@ class NotificationService extends GetxService {
     }
   }
 
+  /// Join a video room
+  void _joinRoom(String roomId) {
+    try {
+      dev.log('Joining room: $roomId', name: 'NotificationService');
+      // Use VideoRoomController to join the room
+      VideoRoomController.instance.joinRoom(roomId, 'User');
+    } catch (e) {
+      dev.log('Error joining room: $e', name: 'NotificationService');
+      Get.snackbar('Error', 'Failed to join room: $e', snackPosition: SnackPosition.BOTTOM);
+    }
+  }
+
+  /// Mute room invites
+  Future<void> _muteRoomInvites() async {
+    try {
+      dev.log('Muting room invites', name: 'NotificationService');
+
+      // Call the API to mute room invites
+      final httpService = Get.find<HttpService>();
+      await httpService.put('/api/me/preferences', body: {'mute_room_invites': true}, isAuthorized: true);
+
+      Get.snackbar('Success', 'Room invites muted successfully', snackPosition: SnackPosition.BOTTOM);
+    } catch (e) {
+      dev.log('Error muting room invites: $e', name: 'NotificationService');
+      Get.snackbar('Error', 'Failed to mute room invites: $e', snackPosition: SnackPosition.BOTTOM);
+    }
+  }
+
   /// Handle notification action (tap, navigation)
   void _onNotificationAction(NotificationData notificationData) {
     try {
@@ -400,6 +527,14 @@ class NotificationService extends GetxService {
           case NotificationType.reminder:
             Get.toNamed(Constants.homeViewRoute);
             break;
+          case NotificationType.roomInvite:
+            // For room invites, join the room if roomId is available
+            if (notificationData.roomId != null) {
+              _joinRoom(notificationData.roomId!);
+            } else {
+              Get.toNamed(Constants.homeViewRoute);
+            }
+            break;
         }
       }
 
@@ -415,7 +550,13 @@ class NotificationService extends GetxService {
       if (response.payload != null) {
         final Map<String, dynamic> data = jsonDecode(response.payload!);
         final notificationData = NotificationData.fromJson(data);
-        _onNotificationAction(notificationData);
+
+        // Check if this is an action button tap
+        if (response.actionId != null && notificationData.actions.isNotEmpty) {
+          _handleNotificationActionTap(notificationData, response.actionId!);
+        } else {
+          _onNotificationAction(notificationData);
+        }
       }
     } catch (e) {
       dev.log('Error handling local notification tap: $e', name: 'NotificationService');
@@ -557,13 +698,18 @@ class NotificationService extends GetxService {
                 summaryText: notificationData.body,
               )
             : BigTextStyleInformation(notificationData.body, contentTitle: notificationData.title),
+        // Add action buttons for room invite notifications
+        actions: _getAndroidNotificationActions(notificationData),
       );
 
       // iOS notification details
-      const DarwinNotificationDetails iosDetails = DarwinNotificationDetails(
+      DarwinNotificationDetails iosDetails = DarwinNotificationDetails(
         presentAlert: true,
         presentBadge: true,
         presentSound: true,
+        // Add action buttons for room invite notifications
+        // TODO:
+        // actions: _getIOSNotificationActions(notificationData),
       );
 
       // Combined notification details

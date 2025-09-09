@@ -2,9 +2,10 @@ import 'package:fiwe/src/services/http_service.dart';
 import 'package:fiwe/src/services/shared_pref_service.dart';
 import 'package:fiwe/src/utils/constants.dart';
 import 'package:fiwe/src/utils/endpoints.dart';
+import 'package:get/get.dart';
 
 class UserService {
-  final _httService = HttpService();
+  final _httService = Get.find<HttpService>();
 
   Future<bool> followTopics(List<String> topics, String primaryTopic) async {
     String token = await SharedPrefService.getString(Constants.storageBearerTokenKey) ?? "";

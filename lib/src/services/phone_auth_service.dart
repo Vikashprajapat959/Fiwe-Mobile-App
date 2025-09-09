@@ -5,6 +5,7 @@ import 'dart:io';
 // FIREBASE_IMPLEMENTATION: Commented out Firebase imports
 // import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
+import 'package:get/instance_manager.dart';
 
 import '../utils/constants.dart';
 import '../utils/endpoints.dart';
@@ -18,7 +19,7 @@ class PhoneAuthService {
   // final FirebaseAuth _auth = FirebaseAuth.instance;
 
   // API_IMPLEMENTATION: New HTTP service for API calls
-  final HttpService _httpService = HttpService();
+  final _httpService = Get.find<HttpService>();
 
   /// Resend OTP to the same phone number
   /// Returns new verification ID

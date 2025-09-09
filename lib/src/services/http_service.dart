@@ -4,11 +4,12 @@ import 'dart:developer' as developer;
 import 'package:fiwe/src/services/shared_pref_service.dart';
 import 'package:fiwe/src/utils/constants.dart';
 import 'package:flutter/foundation.dart';
+import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
 
 import '../utils/exceptions.dart';
 
-class HttpService {
+class HttpService extends GetxService {
   final String? baseUrl;
   final Map<String, String> defaultHeaders;
   final bool enableLogging;

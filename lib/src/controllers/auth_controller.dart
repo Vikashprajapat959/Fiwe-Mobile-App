@@ -22,7 +22,7 @@ import '../views/login/signup_view.dart';
 class AuthController extends GetxController {
   // Services
   final _googleAuthService = GoogleAuthService();
-  final _httpService = HttpService();
+  final _httpService = Get.find<HttpService>();
 
   // Observables
   final _googleUser = Rx<GoogleSignInAccount?>(null);

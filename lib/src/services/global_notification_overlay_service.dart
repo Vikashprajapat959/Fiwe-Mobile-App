@@ -258,12 +258,15 @@ class GlobalNotificationOverlayService extends GetxService {
         Get.toNamed(notification.route!, arguments: notification.data);
       } else {
         // Default navigation based on type
+
+        // TODO: handle on room invite
         switch (notification.type) {
           case NotificationType.userMessage:
             Get.toNamed(Constants.homeViewRoute);
             break;
           case NotificationType.systemAlert:
           case NotificationType.promotional:
+          case NotificationType.roomInvite:
           case NotificationType.reminder:
             Get.toNamed(Constants.homeViewRoute);
             break;

@@ -2,9 +2,10 @@ import 'package:fiwe/src/models/topic.model.dart';
 import 'package:fiwe/src/services/http_service.dart';
 import 'package:fiwe/src/utils/endpoints.dart';
 import 'package:fiwe/src/utils/extensions.dart';
+import 'package:get/get.dart';
 
 class TopicService {
-  final HttpService httpService = HttpService();
+  final HttpService httpService = Get.find<HttpService>();
 
   Future<List<Topic>> getAllTopics() async {
     final response = await httpService.get(Endpoints.getAllTopics);

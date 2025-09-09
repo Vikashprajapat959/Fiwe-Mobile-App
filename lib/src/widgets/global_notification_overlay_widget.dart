@@ -118,7 +118,7 @@ class _GlobalNotificationOverlayWidgetState extends State<GlobalNotificationOver
       child: Container(
         padding: const EdgeInsets.all(Constants.notificationCloseButtonPadding),
         decoration: BoxDecoration(
-          color: _getTextColor().withOpacity(0.15),
+          color: _getTextColor().withAlpha((255 * 0.15).toInt()),
           borderRadius: BorderRadius.circular(Constants.notificationCloseButtonBorderRadius),
         ),
         child: Icon(Icons.close_rounded, color: _getTextColor(), size: Constants.notificationCloseButtonSize),
@@ -151,7 +151,7 @@ class _GlobalNotificationOverlayWidgetState extends State<GlobalNotificationOver
           Text(
             widget.notification.body,
             style: TextStyle(
-              color: _getTextColor().withOpacity(0.9),
+              color: _getTextColor().withAlpha((255 * 0.9).toInt()),
               fontSize: Constants.notificationBodyFontSize,
               height: 1.3,
             ),
@@ -165,7 +165,7 @@ class _GlobalNotificationOverlayWidgetState extends State<GlobalNotificationOver
         Text(
           Strings.notificationSwipeHint,
           style: TextStyle(
-            color: _getTextColor().withOpacity(0.7),
+            color: _getTextColor().withAlpha((255 * 0.7).toInt()),
             fontSize: Constants.notificationHintFontSize,
             fontStyle: FontStyle.italic,
           ),
@@ -179,7 +179,7 @@ class _GlobalNotificationOverlayWidgetState extends State<GlobalNotificationOver
     return Container(
       padding: const EdgeInsets.all(Constants.notificationIconPadding),
       decoration: BoxDecoration(
-        color: _getTextColor().withOpacity(0.15),
+        color: _getTextColor().withAlpha((255 * 0.15).toInt()),
         borderRadius: BorderRadius.circular(Constants.notificationIconBorderRadius),
       ),
       child: Icon(_getNotificationIcon(), color: _getTextColor(), size: Constants.notificationIconSize),
@@ -220,6 +220,8 @@ class _GlobalNotificationOverlayWidgetState extends State<GlobalNotificationOver
         return Icons.local_offer_rounded;
       case NotificationType.reminder:
         return Icons.schedule_rounded;
+      case NotificationType.roomInvite:
+        return Icons.group_add_rounded;
     }
   }
 
