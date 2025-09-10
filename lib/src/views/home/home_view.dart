@@ -1,6 +1,6 @@
 import 'package:fiwe/src/controllers/auth_controller.dart';
-import 'package:fiwe/src/controllers/video_room_controller.dart';
 import 'package:fiwe/src/utils/notification_test_helper.dart';
+import 'package:fiwe/src/views/home/create_room_view.dart';
 import 'package:fiwe/src/views/login/login_view.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -13,9 +13,12 @@ class HomeView extends StatelessWidget {
     return Scaffold(
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          Get.find<VideoRoomController>().createRoom("Music");
+          Get.to(() => CreateRoomView());
+          // Get.find<VideoRoomController>().createRoom("Music");
         },
       ),
+
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
       appBar: AppBar(
         title: const Text('Home'),
         actions: [

@@ -1,5 +1,6 @@
 import 'dart:math';
 
+import '../extensions/notification_data_extension.dart';
 import '../models/notification_data.dart';
 import '../services/global_notification_overlay_service.dart';
 
@@ -9,7 +10,7 @@ class NotificationTestHelper {
 
   /// Dismiss current notification (if any)
   static Future<void> dismissCurrent() async {
-    await GlobalNotificationOverlayService.instance.dismissNotification();
+    await NotificationActions.dismissAll();
   }
 
   /// Force dismiss (for emergency testing)
@@ -61,12 +62,12 @@ class NotificationTestHelper {
     String? body,
   }) async {
     final notification = generateTestNotification(type: type, title: title, body: body, priority: priority);
-
-    await GlobalNotificationOverlayService.instance.showNotification(notification);
+    await notification.show();
   }
 
   /// Show a sequence of test notifications with delays
   static Future<void> showTestSequence() async {
+    print('Starting notification sequence test...');
     final notifications = [
       generateTestNotification(
         type: NotificationType.userMessage,
@@ -95,11 +96,16 @@ class NotificationTestHelper {
     ];
 
     for (int i = 0; i < notifications.length; i++) {
-      await GlobalNotificationOverlayService.instance.showNotification(notifications[i]);
+      print('Showing notification ${i + 1}/${notifications.length}: ${notifications[i].title}');
+      await notifications[i].show();
+      print('Notification shown, waiting before next...');
 
       // Wait for current notification to be dismissed or timeout
-      await Future.delayed(const Duration(seconds: 7));
+      await Future.delayed(const Duration(seconds: 2));
+      print('Delay completed, moving to next notification');
     }
+
+    print('Notification sequence test completed');
   }
 
   /// Test auto-discard functionality with old notifications
@@ -111,7 +117,7 @@ class NotificationTestHelper {
       body: 'This notification will be auto-discarded after 15 minutes if not read',
     );
 
-    await GlobalNotificationOverlayService.instance.showNotification(notification);
+    await notification.show();
 
     // Note: Auto-discard happens automatically every 15 minutes
     // In a real scenario, unread notifications older than 15 minutes are removed
@@ -125,7 +131,7 @@ class NotificationTestHelper {
         body: 'Testing in-memory notification limit (max 20)',
       );
 
-      await GlobalNotificationOverlayService.instance.showNotification(notification);
+      await notification.show();
       await Future.delayed(const Duration(milliseconds: 200));
     }
 
@@ -138,10 +144,11 @@ class NotificationTestHelper {
       type: NotificationType.systemAlert,
       priority: NotificationPriority.normal,
       title: 'Swipe Test',
-      body: 'Try swiping this notification left or right to dismiss it',
+      body:
+          'Try swiping this notification left or right to dismiss it. The animation should be smooth and the notification should completely disappear.',
     );
 
-    await GlobalNotificationOverlayService.instance.showNotification(notification);
+    await notification.show();
   }
 
   /// Random body generator

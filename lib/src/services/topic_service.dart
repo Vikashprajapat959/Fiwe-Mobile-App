@@ -4,11 +4,11 @@ import 'package:fiwe/src/utils/endpoints.dart';
 import 'package:fiwe/src/utils/extensions.dart';
 import 'package:get/get.dart';
 
-class TopicService {
-  final HttpService httpService = Get.find<HttpService>();
+class TopicService extends GetxService {
+  final HttpService _httpService = Get.find<HttpService>();
 
   Future<List<Topic>> getAllTopics() async {
-    final response = await httpService.get(Endpoints.getAllTopics);
+    final response = await _httpService.get(Endpoints.getAllTopics);
     final responseBody = response.body.toJson();
     if (responseBody.containsKey("success") && responseBody['success'] == true) {
       final List<dynamic> topicsData = responseBody['data']['topics'] ?? [];
@@ -18,7 +18,7 @@ class TopicService {
   }
 
   Future<Map<String, List<Topic>>> getTopicsByCategories() async {
-    final response = await httpService.get(Endpoints.getTopicsByCategories);
+    final response = await _httpService.get(Endpoints.getTopicsByCategories);
     final responseBody = response.body.toJson();
 
     if (responseBody.containsKey("success") && responseBody['success'] == true) {

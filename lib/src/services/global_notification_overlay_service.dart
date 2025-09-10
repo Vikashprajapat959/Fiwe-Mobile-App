@@ -44,6 +44,11 @@ class GlobalNotificationOverlayService extends GetxService {
 
   /// Dismiss notification overlay
   Future<void> dismissNotification() async {
+    dev.log(
+      'Attempting to dismiss notification. Current state - isVisible: ${_isVisible.value}, hasNotification: ${_currentNotification.value != null}, hasOverlayEntry: ${_overlayEntry != null}',
+      name: 'GlobalOverlay',
+    );
+
     try {
       if (_isVisible.value) {
         _isVisible.value = false;
@@ -56,7 +61,12 @@ class GlobalNotificationOverlayService extends GetxService {
         // Remove overlay safely
         await _removeOverlaySafely();
 
-        dev.log('Notification overlay dismissed', name: 'GlobalOverlay');
+        // Add an additional check to ensure overlay is removed
+        await _ensureOverlayRemoved();
+
+        dev.log('Notification overlay dismissed successfully', name: 'GlobalOverlay');
+      } else {
+        dev.log('Notification overlay was not visible, nothing to dismiss', name: 'GlobalOverlay');
       }
     } catch (e) {
       dev.log('Error dismissing notification overlay: $e', name: 'GlobalOverlay');
@@ -155,6 +165,11 @@ class GlobalNotificationOverlayService extends GetxService {
   /// Show notification overlay
   Future<void> showNotification(NotificationData notification) async {
     try {
+      dev.log(
+        'Attempting to show notification: ${notification.title}. Current state - isReady: $isReady, hasContext: ${Get.overlayContext != null || Get.context != null}',
+        name: 'GlobalOverlay',
+      );
+
       // Check if service is ready
       if (!isReady) {
         dev.log('Service not ready to show notifications, deferring...', name: 'GlobalOverlay');
@@ -182,8 +197,13 @@ class GlobalNotificationOverlayService extends GetxService {
         return;
       }
 
-      // Dismiss current notification if any
-      await dismissNotification();
+      dev.log('Context available, proceeding with notification display', name: 'GlobalOverlay');
+
+      // Dismiss current notification if any (but don't null the overlay entry yet)
+      if (_isVisible.value) {
+        dev.log('Dismissing current notification before showing new one', name: 'GlobalOverlay');
+        await _dismissCurrentNotification();
+      }
 
       // Set new notification
       _currentNotification.value = notification;
@@ -216,10 +236,7 @@ class GlobalNotificationOverlayService extends GetxService {
 
   /// Create overlay entry
   void _createOverlay() {
-    // Clean up any existing overlay first
-    if (_overlayEntry != null) {
-      _removeOverlay();
-    }
+    dev.log('Creating overlay entry', name: 'GlobalOverlay');
 
     // Ensure we have a valid notification before creating overlay
     final notification = _currentNotification.value;
@@ -229,10 +246,19 @@ class GlobalNotificationOverlayService extends GetxService {
     }
 
     try {
+      // Clean up any existing overlay first, but only if it's different
+      if (_overlayEntry != null) {
+        dev.log('Cleaning up existing overlay entry', name: 'GlobalOverlay');
+        _removeOverlay();
+      }
+
       _overlayEntry = OverlayEntry(
         builder: (context) => GlobalNotificationOverlayWidget(
           notification: notification,
-          onDismiss: dismissNotification,
+          onDismiss: () {
+            dev.log('Overlay widget dismissed, calling service dismiss', name: 'GlobalOverlay');
+            dismissNotification();
+          },
           onTap: _handleNotificationTap,
         ),
       );
@@ -246,6 +272,51 @@ class GlobalNotificationOverlayService extends GetxService {
       _overlayEntry = null;
       _isVisible.value = false;
       _currentNotification.value = null;
+    }
+  }
+
+  /// Dismiss current notification without removing overlay entry immediately
+  Future<void> _dismissCurrentNotification() async {
+    try {
+      if (_isVisible.value) {
+        _isVisible.value = false;
+        _currentNotification.value = null;
+
+        // Cancel auto-dismiss timer
+        _autoDismissTimer?.cancel();
+        _autoDismissTimer = null;
+
+        // Remove overlay safely
+        await _removeOverlaySafely();
+
+        // Add an additional check to ensure overlay is removed
+        await _ensureOverlayRemoved();
+
+        dev.log('Current notification dismissed successfully', name: 'GlobalOverlay');
+      }
+    } catch (e) {
+      dev.log('Error dismissing current notification: $e', name: 'GlobalOverlay');
+      // Force reset state on error
+      _isVisible.value = false;
+      _currentNotification.value = null;
+      _autoDismissTimer?.cancel();
+      _autoDismissTimer = null;
+    }
+  }
+
+  /// Ensure overlay is completely removed
+  Future<void> _ensureOverlayRemoved() async {
+    // Small delay to allow for UI updates
+    await Future.delayed(const Duration(milliseconds: 50));
+
+    // Force a global rebuild if needed
+    try {
+      final context = Get.context ?? Get.overlayContext;
+      if (context != null) {
+        (context as Element).markNeedsBuild();
+      }
+    } catch (e) {
+      dev.log('Error forcing global rebuild: $e', name: 'GlobalOverlay');
     }
   }
 
@@ -315,11 +386,16 @@ class GlobalNotificationOverlayService extends GetxService {
   void _removeOverlay() {
     try {
       if (_overlayEntry != null) {
-        _overlayEntry!.remove();
-        dev.log('Overlay entry removed', name: 'GlobalOverlay');
+        // Check if the overlay entry is still attached before removing
+        try {
+          _overlayEntry!.remove();
+          dev.log('Overlay entry removed', name: 'GlobalOverlay');
+        } catch (e) {
+          dev.log('Error removing overlay entry: $e', name: 'GlobalOverlay');
+        }
       }
     } catch (e) {
-      dev.log('Error removing overlay: $e', name: 'GlobalOverlay');
+      dev.log('Error in _removeOverlay: $e', name: 'GlobalOverlay');
     } finally {
       // Always null the entry regardless of success/failure
       _overlayEntry = null;
@@ -328,29 +404,33 @@ class GlobalNotificationOverlayService extends GetxService {
 
   /// Remove overlay entry safely
   Future<void> _removeOverlaySafely() async {
+    // If there's no overlay entry, nothing to do
     if (_overlayEntry == null) {
+      dev.log('No overlay entry to remove', name: 'GlobalOverlay');
       return;
     }
 
     try {
-      // Use a post frame callback to ensure we're not in the middle of a build
-      await Future(() {
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          try {
-            if (_overlayEntry != null) {
-              _overlayEntry!.remove();
-              dev.log('Overlay entry removed safely', name: 'GlobalOverlay');
-            }
-          } catch (e) {
-            dev.log('Error removing overlay entry: $e', name: 'GlobalOverlay');
-          } finally {
-            _overlayEntry = null;
-          }
-        });
-      });
+      // Store the overlay entry reference
+      final overlayEntry = _overlayEntry;
+
+      // Remove the overlay entry if it exists
+      if (overlayEntry != null) {
+        try {
+          dev.log('Attempting to remove overlay entry', name: 'GlobalOverlay');
+          overlayEntry.remove();
+          dev.log('Overlay entry removed successfully', name: 'GlobalOverlay');
+        } catch (e) {
+          // This might happen if the overlay was already removed
+          dev.log('Warning: Overlay entry removal failed (might already be removed): $e', name: 'GlobalOverlay');
+        }
+      }
+
+      // Only null the reference after successful removal
+      _overlayEntry = null;
     } catch (e) {
       dev.log('Error in safe overlay removal: $e', name: 'GlobalOverlay');
-      // Force null the entry even if removal failed
+      // Ensure the overlay entry is null even if removal failed
       _overlayEntry = null;
     }
   }

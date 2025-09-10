@@ -141,10 +141,12 @@ class AuthController extends GetxController {
 
       if (response.body.isNotEmpty) {
         final data = Map<String, dynamic>.from(json.decode(response.body));
-        if (data[Constants.responseAccessKey] != null)
+        if (data[Constants.responseAccessKey] != null) {
           await SharedPrefService.setString(Constants.storageBearerTokenKey, data[Constants.responseAccessKey]);
-        if (data[Constants.responseRefreshKey] != null)
+        }
+        if (data[Constants.responseRefreshKey] != null) {
           await SharedPrefService.setString(Constants.storageBearerTokenRefreshKey, data[Constants.responseRefreshKey]);
+        }
         return data;
       }
       return {Constants.responseSuccessKey: true, Constants.responseMessageKey: Strings.tokenSentSuccessfully};
