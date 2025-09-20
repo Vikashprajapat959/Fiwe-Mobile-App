@@ -1,20 +1,32 @@
+import 'dart:developer';
+
 import 'package:firebase_core/firebase_core.dart';
 import 'package:fiwe/firebase_options.dart';
+import 'package:fiwe/src/repositories/room_repository.dart';
+import 'package:fiwe/src/services/http_service.dart';
+import 'package:fiwe/src/services/topic_service.dart';
 import 'package:fiwe/src/utils/colors.dart';
+import 'package:fiwe/src/views/home/create_room_view.dart';
 import 'package:fiwe/src/views/home/home_view.dart';
 import 'package:fiwe/src/views/interest/interest_selection_view.dart';
 import 'package:fiwe/src/views/login/login_view.dart';
 import 'package:fiwe/src/views/login/signup_view.dart';
 import 'package:fiwe/src/views/login/splash_view.dart';
+import 'package:fiwe/src/views/video_room/video_room_view.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import 'src/controllers/notification_controller.dart';
+import 'src/controllers/video_room_controller.dart';
 import 'src/services/badge_service.dart';
+import 'src/services/deep_link_service.dart';
 import 'src/services/global_notification_overlay_service.dart';
 // Import notification services
 import 'src/services/notification_service.dart';
+import 'src/services/permission_service.dart';
+import 'src/services/video_room_service.dart';
 import 'src/utils/constants.dart';
 
 void main() async {
@@ -26,16 +38,41 @@ void main() async {
   // Initialize notification services
   await _initializeServices();
 
+  // Initialize 100ms SDK
+  await _initializeHMS();
+  SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp, DeviceOrientation.portraitDown]);
+
   runApp(const FiweApp());
+}
+
+/// Initialize 100ms SDK
+Future<void> _initializeHMS() async {
+  try {
+    // Initialize the 100ms SDK
+    // Initialize HMS SDK with your credentials
+    // Example: await HMSLogger.initialize();
+    // Example: HMSManager.initialize();
+    // Add your actual HMS initialization code here
+    log('100ms SDK initialized successfully');
+  } catch (e) {
+    log('Error initializing 100ms SDK: $e');
+  }
 }
 
 /// Initialize all services
 Future<void> _initializeServices() async {
   // Register services with GetX dependency injection
+  Get.put(HttpService(), permanent: true);
   Get.put(BadgeService(), permanent: true);
+  Get.lazyPut<TopicService>(() => TopicService());
   Get.put(NotificationService(), permanent: true);
   Get.put(GlobalNotificationOverlayService(), permanent: true);
   Get.put(NotificationController(), permanent: true);
+  Get.put(PermissionService(), permanent: true);
+  Get.put(VideoRoomService(), permanent: true);
+  Get.lazyPut(() => RoomRepository());
+  Get.put(VideoRoomController(), permanent: true);
+  Get.put(DeepLinkService(), permanent: true);
 }
 
 class FiweApp extends StatelessWidget {
@@ -45,19 +82,10 @@ class FiweApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return GetMaterialApp(
       debugShowCheckedModeBanner: false,
+      showPerformanceOverlay: true,
       theme: ThemeData(
-        primarySwatch: MaterialColor(0xFF1398A9, <int, Color>{
-          50: Color.lerp(Colors.white, AppColors.primary, 0.1)!,
-          100: Color.lerp(Colors.white, AppColors.primary, 0.2)!,
-          200: Color.lerp(Colors.white, AppColors.primary, 0.3)!,
-          300: Color.lerp(Colors.white, AppColors.primary, 0.4)!,
-          400: Color.lerp(Colors.white, AppColors.primary, 0.6)!,
-          500: AppColors.primary,
-          600: Color.lerp(AppColors.primary, Colors.black, 0.1)!,
-          700: Color.lerp(AppColors.primary, Colors.black, 0.2)!,
-          800: Color.lerp(AppColors.primary, Colors.black, 0.3)!,
-          900: Color.lerp(AppColors.primary, Colors.black, 0.4)!,
-        }),
+        appBarTheme: Theme.of(context).appBarTheme,
+        primarySwatch: Colors.lightBlue,
         primaryColor: AppColors.primary,
         textTheme: GoogleFonts.interTextTheme(),
         useMaterial3: true,
@@ -70,6 +98,8 @@ class FiweApp extends StatelessWidget {
         GetPage(name: Constants.loginViewRoute, page: () => const LoginView()),
         GetPage(name: Constants.signUpViewRoute, page: () => const SignUpView()),
         GetPage(name: Constants.interestSelectionViewRoute, page: () => const InterestSelectionView()),
+        GetPage(name: Constants.videoRoomRoute, page: () => const VideoRoomView()),
+        GetPage(name: Constants.createRoomRoute, page: () => const CreateRoomView()),
       ],
       // Fallback route generation for unknown routes
       onUnknownRoute: (settings) {

@@ -137,6 +137,10 @@ class Constants {
 
   static double paddingAll = 16;
 
+  static String createRoomRoute = "/create/room";
+
+  static String videoRoomRoute = "/video-room";
+
   // Colors
   // static const int primaryColor = 0xFF0891B2;
   // static const int backgroundColor = 0xFFF9FAFB;

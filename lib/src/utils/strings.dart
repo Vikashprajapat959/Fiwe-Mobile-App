@@ -238,6 +238,8 @@ class Strings {
 
   static String select5Interests = "Select at least 5 interests";
 
+  static const String createRoom = "Create Room";
+
   // Helper method to capitalize a string
   static String capitalize(String value) {
     if (value.isEmpty) return value;

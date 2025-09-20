@@ -1,6 +1,7 @@
 import 'package:fiwe/src/controllers/auth_controller.dart';
-import 'package:fiwe/src/views/login/login_view.dart';
 import 'package:fiwe/src/utils/notification_test_helper.dart';
+import 'package:fiwe/src/views/home/create_room_view.dart';
+import 'package:fiwe/src/views/login/login_view.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -10,6 +11,14 @@ class HomeView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          Get.to(() => CreateRoomView());
+          // Get.find<VideoRoomController>().createRoom("Music");
+        },
+      ),
+
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
       appBar: AppBar(
         title: const Text('Home'),
         actions: [
@@ -56,11 +65,11 @@ class HomeView extends StatelessWidget {
           children: [
             const Text('Welcome to Home View', style: TextStyle(fontSize: 24)),
             const SizedBox(height: 32),
-            
+
             // Notification Testing Section
             const Text('Notification Testing', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
             const SizedBox(height: 16),
-            
+
             Wrap(
               spacing: 8,
               runSpacing: 8,
@@ -72,34 +81,34 @@ class HomeView extends StatelessWidget {
                   ),
                   child: const Text('Show Test Notification'),
                 ),
-                
+
                 ElevatedButton(
                   onPressed: () => NotificationTestHelper.testSwipeDismissal(),
                   child: const Text('Test Swipe Dismissal'),
                 ),
-                
+
                 ElevatedButton(
                   onPressed: () => NotificationTestHelper.showTestSequence(),
                   child: const Text('Show Sequence'),
                 ),
-                
+
                 ElevatedButton(
                   onPressed: () => NotificationTestHelper.testAutoDiscard(),
                   child: const Text('Test Auto-Discard'),
                 ),
-                
+
                 ElevatedButton(
                   onPressed: () => NotificationTestHelper.testInMemoryLimit(),
                   child: const Text('Test Memory Limit'),
                 ),
-                
+
                 ElevatedButton(
                   onPressed: () => NotificationTestHelper.dismissCurrent(),
                   child: const Text('Dismiss Current'),
                 ),
               ],
             ),
-            
+
             const SizedBox(height: 16),
             Text(
               'Test notification system:\n'

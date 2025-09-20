@@ -246,6 +246,8 @@ class NotificationController extends GetxController {
             break;
           case NotificationType.systemAlert:
           case NotificationType.promotional:
+          //TODO: handle room invite
+          case NotificationType.roomInvite:
           case NotificationType.reminder:
             Get.toNamed(Constants.homeViewRoute);
             break;

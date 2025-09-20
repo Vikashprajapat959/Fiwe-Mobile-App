@@ -1,3 +1,5 @@
+import 'dart:developer' as dev;
+
 import 'package:flutter/material.dart';
 
 import '../models/notification_data.dart';
@@ -33,9 +35,22 @@ class _GlobalNotificationOverlayWidgetState extends State<GlobalNotificationOver
   // Gesture tracking
   double _dragExtent = 0.0;
   bool _isDragging = false;
+  bool _isDismissed = false;
+  bool _isDisposed = false;
 
   @override
   Widget build(BuildContext context) {
+    // Don't render if already dismissed or disposed
+    if (_isDismissed || _isDisposed) {
+      dev.log(
+        'Notification widget not rendering - dismissed: $_isDismissed, disposed: $_isDisposed, title: ${widget.notification.title}',
+        name: 'GlobalNotificationOverlayWidget',
+      );
+      return const SizedBox.shrink();
+    }
+
+    dev.log('Building notification widget: ${widget.notification.title}', name: 'GlobalNotificationOverlayWidget');
+
     return Positioned(
       top: _calculateTopPadding(context),
       left: Constants.notificationHorizontalMargin,
@@ -47,9 +62,10 @@ class _GlobalNotificationOverlayWidgetState extends State<GlobalNotificationOver
           child: Transform.translate(
             offset: Offset(_dragExtent, 0),
             child: GestureDetector(
-              onTap: widget.onTap,
-              onHorizontalDragUpdate: _handleHorizontalDrag,
-              onHorizontalDragEnd: _handleDragEnd,
+              onTap: _isDismissed || _isDisposed ? null : widget.onTap,
+              onHorizontalDragStart: _isDismissed || _isDisposed ? null : _handleHorizontalDragStart,
+              onHorizontalDragUpdate: _isDismissed || _isDisposed ? null : _handleHorizontalDrag,
+              onHorizontalDragEnd: _isDismissed || _isDisposed ? null : _handleDragEnd,
               child: Material(
                 elevation: Constants.notificationElevation,
                 borderRadius: BorderRadius.circular(Constants.notificationBorderRadius),
@@ -88,6 +104,8 @@ class _GlobalNotificationOverlayWidgetState extends State<GlobalNotificationOver
 
   @override
   void dispose() {
+    dev.log('Disposing notification widget: ${widget.notification.title}', name: 'GlobalNotificationOverlayWidget');
+    _isDisposed = true;
     _slideController.dispose();
     _dismissController.dispose();
     super.dispose();
@@ -106,19 +124,68 @@ class _GlobalNotificationOverlayWidgetState extends State<GlobalNotificationOver
   }
 
   /// Animate notification out and dismiss
-  Future<void> _animateOut() async {
-    await _dismissController.forward();
-    widget.onDismiss();
+  Future<void> _animateOut({bool fromSwipe = false}) async {
+    if (_isDismissed || _isDisposed) {
+      dev.log(
+        'Skipping animateOut - already dismissed: $_isDismissed, disposed: $_isDisposed, title: ${widget.notification.title}',
+        name: 'GlobalNotificationOverlayWidget',
+      );
+      return;
+    }
+
+    dev.log(
+      'Animating out notification: ${widget.notification.title}, fromSwipe: $fromSwipe',
+      name: 'GlobalNotificationOverlayWidget',
+    );
+
+    setState(() {
+      _isDismissed = true;
+    });
+
+    if (fromSwipe) {
+      // For swipe dismissal, animate based on drag direction
+      final screenWidth = MediaQuery.of(context).size.width;
+      final endOffset = _dragExtent > 0 ? const Offset(2, 0) : const Offset(-2, 0);
+      _dismissAnimation = Tween<Offset>(
+        begin: Offset(_dragExtent / screenWidth, 0),
+        end: endOffset,
+      ).animate(CurvedAnimation(parent: _dismissController, curve: Curves.easeIn));
+    }
+
+    try {
+      await _dismissController.forward();
+      dev.log('Dismiss animation completed for: ${widget.notification.title}', name: 'GlobalNotificationOverlayWidget');
+    } catch (e) {
+      dev.log('Error during dismiss animation: $e', name: 'GlobalNotificationOverlayWidget');
+    }
+
+    // Only call the dismiss callback if we're not already disposed
+    if (!_isDisposed) {
+      try {
+        dev.log(
+          'Calling onDismiss callback for: ${widget.notification.title}',
+          name: 'GlobalNotificationOverlayWidget',
+        );
+        widget.onDismiss();
+      } catch (e) {
+        dev.log('Error calling onDismiss callback: $e', name: 'GlobalNotificationOverlayWidget');
+      }
+    } else {
+      dev.log(
+        'Skipping onDismiss callback - widget already disposed: ${widget.notification.title}',
+        name: 'GlobalNotificationOverlayWidget',
+      );
+    }
   }
 
   /// Build dismiss button
   Widget _buildDismissButton() {
     return GestureDetector(
-      onTap: _animateOut,
+      onTap: () => _animateOut(),
       child: Container(
         padding: const EdgeInsets.all(Constants.notificationCloseButtonPadding),
         decoration: BoxDecoration(
-          color: _getTextColor().withOpacity(0.15),
+          color: _getTextColor().withAlpha((255 * 0.15).toInt()),
           borderRadius: BorderRadius.circular(Constants.notificationCloseButtonBorderRadius),
         ),
         child: Icon(Icons.close_rounded, color: _getTextColor(), size: Constants.notificationCloseButtonSize),
@@ -151,7 +218,7 @@ class _GlobalNotificationOverlayWidgetState extends State<GlobalNotificationOver
           Text(
             widget.notification.body,
             style: TextStyle(
-              color: _getTextColor().withOpacity(0.9),
+              color: _getTextColor().withAlpha((255 * 0.9).toInt()),
               fontSize: Constants.notificationBodyFontSize,
               height: 1.3,
             ),
@@ -165,7 +232,7 @@ class _GlobalNotificationOverlayWidgetState extends State<GlobalNotificationOver
         Text(
           Strings.notificationSwipeHint,
           style: TextStyle(
-            color: _getTextColor().withOpacity(0.7),
+            color: _getTextColor().withAlpha((255 * 0.7).toInt()),
             fontSize: Constants.notificationHintFontSize,
             fontStyle: FontStyle.italic,
           ),
@@ -179,7 +246,7 @@ class _GlobalNotificationOverlayWidgetState extends State<GlobalNotificationOver
     return Container(
       padding: const EdgeInsets.all(Constants.notificationIconPadding),
       decoration: BoxDecoration(
-        color: _getTextColor().withOpacity(0.15),
+        color: _getTextColor().withAlpha((255 * 0.15).toInt()),
         borderRadius: BorderRadius.circular(Constants.notificationIconBorderRadius),
       ),
       child: Icon(_getNotificationIcon(), color: _getTextColor(), size: Constants.notificationIconSize),
@@ -220,6 +287,8 @@ class _GlobalNotificationOverlayWidgetState extends State<GlobalNotificationOver
         return Icons.local_offer_rounded;
       case NotificationType.reminder:
         return Icons.schedule_rounded;
+      case NotificationType.roomInvite:
+        return Icons.group_add_rounded;
     }
   }
 
@@ -231,29 +300,34 @@ class _GlobalNotificationOverlayWidgetState extends State<GlobalNotificationOver
 
   /// Handle drag end for swipe dismissal
   void _handleDragEnd(DragEndDetails details) {
+    if (!_isDragging) return;
+
+    _isDragging = false;
     const double dismissThreshold = 100.0; // Minimum drag distance to dismiss
 
     if (_dragExtent.abs() > dismissThreshold) {
       // Dismiss if dragged far enough
-      _animateOut();
+      _animateOut(fromSwipe: true);
     } else {
       // Reset position if not dragged far enough
       setState(() {
         _dragExtent = 0.0;
       });
     }
-    _isDragging = false;
   }
 
   /// Handle horizontal drag for swipe dismissal
   void _handleHorizontalDrag(DragUpdateDetails details) {
-    if (!_isDragging) {
-      _isDragging = true;
-    }
+    if (!_isDragging || _isDismissed) return;
 
     setState(() {
       _dragExtent += details.delta.dx;
     });
+  }
+
+  /// Handle drag start
+  void _handleHorizontalDragStart(DragStartDetails details) {
+    _isDragging = true;
   }
 
   /// Initialize animations
@@ -265,7 +339,7 @@ class _GlobalNotificationOverlayWidgetState extends State<GlobalNotificationOver
     );
 
     // Dismiss animation controller
-    _dismissController = AnimationController(duration: const Duration(milliseconds: 200), vsync: this);
+    _dismissController = AnimationController(duration: const Duration(milliseconds: 300), vsync: this);
 
     // Slide animation (from top)
     _slideAnimation = Tween<Offset>(
@@ -276,8 +350,8 @@ class _GlobalNotificationOverlayWidgetState extends State<GlobalNotificationOver
     // Dismiss animation (slide out)
     _dismissAnimation = Tween<Offset>(
       begin: Offset.zero,
-      end: const Offset(0, -1),
-    ).animate(CurvedAnimation(parent: _dismissController, curve: Curves.easeInBack));
+      end: const Offset(2, 0), // Slide completely off screen
+    ).animate(CurvedAnimation(parent: _dismissController, curve: Curves.easeIn));
 
     // Fade animation
     _fadeAnimation = Tween<double>(

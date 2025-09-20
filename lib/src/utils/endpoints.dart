@@ -9,4 +9,6 @@ class Endpoints {
   static String followTopicsBulk = "/user/topics/bulk-follow";
 
   static String getTopicsByCategories = "/topics/categories/";
+
+  static String createRoom = "/rooms/create";
 }

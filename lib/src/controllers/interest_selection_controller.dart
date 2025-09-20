@@ -14,7 +14,7 @@ class InterestSelectionController extends GetxController {
 
   final pageIndex = 0.obs;
 
-  final TopicService _topicService = TopicService();
+  final TopicService _topicService = Get.find();
   final UserService _userService = UserService();
 
   Map<String, List<Topic>> topicsByCategories = {};

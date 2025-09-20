@@ -47,7 +47,7 @@ class SignUpController extends GetxController {
 
   // Services
   final _picker = ImagePicker();
-  final _httpService = HttpService();
+  final _httpService = Get.find<HttpService>();
   final _phoneAuthService = PhoneAuthService();
 
   String otpSentTo = '';

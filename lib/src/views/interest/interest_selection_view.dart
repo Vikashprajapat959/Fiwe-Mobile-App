@@ -99,17 +99,19 @@ class InterestSelectionView extends StatelessWidget {
                   style: TextStyle(color: AppColors.textSecondary, fontSize: 16, fontWeight: FontWeight.w600),
                 ).paddingOnly(bottom: 8),
                 Expanded(
-                  child: GridView.builder(
-                    itemCount: controller.getSelectedTopics().length,
-                    gridDelegate: sliverGridDelegateWithFixedCrossAxisCount,
-                    itemBuilder: (context, index) {
-                      final items = controller.getSelectedTopics();
-                      if (items.isNotEmpty) {
-                        return SelactableInterestWidget(topic: items[index], forPrimary: true);
-                      } else {
-                        return SizedBox();
-                      }
-                    },
+                  child: Obx(
+                    () => GridView.builder(
+                      itemCount: controller.getSelectedTopics().length,
+                      gridDelegate: sliverGridDelegateWithFixedCrossAxisCount,
+                      itemBuilder: (context, index) {
+                        final items = controller.getSelectedTopics();
+                        if (items.isNotEmpty) {
+                          return SelactableInterestWidget(topic: items[index], forPrimary: true);
+                        } else {
+                          return SizedBox();
+                        }
+                      },
+                    ),
                   ),
                 ),
               ],
