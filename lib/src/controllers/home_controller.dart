@@ -28,7 +28,7 @@ class HomeController extends GetxController {
   @override
   void onInit() {
     // Get.put(NotificationService(), permanent: true);
-    _notificationService = Get.put(FCMNotificationService(), permanent: true);
+    _notificationService = FCMNotificationService.instance;
 
     super.onInit();
   }

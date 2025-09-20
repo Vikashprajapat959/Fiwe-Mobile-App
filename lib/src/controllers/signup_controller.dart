@@ -2,7 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:fiwe/src/services/fcm_notification_service.dart';
 import 'package:fiwe/src/utils/colors.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -461,11 +461,7 @@ class SignUpController extends GetxController {
 
   /// Helper methods
   Future<String> _getDeviceId() async {
-    try {
-      return await FirebaseMessaging.instance.getToken() ?? Constants.unknownDevice;
-    } catch (e) {
-      return Constants.unknownDevice;
-    }
+    return FCMNotificationService.instance.deviceToken ?? 'Unknown';
   }
 
   String? _imageToBase64(File? imageFile) {

@@ -21,14 +21,12 @@ import 'package:flutter_foreground_task/flutter_foreground_task.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-import 'src/controllers/notification_controller.dart';
 import 'src/controllers/video_room_controller.dart';
 import 'src/services/badge_service.dart';
 import 'src/services/deep_link_service.dart';
-import 'src/services/global_notification_overlay_service.dart';
-import 'src/services/hms_room_service.dart';
 // Import notification services
 import 'src/services/fcm_notification_service.dart';
+import 'src/services/hms_room_service.dart';
 import 'src/services/permission_service.dart';
 import 'src/utils/constants.dart';
 
@@ -71,6 +69,7 @@ Future<void> _initializeHMS() async {
 /// Initialize all services
 Future<void> _initializeServices() async {
   // Register services with GetX dependency injection
+  Get.put(FCMNotificationService(), permanent: true);
   Get.put(HttpService(), permanent: true);
   Get.put(BadgeService(), permanent: true);
   Get.lazyPut<TopicService>(() => TopicService());
