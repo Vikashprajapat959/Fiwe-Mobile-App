@@ -38,8 +38,8 @@ class DeepLinkService extends GetxService {
     try {
       dev.log('Handling room invite link for room: $roomId', name: 'DeepLinkService');
 
-      // Join the room using VideoRoomController
-      VideoRoomController.instance.joinRoom(roomId, 'User');
+      // Join the room using VideoRoomController TODO::
+      // VideoRoomController.instance.joinRoom(roomId, 'User', "", "");
 
       // Navigate to the room view
       navigatorKey.currentState?.pushNamed('/room/$roomId');
@@ -69,8 +69,8 @@ class DeepLinkService extends GetxService {
       // Navigate using go_router
       navigatorKey.currentState?.pushNamed('/room/$roomId');
 
-      // Also join the room using VideoRoomController
-      VideoRoomController.instance.joinRoom(roomId, 'User');
+      // Also join the room using VideoRoomController TODO:
+      // VideoRoomController.instance.joinRoom(roomId, 'User', null, "");
     } catch (e) {
       dev.log('Error handling video room link: $e', name: 'DeepLinkService');
       Get.snackbar('Error', 'Failed to join video room: $e', snackPosition: SnackPosition.BOTTOM);

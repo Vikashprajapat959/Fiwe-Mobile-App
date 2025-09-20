@@ -24,12 +24,7 @@ class CreateRoomView extends StatelessWidget {
           text: 'Create Room',
           onPressed: () {
             // Handle create room logic here
-            Get.snackbar(
-              'Room Creation',
-              'Room would be created with selected topics',
-              backgroundColor: AppColors.primary,
-              colorText: Colors.white,
-            );
+            controller.createRoom();
           },
         ),
       ],

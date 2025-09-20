@@ -34,9 +34,9 @@ class Topic {
   final List<String>? tags;
   final String? activityLevel;
   final bool? isPopular;
-  final DateTime createdAt;
-  final DateTime updatedAt;
-  final DateTime lastActivityAt;
+  final DateTime? createdAt;
+  final DateTime? updatedAt;
+  final DateTime? lastActivityAt;
 
   Topic({
     required this.id,
@@ -53,30 +53,27 @@ class Topic {
     this.tags,
     this.activityLevel,
     this.isPopular,
-    required this.createdAt,
-    required this.updatedAt,
-    required this.lastActivityAt,
+    this.createdAt,
+    this.updatedAt,
+    this.lastActivityAt,
   });
 
   factory Topic.fromJson(Map<String, dynamic> json) {
     return Topic(
       id: json['id'] as String,
       title: json['title'] as String,
-      slug: json['slug'] as String,
-      description: json['description'] as String,
-      avatar: json['avatar'] as String,
-      peopleCount: json['people_count'] as int,
-      viewCount: json['view_count'] as int,
-      popularityScore: json['popularity_score'] as double,
-      isEnabled: json['is_enabled'] as bool,
-      isFeatured: json['is_featured'] as bool,
+      slug: json['slug'] as String?,
+      description: json['description'] as String?,
+      avatar: json['avatar'] as String?,
+      peopleCount: json['people_count'] != null ? json['people_count'] as int : null,
+      viewCount: json['view_count'] != null ? json['view_count'] as int : null,
+      popularityScore: json['popularity_score'] != null ? (json['popularity_score'] as num).toDouble() : null,
+      isEnabled: json['is_enabled'] as bool?,
+      isFeatured: json['is_featured'] as bool?,
       category: json['category'] as String?,
-      tags: (json['tags'] as List<dynamic>).cast<String>(),
-      activityLevel: json['activity_level'] as String,
-      isPopular: json['is_popular'] as bool,
-      createdAt: DateTime.parse(json['created_at'] as String),
-      updatedAt: DateTime.parse(json['updated_at'] as String),
-      lastActivityAt: DateTime.parse(json['last_activity_at'] as String),
+      tags: (json['tags'] as List?)?.map((e) => e as String).toList(),
+      activityLevel: json['activity_level'] as String?,
+      isPopular: json['is_popular'] as bool?,
     );
   }
 
@@ -96,9 +93,9 @@ class Topic {
       'tags': tags,
       'activity_level': activityLevel,
       'is_popular': isPopular,
-      'created_at': createdAt.toIso8601String(),
-      'updated_at': updatedAt.toIso8601String(),
-      'last_activity_at': lastActivityAt.toIso8601String(),
+      'created_at': createdAt?.toIso8601String(),
+      'updated_at': updatedAt?.toIso8601String(),
+      'last_activity_at': lastActivityAt?.toIso8601String(),
     };
   }
 }

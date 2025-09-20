@@ -141,6 +141,8 @@ class Constants {
 
   static String videoRoomRoute = "/video-room";
 
+  static String profileScreenRoute = "/profile";
+
   // Colors
   // static const int primaryColor = 0xFF0891B2;
   // static const int backgroundColor = 0xFFF9FAFB;

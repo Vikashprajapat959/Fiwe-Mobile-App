@@ -1,12 +1,12 @@
-import 'dart:convert' show json;
 import 'dart:io';
 
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 
-import '../models/social_profile.dart';
+import '../models/user_model.dart';
 import '../services/apple_auth_service.dart';
 import '../services/google_auth_service.dart';
 import '../services/http_service.dart';
@@ -27,7 +27,7 @@ class AuthController extends GetxController {
   // Observables
   final _googleUser = Rx<GoogleSignInAccount?>(null);
   final _appleUser = Rx<AuthorizationCredentialAppleID?>(null);
-  final _userProfile = Rx<SocialProfile?>(null);
+  final _userProfile = Rx<User?>(null);
   final _currentProvider = Rx<LoginProvider?>(null);
   final _isInitializing = RxBool(true);
   final _isSigningUp = RxBool(false);
@@ -68,7 +68,7 @@ class AuthController extends GetxController {
   bool get isSplashComplete => _isSplashComplete.value;
   bool get supportsAuthenticate => _googleAuthService.supportsAuthenticate;
 
-  SocialProfile? get userProfile => _userProfile.value;
+  User? get userProfile => _userProfile.value;
 
   Future<void> completeSignUp({
     required String name,
@@ -79,21 +79,25 @@ class AuthController extends GetxController {
   }) async {
     try {
       _isSigningUp(true);
-      final idToken = _googleUser.value != null
-          ? (_googleUser.value!.authentication).idToken
-          : _appleUser.value?.identityToken;
+      // final idToken = _googleUser.value != null
+      //     ? (_googleUser.value!.authentication).idToken
+      //     : _appleUser.value?.identityToken;
+
+      // _userProfile(
+      //   SocialProfile(
+      //     name: name,
+      //     email: email,
+      //     dateOfBirth: dateOfBirth,
+      //     pinCode: pinCode,
+      //     profileImagePath: profileImage?.path,
+      //     displayName: currentUserInfo[Constants.userInfoDisplayNameKey],
+      //     idToken: idToken,
+      //     isRegistered: true,
+      //   ),
+      // );
 
       _userProfile(
-        SocialProfile(
-          name: name,
-          email: email,
-          dateOfBirth: dateOfBirth,
-          pinCode: pinCode,
-          profileImagePath: profileImage?.path,
-          displayName: currentUserInfo[Constants.userInfoDisplayNameKey],
-          idToken: idToken,
-          isRegistered: true,
-        ),
+        User(name: name, email: email, dateOfBirth: dateOfBirth, pincode: pinCode, profileImageUrl: profileImage?.path),
       );
 
       Get.snackbar(Strings.success, Strings.signUpSuccess);
@@ -136,17 +140,28 @@ class AuthController extends GetxController {
       if (idToken == null) throw Exception(Strings.unableToGetIdToken);
 
       final response = await _httpService
-          .post(Endpoints.idToken, body: {Constants.requestIdTokenKey: idToken, Constants.requestProviderKey: provider})
+          .post(
+            Endpoints.idToken,
+            body: {
+              Constants.requestIdTokenKey: idToken,
+              Constants.requestProviderKey: provider,
+              "device_id": await _getDeviceId(),
+            },
+          )
           .timeout(Duration(seconds: Constants.apiTimeoutSeconds));
 
-      if (response.body.isNotEmpty) {
-        final data = Map<String, dynamic>.from(json.decode(response.body));
+      if (response.data != null && response.data!.isNotEmpty) {
+        final data = response.data!;
         if (data[Constants.responseAccessKey] != null) {
           await SharedPrefService.setString(Constants.storageBearerTokenKey, data[Constants.responseAccessKey]);
         }
         if (data[Constants.responseRefreshKey] != null) {
           await SharedPrefService.setString(Constants.storageBearerTokenRefreshKey, data[Constants.responseRefreshKey]);
         }
+        if (response.data!.containsKey('user')) {
+          _userProfile(User.fromJson(response.data?['user']));
+        }
+
         return data;
       }
       return {Constants.responseSuccessKey: true, Constants.responseMessageKey: Strings.tokenSentSuccessfully};
@@ -172,7 +187,7 @@ class AuthController extends GetxController {
       _appleUser(credential);
       _googleUser(null);
       _currentProvider(LoginProvider.apple);
-      await _createSocialProfileFromApple(credential);
+      // await _createSocialProfileFromApple(credential);
       await _handleAuthenticatedUser();
     } catch (e) {
       if (kDebugMode) print(Strings.formatErrorMessage(Strings.appleSignInError, e));
@@ -199,7 +214,7 @@ class AuthController extends GetxController {
       _googleUser(account);
       _appleUser(null);
       _currentProvider(LoginProvider.google);
-      await _createSocialProfileFromGoogle(account);
+      // await _createSocialProfileFromGoogle(account);
       await _handleAuthenticatedUser();
     } on GoogleSignInException catch (e) {
       final message = e.code == GoogleSignInExceptionCode.canceled
@@ -228,7 +243,7 @@ class AuthController extends GetxController {
       await SharedPrefService.clearAuthData();
       _googleUser(null);
       _appleUser(null);
-      _userProfile(null);
+      // _userProfile(null);
       _currentProvider(null);
       _navigateToLogin();
     } catch (e) {
@@ -240,41 +255,41 @@ class AuthController extends GetxController {
     if (!_isInitializing.value && _isSplashComplete.value) _performNavigation();
   }
 
-  Future<void> _createSocialProfileFromApple(AuthorizationCredentialAppleID credential) async {
-    try {
-      final fullName = credential.givenName != null && credential.familyName != null
-          ? '${credential.givenName}${Constants.nameSeparator}${credential.familyName}'
-          : credential.givenName ?? credential.familyName ?? Constants.emptyString;
+  // Future<void> _createSocialProfileFromApple(AuthorizationCredentialAppleID credential) async {
+  //   try {
+  //     final fullName = credential.givenName != null && credential.familyName != null
+  //         ? '${credential.givenName}${Constants.nameSeparator}${credential.familyName}'
+  //         : credential.givenName ?? credential.familyName ?? Constants.emptyString;
 
-      _userProfile(
-        SocialProfile(
-          email: credential.email,
-          displayName: fullName.isEmpty ? null : fullName,
-          idToken: credential.identityToken,
-          isRegistered: false,
-        ),
-      );
-    } catch (e) {
-      if (kDebugMode) print(Strings.formatErrorMessage(Strings.errorCreatingAppleProfile, e));
-      throw Exception(Strings.failedToCreateAppleProfile);
-    }
-  }
+  //     // _userProfile(
+  //     //   SocialProfile(
+  //     //     email: credential.email,
+  //     //     displayName: fullName.isEmpty ? null : fullName,
+  //     //     idToken: credential.identityToken,
+  //     //     isRegistered: false,
+  //     //   ),
+  //     // );
+  //   } catch (e) {
+  //     if (kDebugMode) print(Strings.formatErrorMessage(Strings.errorCreatingAppleProfile, e));
+  //     throw Exception(Strings.failedToCreateAppleProfile);
+  //   }
+  // }
 
-  Future<void> _createSocialProfileFromGoogle(GoogleSignInAccount account) async {
-    try {
-      _userProfile(
-        SocialProfile(
-          email: account.email,
-          displayName: account.displayName,
-          idToken: account.authentication.idToken,
-          isRegistered: false,
-        ),
-      );
-    } catch (e) {
-      if (kDebugMode) print(Strings.formatErrorMessage(Strings.errorCreatingGoogleProfile, e));
-      throw Exception(Strings.failedToCreateGoogleProfile);
-    }
-  }
+  // Future<void> _createSocialProfileFromGoogle(GoogleSignInAccount account) async {
+  //   try {
+  //     _userProfile(
+  //       SocialProfile(
+  //         email: account.email,
+  //         displayName: account.displayName,
+  //         idToken: account.authentication.idToken,
+  //         isRegistered: false,
+  //       ),
+  //     );
+  //   } catch (e) {
+  //     if (kDebugMode) print(Strings.formatErrorMessage(Strings.errorCreatingGoogleProfile, e));
+  //     throw Exception(Strings.failedToCreateGoogleProfile);
+  //   }
+  // }
 
   Future<void> _handleAuthenticatedUser() async {
     if (_isHandlingAuthentication.value) {
@@ -316,7 +331,7 @@ class AuthController extends GetxController {
         if (googleAccount != null) {
           _googleUser(googleAccount);
           _currentProvider(LoginProvider.google);
-          await _createSocialProfileFromGoogle(googleAccount);
+          // await _createSocialProfileFromGoogle(googleAccount);
           hasAuthentication = true;
         }
       } catch (e) {
@@ -341,11 +356,12 @@ class AuthController extends GetxController {
           _currentProvider(newAccount != null ? LoginProvider.google : null);
 
           if (newAccount != null) {
-            _createSocialProfileFromGoogle(newAccount).then((_) {
-              if (!_isHandlingAuthentication.value && _isSplashComplete.value) {
-                _handleAuthenticatedUser();
-              }
-            });
+            _handleAuthenticatedUser();
+            // _createSocialProfileFromGoogle(newAccount).then((_) {
+            //   if (!_isHandlingAuthentication.value && _isSplashComplete.value) {
+            //     _handleAuthenticatedUser();
+            //   }
+            // });
           } else if (_appleUser.value == null && !_isHandlingAuthentication.value) {
             _navigateToLogin();
           }
@@ -402,6 +418,14 @@ class AuthController extends GetxController {
       _isSplashComplete(true);
       _checkNavigationReady();
     });
+  }
+
+  Future _getDeviceId() async {
+    try {
+      return await FirebaseMessaging.instance.getToken() ?? Constants.unknownDevice;
+    } catch (e) {
+      return Constants.unknownDevice;
+    }
   }
 }
 

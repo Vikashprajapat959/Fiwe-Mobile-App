@@ -87,9 +87,9 @@ class SignUpController extends GetxController {
 
       final response = await _httpService.post(Endpoints.signup, body: body);
 
-      if (response.body.isNotEmpty) {
-        final data = Map<String, dynamic>.from(json.decode(response.body));
-        return data.containsKey('success') || data.containsKey('message') ? data : {...data, 'success': true};
+      if (response.data is Map<String, dynamic>) {
+        final data = response.data as Map<String, dynamic>;
+        return response.success ? data : {...data, 'success': true};
       }
 
       return {Constants.responseSuccessKey: true, Constants.responseMessageKey: Strings.signupSuccessful};

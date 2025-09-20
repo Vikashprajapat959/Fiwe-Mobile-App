@@ -28,7 +28,13 @@ class InterestSelectionController extends GetxController {
   List<String> get selectedTopics => selectedTopicIds.toList();
 
   Future<List<Topic>> getAllTopics() async {
-    return await _topicService.getAllTopics();
+    final response = await _topicService.getAllTopics();
+    if (response.success) {
+      return response.data ?? <Topic>[];
+    } else {
+      Get.snackbar('Error', response.message, snackPosition: SnackPosition.BOTTOM);
+      return <Topic>[];
+    }
   }
 
   List<Topic> getSelectedTopics() {
@@ -50,9 +56,14 @@ class InterestSelectionController extends GetxController {
   Future<List<Topic>> loadTopics() async {
     try {
       if (topics.isEmpty) {
-        final topicsFromService = await _topicService.getAllTopics();
-        topics = topicsFromService;
-        return topics;
+        final response = await _topicService.getAllTopics();
+        if (response.success) {
+          topics = response.data ?? <Topic>[];
+          return topics;
+        } else {
+          Get.snackbar("Error", response.message);
+          return <Topic>[];
+        }
       } else {
         return topics;
       }
@@ -94,12 +105,12 @@ class InterestSelectionController extends GetxController {
   }
 
   void updateUserInterests() async {
-    var success = await executeWithLoading(_userService.followTopics(selectedTopicIds(), primaryTopicSelection()));
+    var response = await executeWithLoading(_userService.followTopics(selectedTopicIds(), primaryTopicSelection()));
 
-    if (success) {
+    if (response.success) {
       Get.offAll(() => HomeView());
     } else {
-      Get.snackbar("Error", "Something went wrong");
+      Get.snackbar("Error", response.message);
     }
   }
 }

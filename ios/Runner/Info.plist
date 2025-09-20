@@ -52,7 +52,18 @@
 		<string>remote-notification</string>
 		<string>background-processing</string>
 	</array>
-	
+	<key>NSMicrophoneUsageDescription</key>
+	<string>Fiwe wants to use your microphone</string>
+
+	<key>NSCameraUsageDescription</key>
+	<string>Fiwe wants to use your camera</string>
+
+	<key>NSLocalNetworkUsageDescription</key>
+	<string>Fiwe App wants to use your local network</string>
+
+	<key>NSBluetoothAlwaysUsageDescription</key>
+	<string>Fiwe needs access to bluetooth to connect to nearby devices.</string>
+
 	<!-- Badge support -->
 	<key>UIUserNotificationSettings</key>
 	<dict>

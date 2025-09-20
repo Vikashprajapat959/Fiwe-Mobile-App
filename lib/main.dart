@@ -3,6 +3,7 @@ import 'dart:developer';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:fiwe/firebase_options.dart';
 import 'package:fiwe/src/repositories/room_repository.dart';
+import 'package:fiwe/src/services/forground_handler.dart';
 import 'package:fiwe/src/services/http_service.dart';
 import 'package:fiwe/src/services/topic_service.dart';
 import 'package:fiwe/src/utils/colors.dart';
@@ -12,9 +13,11 @@ import 'package:fiwe/src/views/interest/interest_selection_view.dart';
 import 'package:fiwe/src/views/login/login_view.dart';
 import 'package:fiwe/src/views/login/signup_view.dart';
 import 'package:fiwe/src/views/login/splash_view.dart';
+import 'package:fiwe/src/views/profile/profile_view.dart';
 import 'package:fiwe/src/views/video_room/video_room_view.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_foreground_task/flutter_foreground_task.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -23,10 +26,10 @@ import 'src/controllers/video_room_controller.dart';
 import 'src/services/badge_service.dart';
 import 'src/services/deep_link_service.dart';
 import 'src/services/global_notification_overlay_service.dart';
+import 'src/services/hms_room_service.dart';
 // Import notification services
-import 'src/services/notification_service.dart';
+import 'src/services/fcm_notification_service.dart';
 import 'src/services/permission_service.dart';
-import 'src/services/video_room_service.dart';
 import 'src/utils/constants.dart';
 
 void main() async {
@@ -43,6 +46,12 @@ void main() async {
   SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp, DeviceOrientation.portraitDown]);
 
   runApp(const FiweApp());
+}
+
+@pragma('vm:entry-point')
+// forgroundCallback
+void startCallback() {
+  FlutterForegroundTask.setTaskHandler(ForegroundHandler());
 }
 
 /// Initialize 100ms SDK
@@ -65,11 +74,10 @@ Future<void> _initializeServices() async {
   Get.put(HttpService(), permanent: true);
   Get.put(BadgeService(), permanent: true);
   Get.lazyPut<TopicService>(() => TopicService());
-  Get.put(NotificationService(), permanent: true);
-  Get.put(GlobalNotificationOverlayService(), permanent: true);
-  Get.put(NotificationController(), permanent: true);
+  // Get.put(NotificationService(), permanent: true);
+  // Get.put(NotificationController(), permanent: true);
   Get.put(PermissionService(), permanent: true);
-  Get.put(VideoRoomService(), permanent: true);
+  Get.put(HMSRoomService(), permanent: true);
   Get.lazyPut(() => RoomRepository());
   Get.put(VideoRoomController(), permanent: true);
   Get.put(DeepLinkService(), permanent: true);
@@ -81,14 +89,9 @@ class FiweApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GetMaterialApp(
-      debugShowCheckedModeBanner: false,
-      showPerformanceOverlay: true,
-      theme: ThemeData(
-        appBarTheme: Theme.of(context).appBarTheme,
-        primarySwatch: Colors.lightBlue,
-        primaryColor: AppColors.primary,
+      theme: ThemeData.from(
+        colorScheme: ColorScheme.fromSeed(seedColor: AppColors.primary),
         textTheme: GoogleFonts.interTextTheme(),
-        useMaterial3: true,
       ),
       home: SplashView(),
       // Define named routes
@@ -100,6 +103,7 @@ class FiweApp extends StatelessWidget {
         GetPage(name: Constants.interestSelectionViewRoute, page: () => const InterestSelectionView()),
         GetPage(name: Constants.videoRoomRoute, page: () => const VideoRoomView()),
         GetPage(name: Constants.createRoomRoute, page: () => const CreateRoomView()),
+        GetPage(name: Constants.profileScreenRoute, page: () => const ProfileScreen()),
       ],
       // Fallback route generation for unknown routes
       onUnknownRoute: (settings) {

@@ -1,21 +1,24 @@
 import 'dart:developer' as dev;
 
+import 'package:fiwe/src/services/forground_handler.dart';
 import 'package:get/get.dart';
 
+import '../controllers/auth_controller.dart';
+import '../services/hms_room_service.dart';
 import '../services/http_service.dart';
 import '../services/permission_service.dart';
-import '../services/video_room_service.dart';
+import '../utils/constants.dart';
 
 class RoomRepository extends GetxService {
   static RoomRepository get instance => Get.find<RoomRepository>();
 
   final HttpService _httpService = Get.find<HttpService>();
   final PermissionService _permissionService = Get.find<PermissionService>();
-  final VideoRoomService _videoRoomService = Get.find<VideoRoomService>();
+  final HMSRoomService _videoRoomService = Get.find<HMSRoomService>();
 
   /// Create a new video room
   /// This method encapsulates the entire room creation and joining workflow
-  Future<bool> createRoom(String title) async {
+  Future<bool> createRoom(String title, String topicId) async {
     try {
       dev.log('Starting room creation process with title: $title', name: 'RoomRepository');
 
@@ -35,18 +38,45 @@ class RoomRepository extends GetxService {
 
       // 2. Call backend API endpoint to create room
       // Using the existing VideoRoomService method for consistency
-      final room = await _videoRoomService.createRoom(title);
+      final response = await _videoRoomService.createRoom(title,topicId);
 
-      if (room != null) {
-        dev.log('Room created successfully with ID: ${room.roomId}', name: 'RoomRepository');
+      if (response.success && response.data != null) {
+        dev.log('Room created successfully with ID: ${response.data!.objectId}', name: 'RoomRepository');
 
-        // 3. Navigate to the room screen
-        // Note: The joinRoom functionality is handled by the VideoRoomService
-        // and the navigation to the room screen should be handled by the controller
+        // 3. Get current user's name from auth service
+        final userName = Get.find<AuthController>().userProfile?.name ?? 'User';
+        await ForegroundHandler().init();
+        Get.toNamed(
+          Constants.videoRoomRoute,
+          arguments: {
+            'roomId': response.data!.objectId,
+            'roomName': response.data!.title,
+            'userName': userName,
+            'roomToken': response.data?.joinToken,
+            'roomObj': response.data,
+          },
+        );
         return true;
+        // 4. Automatically join the room that was just created
+        // final joinResponse = await _videoRoomService.joinRoom(
+        //   response.data!.hmsRoomId,
+        //   userName,
+        //   response.data?.joinToken,
+        //   response.data?.objectId,
+        //   roomObj: response.data,
+        // );
+
+        // if (joinResponse.success) {
+        //   // 5. Navigate to the video room view using named route
+        //   Get.toNamed(Constants.videoRoomRoute);
+        //   return true;
+        // } else {
+        //   Get.snackbar('Error', joinResponse.message, snackPosition: SnackPosition.BOTTOM);
+        //   return false;
+        // }
       } else {
-        dev.log('Failed to create room', name: 'RoomRepository');
-        Get.snackbar('Error', 'Failed to create video room', snackPosition: SnackPosition.BOTTOM);
+        dev.log('Failed to create room: ${response.message}', name: 'RoomRepository');
+        Get.snackbar('Error', response.message, snackPosition: SnackPosition.BOTTOM);
         return false;
       }
     } catch (e) {
@@ -61,7 +91,11 @@ class RoomRepository extends GetxService {
     try {
       final response = await _httpService.post('/rooms/$roomId/leave', isAuthorized: true);
 
-      return response.statusCode == 200;
+      if (response.success && response.success == true) {
+        return true;
+      } else {
+        return false;
+      }
     } catch (e) {
       dev.log('Error leaving room: $e', name: 'RoomRepository');
       return false;

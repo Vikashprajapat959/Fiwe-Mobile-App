@@ -1,9 +1,10 @@
 import 'dart:math';
+import 'package:fiwe/src/models/hms_reaction.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import '../../../controllers/video_room_controller.dart';
-import '../../../services/video_room_service.dart'; // Import to access Reaction class
+import '../../../services/hms_room_service.dart'; // Import to access Reaction class
 
 class ReactionOverlay extends StatefulWidget {
   const ReactionOverlay({super.key});
@@ -26,7 +27,7 @@ class _ReactionOverlayState extends State<ReactionOverlay>
     controller.reactionsObservable.listen(_addReaction);
   }
 
-  void _addReaction(List<Reaction> reactions) {
+  void _addReaction(List<HMSReaction> reactions) {
     // Use the Reaction class from video_room_service
     if (reactions.isNotEmpty) {
       final latestReaction = reactions.last;
