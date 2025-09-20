@@ -4,8 +4,6 @@ import 'dart:developer' as dev;
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-import '../controllers/video_room_controller.dart';
-
 class DeepLinkService extends GetxService {
   static DeepLinkService get instance => Get.find<DeepLinkService>();
 

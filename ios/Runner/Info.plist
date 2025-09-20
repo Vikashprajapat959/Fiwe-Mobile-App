@@ -45,7 +45,11 @@
 	<true/>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
-	
+	<key>NSLocalNetworkUsageDescription</key>
+	<string>{YourAppName} App wants to use your local network</string>
+
+	<key>NSBluetoothAlwaysUsageDescription</key>
+	<string>{YourAppName} needs access to bluetooth to connect to nearby devices.</string>
 	<!-- Notification permissions -->
 	<key>UIBackgroundModes</key>
 	<array>

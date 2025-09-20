@@ -1,6 +1,8 @@
 import 'dart:io';
 
+import 'package:fiwe/src/services/crashlytics_service.dart';
 import 'package:fiwe/src/services/fcm_notification_service.dart';
+import 'package:fiwe/src/utils/logger.dart';
 import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
 import 'package:google_sign_in/google_sign_in.dart';
@@ -78,6 +80,10 @@ class AuthController extends GetxController {
     File? profileImage,
   }) async {
     try {
+      Logger.info("Completing sign up for user: $email");
+      CrashlyticsService.setUserIdentifier(email);
+      CrashlyticsService.setCustomKey("action", "complete_sign_up");
+
       _isSigningUp(true);
       // final idToken = _googleUser.value != null
       //     ? (_googleUser.value!.authentication).idToken
@@ -102,7 +108,9 @@ class AuthController extends GetxController {
 
       Get.snackbar(Strings.success, Strings.signUpSuccess);
       _navigateToInterestSelection();
-    } catch (e) {
+    } catch (e, s) {
+      Logger.error("Error completing sign up", error: e, stackTrace: s);
+      CrashlyticsService.recordError(e, s, reason: "Sign up completion failed");
       Get.snackbar(Strings.error, Strings.formatErrorMessage(Strings.signUpError, e));
     } finally {
       _isSigningUp(false);
@@ -174,8 +182,12 @@ class AuthController extends GetxController {
 
   Future<void> signInWithApple() async {
     try {
+      Logger.info("Attempting Apple sign in");
+      CrashlyticsService.setCustomKey("action", "apple_sign_in");
+
       final credential = await AppleAuthService.signIn();
       if (credential == null) {
+        Logger.warning("Apple sign in returned null credential");
         Get.snackbar(
           Strings.authenticationFailed,
           Strings.unableToSignInWithApple,
@@ -189,7 +201,9 @@ class AuthController extends GetxController {
       _currentProvider(LoginProvider.apple);
       // await _createSocialProfileFromApple(credential);
       await _handleAuthenticatedUser();
-    } catch (e) {
+    } catch (e, s) {
+      Logger.error("Error during Apple sign in", error: e, stackTrace: s);
+      CrashlyticsService.recordError(e, s, reason: "Apple sign in failed");
       if (kDebugMode) print(Strings.formatErrorMessage(Strings.appleSignInError, e));
       Get.snackbar(
         Strings.appleSignInFailed,
@@ -201,8 +215,12 @@ class AuthController extends GetxController {
 
   Future<void> signInWithGoogle() async {
     try {
+      Logger.info("Attempting Google sign in");
+      CrashlyticsService.setCustomKey("action", "google_sign_in");
+
       final account = await _googleAuthService.signIn();
       if (account == null) {
+        Logger.warning("Google sign in returned null account");
         Get.snackbar(
           Strings.authenticationFailed,
           Strings.unableToSignInWithGoogle,
@@ -220,12 +238,15 @@ class AuthController extends GetxController {
       final message = e.code == GoogleSignInExceptionCode.canceled
           ? Strings.signInProcessCancelled
           : Strings.formatErrorMessage(Strings.authenticationFailedError, e.description ?? e.code);
+      Logger.error("Google sign in exception: ${e.code}", error: e, stackTrace: e.details as StackTrace?);
       Get.snackbar(
         e.code == GoogleSignInExceptionCode.canceled ? Strings.signInCancelled : Strings.googleSignInError,
         message,
         duration: Duration(seconds: Constants.snackbarDurationSeconds),
       );
-    } catch (e) {
+    } catch (e, s) {
+      Logger.error("Unexpected error during Google sign in", error: e, stackTrace: s);
+      CrashlyticsService.recordError(e, s, reason: "Google sign in failed");
       Get.snackbar(Strings.signInFailed, Strings.formatErrorMessage(Strings.unexpectedError, e));
     }
   }
@@ -422,7 +443,7 @@ class AuthController extends GetxController {
 
   Future _getDeviceId() async {
     try {
-      return FCMNotificationService.instance.deviceToken??'Unknown Device';
+      return FCMNotificationService.instance.deviceToken ?? 'Unknown Device';
     } catch (e) {
       return Constants.unknownDevice;
     }

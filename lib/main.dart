@@ -1,6 +1,7 @@
 import 'dart:developer';
 
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:fiwe/firebase_options.dart';
 import 'package:fiwe/src/repositories/room_repository.dart';
 import 'package:fiwe/src/services/forground_handler.dart';
@@ -15,6 +16,7 @@ import 'package:fiwe/src/views/login/signup_view.dart';
 import 'package:fiwe/src/views/login/splash_view.dart';
 import 'package:fiwe/src/views/profile/profile_view.dart';
 import 'package:fiwe/src/views/video_room/video_room_view.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_foreground_task/flutter_foreground_task.dart';
@@ -23,6 +25,7 @@ import 'package:google_fonts/google_fonts.dart';
 
 import 'src/controllers/video_room_controller.dart';
 import 'src/services/badge_service.dart';
+import 'src/services/crashlytics_service.dart';
 import 'src/services/deep_link_service.dart';
 // Import notification services
 import 'src/services/fcm_notification_service.dart';
@@ -35,6 +38,14 @@ void main() async {
 
   // Initialize Firebase
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+
+  // Initialize Crashlytics
+  await CrashlyticsService.initialize();
+
+  // Force crashlytics to be non-fatal in debug mode
+  if (!kReleaseMode) {
+    await FirebaseCrashlytics.instance.setCrashlyticsCollectionEnabled(false);
+  }
 
   // Initialize notification services
   await _initializeServices();
