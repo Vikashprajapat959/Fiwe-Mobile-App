@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:fiwe/src/services/crashlytics_service.dart';
 import 'package:fiwe/src/services/fcm_notification_service.dart';
 import 'package:fiwe/src/utils/logger.dart';
@@ -72,39 +70,15 @@ class AuthController extends GetxController {
 
   User? get userProfile => _userProfile.value;
 
-  Future<void> completeSignUp({
-    required String name,
-    required String email,
-    required String dateOfBirth,
-    required String pinCode,
-    File? profileImage,
-  }) async {
+  Future<void> completeSignUp(Map<String, dynamic> data) async {
     try {
-      Logger.info("Completing sign up for user: $email");
-      CrashlyticsService.setUserIdentifier(email);
       CrashlyticsService.setCustomKey("action", "complete_sign_up");
 
       _isSigningUp(true);
-      // final idToken = _googleUser.value != null
-      //     ? (_googleUser.value!.authentication).idToken
-      //     : _appleUser.value?.identityToken;
 
-      // _userProfile(
-      //   SocialProfile(
-      //     name: name,
-      //     email: email,
-      //     dateOfBirth: dateOfBirth,
-      //     pinCode: pinCode,
-      //     profileImagePath: profileImage?.path,
-      //     displayName: currentUserInfo[Constants.userInfoDisplayNameKey],
-      //     idToken: idToken,
-      //     isRegistered: true,
-      //   ),
-      // );
-
-      _userProfile(
-        User(name: name, email: email, dateOfBirth: dateOfBirth, pincode: pinCode, profileImageUrl: profileImage?.path),
-      );
+      _userProfile(User.fromJson(data['user']));
+      Logger.info("Completing sign up for user: ${userProfile?.email}");
+      CrashlyticsService.setUserIdentifier("${userProfile?.email}");
 
       Get.snackbar(Strings.success, Strings.signUpSuccess);
       _navigateToInterestSelection();

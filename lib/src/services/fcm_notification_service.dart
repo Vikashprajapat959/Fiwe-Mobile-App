@@ -4,6 +4,7 @@ import 'dart:io';
 
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:fiwe/src/utils/strings.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:get/get.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -46,17 +47,24 @@ Future<void> _handleBackgroundNotificationStatic(RemoteMessage message) async {
     );
     await localNotifications.initialize(initializationSettings);
 
-    // Create notification data from remote message
-    final notificationData = FCMNotificationData.fromRemoteMessage(message);
-
-    // Show local notification
-    //await _showLocalNotificationStatic(localNotifications, notificationData);
+    if (message.data['type'] == 'room_invite') {
+      final inviteData = RoomInviteData.fromJson(message.data);
+      await _showLocalNotificationStatic(localNotifications, inviteData, NotificationType.roomInvite);
+      // await _updateBadgeCountStatic();
+      dev.log('Background room invite notification processed: ${inviteData.title}', name: 'NotificationService');
+      CrashlyticsService.log('Background room invite notification processed: ${inviteData.title}');
+      return;
+    }
+    if (message.data['type'] == 'marketing') {
+      final promoData = FCMNotificationData.fromRemoteMessage(message);
+      await _showLocalNotificationStatic(localNotifications, promoData, NotificationType.promotional);
+      dev.log('Background promotional notification processed: ${promoData.title}', name: 'NotificationService');
+      CrashlyticsService.log('Background promotional notification processed: ${promoData.title}');
+      return;
+    }
 
     // Update badge count
-    await _updateBadgeCountStatic();
-
-    dev.log('Background notification processed: ${notificationData.title}', name: 'NotificationService');
-    CrashlyticsService.log('Background notification processed: ${notificationData.title}');
+    // await _updateBadgeCountStatic();
   } catch (e, stack) {
     dev.log('Error handling background notification: $e', name: 'NotificationService');
     CrashlyticsService.recordError(e, stack, reason: 'Error handling background notification');
@@ -64,51 +72,71 @@ Future<void> _handleBackgroundNotificationStatic(RemoteMessage message) async {
 }
 
 /// TODO: Static method to show local notification in background
-// Future<void> _showLocalNotificationStatic(
-//   FlutterLocalNotificationsPlugin localNotifications,
-//   FCMNotificationData notificationData,
-// ) async {
-//   try {
-//     // Android notification details
-//     const AndroidNotificationDetails androidDetails = AndroidNotificationDetails(
-//       'default_channel',
-//       'Default Channel',
-//       channelDescription: 'Default notification channel',
-//       importance: Importance.high,
-//       priority: Priority.high,
-//       playSound: true,
-//       enableVibration: true,
-//     );
-
-//     // Combined notification details
-//     const NotificationDetails notificationDetails = NotificationDetails(android: androidDetails);
-
-//     // Show notification
-//     await localNotifications.show(
-//       notificationData.id.hashCode,
-//       notificationData.title,
-//       notificationData.body,
-//       notificationDetails,
-//     );
-
-//     dev.log('Background local notification shown: ${notificationData.title}', name: 'NotificationService');
-//   } catch (e) {
-//     dev.log('Error showing background local notification: $e', name: 'NotificationService');
-//   }
-// }
-
-/// Static method to update badge count in background
-Future<void> _updateBadgeCountStatic() async {
+Future<void> _showLocalNotificationStatic(
+  FlutterLocalNotificationsPlugin localNotifications,
+  dynamic notificationData,
+  NotificationType notificationType,
+) async {
   try {
-    // We can't access BadgeService in background, so implement basic badge increment
-    // This is a simplified version for background processing
-    dev.log('Badge count updated in background', name: 'NotificationService');
-    CrashlyticsService.log('Badge count updated in background');
-  } catch (e, stack) {
-    dev.log('Error updating badge count in background: $e', name: 'NotificationService');
-    CrashlyticsService.recordError(e, stack, reason: 'Error updating badge count in background');
+    // Android notification details
+    const AndroidNotificationDetails androidDetails = AndroidNotificationDetails(
+      'fiwe.channel',
+      'Fiwe Notifications',
+      channelDescription: 'General notifications for Fiwe app',
+      importance: Importance.high,
+      priority: Priority.high,
+      playSound: true,
+      enableVibration: true,
+    );
+
+    // ios notification details
+    const DarwinNotificationDetails iosDetails = DarwinNotificationDetails(
+      presentAlert: true,
+      presentBadge: true,
+      presentSound: true,
+    );
+
+    // Combined notification details
+    const NotificationDetails notificationDetails = NotificationDetails(android: androidDetails, iOS: iosDetails);
+
+    if (notificationType == NotificationType.roomInvite) {
+      // For room invite, customize notification if needed
+      RoomInviteData inviteData = notificationData as RoomInviteData;
+      await localNotifications.show(
+        inviteData.hashCode,
+        notificationData.title,
+        "${notificationData.inviteeName} invited you to a room",
+        notificationDetails,
+      );
+    }
+    // Show marketing notification
+    else if (notificationType == NotificationType.promotional) {
+      await localNotifications.show(
+        notificationData.hashCode,
+        notificationData.title,
+        notificationData.body,
+        notificationDetails,
+      );
+    }
+
+    dev.log('Background local notification shown: ${notificationData.title}', name: 'NotificationService');
+  } catch (e) {
+    dev.log('Error showing background local notification: $e', name: 'NotificationService');
   }
 }
+
+/// Static method to update badge count in background
+// Future<void> _updateBadgeCountStatic() async {
+//   try {
+//     // We can't access BadgeService in background, so implement basic badge increment
+//     // This is a simplified version for background processing
+//     dev.log('Badge count updated in background', name: 'NotificationService');
+//     CrashlyticsService.log('Badge count updated in background');
+//   } catch (e, stack) {
+//     dev.log('Error updating badge count in background: $e', name: 'NotificationService');
+//     CrashlyticsService.recordError(e, stack, reason: 'Error updating badge count in background');
+//   }
+// }
 
 /// Service for managing Firebase Cloud Messaging and local notifications
 class FCMNotificationService extends GetxService {
@@ -118,7 +146,7 @@ class FCMNotificationService extends GetxService {
   late final FirebaseMessaging _messaging;
 
   // Local notifications plugin TODO:
-  // late final FlutterLocalNotificationsPlugin _localNotifications;
+  late final FlutterLocalNotificationsPlugin _localNotifications;
 
   // Stream controller for notification events
   final StreamController<RoomInviteData> _roomInviteStreamController = StreamController<RoomInviteData>.broadcast();
@@ -178,29 +206,29 @@ class FCMNotificationService extends GetxService {
   }
 
   /// Send device token to backend
-  Future<void> sendTokenToBackend(String? userId) async {
-    if (_deviceToken == null || userId == null) {
-      dev.log('Device token or user ID is null', name: 'NotificationService');
-      CrashlyticsService.log('Device token or user ID is null');
-      return;
-    }
+  // Future<void> sendTokenToBackend(String? userId) async {
+  //   if (_deviceToken == null || userId == null) {
+  //     dev.log('Device token or user ID is null', name: 'NotificationService');
+  //     CrashlyticsService.log('Device token or user ID is null');
+  //     return;
+  //   }
 
-    try {
-      // TODO: Implement backend API call to register device token
-      dev.log('Sending device token to backend for user: $userId', name: 'NotificationService');
-      CrashlyticsService.log('Sending device token to backend for user: $userId');
+  //   try {
+  //     // TODO: Implement backend API call to register device token
+  //     dev.log('Sending device token to backend for user: $userId', name: 'NotificationService');
+  //     CrashlyticsService.log('Sending device token to backend for user: $userId');
 
-      // Example payload:
-      // {
-      //   'user_id': userId,
-      //   'device_token': _deviceToken,
-      //   'platform': Platform.operatingSystem,
-      // }
-    } catch (e, stack) {
-      dev.log('Error sending token to backend: $e', name: 'NotificationService');
-      CrashlyticsService.recordError(e, stack, reason: 'Error sending token to backend');
-    }
-  }
+  //     // Example payload:
+  //     // {
+  //     //   'user_id': userId,
+  //     //   'device_token': _deviceToken,
+  //     //   'platform': Platform.operatingSystem,
+  //     // }
+  //   } catch (e, stack) {
+  //     dev.log('Error sending token to backend: $e', name: 'NotificationService');
+  //     CrashlyticsService.recordError(e, stack, reason: 'Error sending token to backend');
+  //   }
+  // }
 
   // /// Get Android notification actions
   // List<AndroidNotificationAction> _getAndroidNotificationActions(FCMNotificationData notificationData) {
@@ -330,6 +358,10 @@ class FCMNotificationService extends GetxService {
     dev.log('Foreground message received: ${message.data.toString()}', name: 'NotificationService');
     CrashlyticsService.log('Foreground message received: ${message.data.toString()}');
     try {
+      if (message.data['type'] != 'room_invite') {
+        dev.log('Ignoring non-room-invite foreground notification', name: 'NotificationService');
+        return;
+      }
       final notificationData = RoomInviteData.fromJson(message.data);
 
       // Update badge count
@@ -436,38 +468,38 @@ class FCMNotificationService extends GetxService {
   //   }
   // }
 
-  /// Initialize local notifications
-  // Future<void> _initializeLocalNotifications() async {
-  //   try {
-  //     // Android initialization settings
-  //     const AndroidInitializationSettings initializationSettingsAndroid = AndroidInitializationSettings(
-  //       '@mipmap/ic_launcher',
-  //     );
+  // Initialize local notifications
+  Future<void> _initializeLocalNotifications() async {
+    try {
+      // Android initialization settings
+      const AndroidInitializationSettings initializationSettingsAndroid = AndroidInitializationSettings(
+        '@mipmap/ic_launcher',
+      );
 
-  //     // iOS initialization settings
-  //     const DarwinInitializationSettings initializationSettingsIOS = DarwinInitializationSettings(
-  //       requestSoundPermission: true,
-  //       requestBadgePermission: true,
-  //       requestAlertPermission: true,
-  //     );
+      // iOS initialization settings
+      const DarwinInitializationSettings initializationSettingsIOS = DarwinInitializationSettings(
+        requestSoundPermission: true,
+        requestBadgePermission: true,
+        requestAlertPermission: true,
+      );
 
-  //     // Combined initialization settings
-  //     const InitializationSettings initializationSettings = InitializationSettings(
-  //       android: initializationSettingsAndroid,
-  //       iOS: initializationSettingsIOS,
-  //     );
+      // Combined initialization settings
+      const InitializationSettings initializationSettings = InitializationSettings(
+        android: initializationSettingsAndroid,
+        iOS: initializationSettingsIOS,
+      );
 
-  //     // Initialize with callback for notification taps
-  //     await _localNotifications.initialize(
-  //       initializationSettings,
-  //       // onDidReceiveNotificationResponse: _onNotificationTapped,
-  //     );
+      // Initialize with callback for notification taps
+      await _localNotifications.initialize(
+        initializationSettings,
+        // onDidReceiveNotificationResponse: _onNotificationTapped,
+      );
 
-  //     dev.log('Local notifications initialized', name: 'NotificationService');
-  //   } catch (e) {
-  //     dev.log('Error initializing local notifications: $e', name: 'NotificationService');
-  //   }
-  // }
+      dev.log('Local notifications initialized', name: 'NotificationService');
+    } catch (e) {
+      dev.log('Error initializing local notifications: $e', name: 'NotificationService');
+    }
+  }
 
   /// Initialize the notification service
   Future<void> _initializeNotificationService() async {
@@ -479,7 +511,7 @@ class FCMNotificationService extends GetxService {
       _messaging = FirebaseMessaging.instance;
 
       // Initialize local notifications
-      // _localNotifications = FlutterLocalNotificationsPlugin();
+      _localNotifications = FlutterLocalNotificationsPlugin();
 
       // Set up background message handler
       FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
@@ -488,10 +520,10 @@ class FCMNotificationService extends GetxService {
       await _requestPermissions();
 
       // Setup notification channels
-      // await _setupNotificationChannels();
+      await _setupNotificationChannels();
 
       // Initialize local notifications
-      // await _initializeLocalNotifications();
+      await _initializeLocalNotifications();
 
       // Get device token
       await _getDeviceToken();
@@ -642,72 +674,72 @@ class FCMNotificationService extends GetxService {
   }
 
   /// Setup Android notification channels
-  // Future<void> _setupNotificationChannels() async {
-  //   if (!Platform.isAndroid) return;
+  Future<void> _setupNotificationChannels() async {
+    if (!Platform.isAndroid) return;
 
-  //   try {
-  //     // High priority channel
-  //     const AndroidNotificationChannel highPriorityChannel = AndroidNotificationChannel(
-  //       Constants.notificationChannelHighPriority,
-  //       Strings.notificationChannelHighPriorityName,
-  //       description: Strings.notificationChannelHighPriorityDescription,
-  //       importance: Importance.high,
-  //       playSound: true,
-  //       enableVibration: true,
-  //     );
+    try {
+      // High priority channel
+      const AndroidNotificationChannel highPriorityChannel = AndroidNotificationChannel(
+        Constants.notificationChannelHighPriority,
+        Strings.notificationChannelHighPriorityName,
+        description: Strings.notificationChannelHighPriorityDescription,
+        importance: Importance.high,
+        playSound: true,
+        enableVibration: true,
+      );
 
-  //     // Normal priority channel
-  //     const AndroidNotificationChannel normalPriorityChannel = AndroidNotificationChannel(
-  //       Constants.notificationChannelNormalPriority,
-  //       Strings.notificationChannelNormalPriorityName,
-  //       description: Strings.notificationChannelNormalPriorityDescription,
-  //       importance: Importance.defaultImportance,
-  //       playSound: true,
-  //       enableVibration: true,
-  //     );
+      // Normal priority channel
+      const AndroidNotificationChannel normalPriorityChannel = AndroidNotificationChannel(
+        Constants.notificationChannelNormalPriority,
+        Strings.notificationChannelNormalPriorityName,
+        description: Strings.notificationChannelNormalPriorityDescription,
+        importance: Importance.defaultImportance,
+        playSound: true,
+        enableVibration: true,
+      );
 
-  //     // Low priority channel
-  //     const AndroidNotificationChannel lowPriorityChannel = AndroidNotificationChannel(
-  //       Constants.notificationChannelLowPriority,
-  //       Strings.notificationChannelLowPriorityName,
-  //       description: Strings.notificationChannelLowPriorityDescription,
-  //       importance: Importance.low,
-  //       playSound: false,
-  //       enableVibration: false,
-  //     );
+      // Low priority channel
+      const AndroidNotificationChannel lowPriorityChannel = AndroidNotificationChannel(
+        Constants.notificationChannelLowPriority,
+        Strings.notificationChannelLowPriorityName,
+        description: Strings.notificationChannelLowPriorityDescription,
+        importance: Importance.low,
+        playSound: false,
+        enableVibration: false,
+      );
 
-  //     // Urgent priority channel
-  //     const AndroidNotificationChannel urgentPriorityChannel = AndroidNotificationChannel(
-  //       Constants.notificationChannelUrgentPriority,
-  //       Strings.notificationChannelUrgentPriorityName,
-  //       description: Strings.notificationChannelUrgentPriorityDescription,
-  //       importance: Importance.max,
-  //       playSound: true,
-  //       enableVibration: true,
-  //     );
+      // Urgent priority channel
+      const AndroidNotificationChannel urgentPriorityChannel = AndroidNotificationChannel(
+        Constants.notificationChannelUrgentPriority,
+        Strings.notificationChannelUrgentPriorityName,
+        description: Strings.notificationChannelUrgentPriorityDescription,
+        importance: Importance.max,
+        playSound: true,
+        enableVibration: true,
+      );
 
-  //     // Create channels
-  //     await _localNotifications
-  //         .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()
-  //         ?.createNotificationChannel(highPriorityChannel);
+      // Create channels
+      await _localNotifications
+          .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()
+          ?.createNotificationChannel(highPriorityChannel);
 
-  //     await _localNotifications
-  //         .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()
-  //         ?.createNotificationChannel(normalPriorityChannel);
+      await _localNotifications
+          .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()
+          ?.createNotificationChannel(normalPriorityChannel);
 
-  //     await _localNotifications
-  //         .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()
-  //         ?.createNotificationChannel(lowPriorityChannel);
+      await _localNotifications
+          .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()
+          ?.createNotificationChannel(lowPriorityChannel);
 
-  //     await _localNotifications
-  //         .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()
-  //         ?.createNotificationChannel(urgentPriorityChannel);
+      await _localNotifications
+          .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()
+          ?.createNotificationChannel(urgentPriorityChannel);
 
-  //     dev.log('Android notification channels created', name: 'NotificationService');
-  //   } catch (e) {
-  //     dev.log('Error setting up notification channels: $e', name: 'NotificationService');
-  //   }
-  // }
+      dev.log('Android notification channels created', name: 'NotificationService');
+    } catch (e) {
+      dev.log('Error setting up notification channels: $e', name: 'NotificationService');
+    }
+  }
 
   /// Show local notification
   // Future<void> _showLocalNotification(FCMNotificationData notificationData) async {

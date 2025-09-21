@@ -87,12 +87,12 @@ class SignUpController extends GetxController {
 
       final response = await _httpService.post(Endpoints.signup, body: body);
 
-      if (response.data is Map<String, dynamic>) {
+      if (response.success) {
         final data = response.data as Map<String, dynamic>;
-        return response.success ? data : {...data, 'success': true};
+        return data;
+      } else {
+        throw Exception('Failed to signup: ${response.message}');
       }
-
-      return {Constants.responseSuccessKey: true, Constants.responseMessageKey: Strings.signupSuccessful};
     } catch (e) {
       if (kDebugMode) print(Strings.formatErrorMessage('Signup API Error', e));
       Get.snackbar(
@@ -141,8 +141,8 @@ class SignUpController extends GetxController {
 
       if (apiResponse != null) {
         // Save tokens if available
-        final access = apiResponse[Constants.responseAccessTokenKey] ?? apiResponse[Constants.responseAccessKey];
-        final refresh = apiResponse[Constants.responseRefreshTokenKey] ?? apiResponse[Constants.responseRefreshKey];
+        final access = apiResponse[Constants.responseAccessKey];
+        final refresh = apiResponse[Constants.responseRefreshKey];
 
         if (access != null && refresh != null) {
           await SharedPrefService.setString(Constants.storageBearerTokenKey, access);
@@ -151,13 +151,7 @@ class SignUpController extends GetxController {
 
         // Complete signup in auth controller
         final authController = Get.find<AuthController>();
-        await authController.completeSignUp(
-          name: nameController.text.trim(),
-          email: emailController.text.trim(),
-          dateOfBirth: dateOfBirthController.text.trim(),
-          pinCode: pinCodeController.text.trim(),
-          profileImage: _selectedProfileImage.value,
-        );
+        await authController.completeSignUp(apiResponse);
       } else {
         Get.snackbar(Strings.signupFailed, Strings.pleaseTryAgain);
       }

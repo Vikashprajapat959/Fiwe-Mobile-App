@@ -8,6 +8,7 @@ class User {
   final String? pincode;
   final String? phoneNumber;
   final String? profileImageUrl;
+  final String? profileBase64;
   final String? deviceId;
   final bool? isTncAccepted;
   final bool? isNew;
@@ -22,6 +23,7 @@ class User {
     this.pincode,
     this.phoneNumber,
     this.profileImageUrl,
+    this.profileBase64,
     this.deviceId,
     this.isTncAccepted,
     this.isNew,
@@ -38,6 +40,7 @@ class User {
       pincode: json['pincode'],
       phoneNumber: json['phone_number'],
       profileImageUrl: json['profile_image_url'],
+      profileBase64: json['profile_image_base64'],
       deviceId: json['device_id'],
       isTncAccepted: json['is_tnc_accepted'],
       isNew: json['is_new'],

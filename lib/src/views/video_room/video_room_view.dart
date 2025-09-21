@@ -57,6 +57,7 @@ class VideoRoomView extends StatelessWidget {
             options: HMSPrebuiltOptions(userName: Get.routing.args?['userName'] ?? ''),
 
             onLeave: () {
+             
               controller.leaveRoom();
             },
           ),

@@ -5,8 +5,6 @@ class Constants {
   // API Response Keys (from backend responses)
   static const String responseAccessKey = 'access';
   static const String responseRefreshKey = 'refresh';
-  static const String responseAccessTokenKey = 'access_token';
-  static const String responseRefreshTokenKey = 'refresh_token';
   static const String responseSuccessKey = 'success';
   static const String responseMessageKey = 'message';
   static const String responseIsNewKey = 'is_new';

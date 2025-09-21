@@ -1,5 +1,7 @@
 import 'dart:developer' as dev;
 
+import 'package:fiwe/src/controllers/auth_controller.dart';
+import 'package:fiwe/src/models/user_model.dart';
 import 'package:fiwe/src/services/fcm_notification_service.dart';
 import 'package:fiwe_notification/fiwe_notification.dart';
 import 'package:flutter/widgets.dart';
@@ -9,6 +11,9 @@ class HomeController extends GetxController {
   var pageIndex = 0.obs;
   late FCMNotificationService _notificationService;
   BuildContext? _context;
+
+  // get user
+  User? get user => Get.find<AuthController>().userProfile;
 
   // Method to set context from the view
   void setContext(BuildContext context) {

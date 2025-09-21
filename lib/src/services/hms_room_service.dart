@@ -1,7 +1,5 @@
-import 'dart:convert';
 import 'dart:developer' as dev;
 
-import 'package:fiwe/src/models/hms_reaction.dart';
 import 'package:fiwe/src/models/standard_api_response.dart';
 import 'package:fiwe/src/utils/endpoints.dart';
 import 'package:get/get.dart';
@@ -33,9 +31,9 @@ class HMSRoomService extends GetxService implements HMSUpdateListener, HMSAction
   final Rxn<HMSVideoRoom> _currentVideoRoom = Rxn<HMSVideoRoom>();
 
   // List of remote peers
-  final RxList<HMSRemotePeer> _remotePeers = <HMSRemotePeer>[].obs;
+  // final RxList<HMSRemotePeer> _remotePeers = <HMSRemotePeer>[].obs;
   // List of reactions
-  final RxList<HMSReaction> _reactions = <HMSReaction>[].obs;
+  // final RxList<HMSReaction> _reactions = <HMSReaction>[].obs;
 
   // Media state (no longer needed as hms_room_kit handles this)
   // final RxBool _isMicOn = true.obs;
@@ -57,10 +55,10 @@ class HMSRoomService extends GetxService implements HMSUpdateListener, HMSAction
   RxBool get isLoadingObservable => _isLoading;
   // bool get isMicOn => _isMicOn.value; // Removed as hms_room_kit handles this
   // RxBool get isMicOnObservable => _isMicOn; // Removed as hms_room_kit handles this
-  List<HMSReaction> get reactions => _reactions.toList();
-  RxList<HMSReaction> get reactionsObservable => _reactions;
-  List<HMSRemotePeer> get remotePeers => _remotePeers.toList();
-  RxList<HMSRemotePeer> get remotePeersObservable => _remotePeers;
+  // List<HMSReaction> get reactions => _reactions.toList();
+  // RxList<HMSReaction> get reactionsObservable => _reactions;
+  // List<HMSRemotePeer> get remotePeers => _remotePeers.toList();
+  // RxList<HMSRemotePeer> get remotePeersObservable => _remotePeers;
 
   /// Attempt to rejoin room after network disruption
   // Future<ApiResponse<HMSVideoRoom?>> attemptRejoin(String roomId, String userName) async {
@@ -109,7 +107,14 @@ class HMSRoomService extends GetxService implements HMSUpdateListener, HMSAction
       // Call backend API to create room and get 100ms room details
       final response = await _httpService.post(
         Endpoints.createRoom,
-        body: {'title': title, 'capacity': 5, 'template_id': '68c14e6f74147bd574bb0e4b', "topic_id": topicId},
+        body: {
+          'title': title,
+          'capacity': 5,
+          'template_id': '68c14e6f74147bd574bb0e4b',
+          "topic_id": topicId,
+          //TODO: Update description based on user input
+          "description": "Room about $title",
+        },
         isAuthorized: true,
       );
 
@@ -354,33 +359,33 @@ class HMSRoomService extends GetxService implements HMSUpdateListener, HMSAction
 
   @override
   void onMessage({required HMSMessage message}) {
-    try {
-      dev.log('Received message: ${message.message}', name: 'VideoRoomService');
+    // try {
+    //   dev.log('Received message: ${message.message}', name: 'VideoRoomService');
 
-      // Parse message to check if it's a reaction
-      final messageData = jsonDecode(message.message);
+    //   // Parse message to check if it's a reaction
+    //   final messageData = jsonDecode(message.message);
 
-      if (messageData['type'] == 'reaction') {
-        // Create reaction object
-        final reaction = HMSReaction(
-          id: 'reaction_${DateTime.now().millisecondsSinceEpoch}',
-          userId: messageData['sender']['peerId'],
-          emoji: messageData['emoji'],
-          timestamp: DateTime.now(),
-          roomId: _currentVideoRoom.value?.objectId ?? '',
-        );
+    //   if (messageData['type'] == 'reaction') {
+    //     // Create reaction object
+    //     final reaction = HMSReaction(
+    //       id: 'reaction_${DateTime.now().millisecondsSinceEpoch}',
+    //       userId: messageData['sender']['peerId'],
+    //       emoji: messageData['emoji'],
+    //       timestamp: DateTime.now(),
+    //       roomId: _currentVideoRoom.value?.objectId ?? '',
+    //     );
 
-        // Add to reactions list to trigger UI update
-        _reactions.add(reaction);
+    //     // Add to reactions list to trigger UI update
+    //     // _reactions.add(reaction);
 
-        dev.log(
-          'HMSReaction received: ${reaction.emoji} from ${messageData['sender']['name']}',
-          name: 'VideoRoomService',
-        );
-      }
-    } catch (e) {
-      dev.log('Error processing message: $e', name: 'VideoRoomService');
-    }
+    //     dev.log(
+    //       'HMSReaction received: ${reaction.emoji} from ${messageData['sender']['name']}',
+    //       name: 'VideoRoomService',
+    //     );
+    //   }
+    // } catch (e) {
+    //   dev.log('Error processing message: $e', name: 'VideoRoomService');
+    // }
   }
 
   @override
@@ -393,12 +398,12 @@ class HMSRoomService extends GetxService implements HMSUpdateListener, HMSAction
     switch (update) {
       case HMSPeerUpdate.peerJoined:
         if (peer is HMSRemotePeer) {
-          _remotePeers.add(peer);
+          // _remotePeers.add(peer);
         }
         break;
       case HMSPeerUpdate.peerLeft:
         if (peer is HMSRemotePeer) {
-          _remotePeers.removeWhere((element) => element.peerId == peer.peerId);
+          // _remotePeers.removeWhere((element) => element.peerId == peer.peerId);
         }
         break;
       default:
@@ -435,8 +440,8 @@ class HMSRoomService extends GetxService implements HMSUpdateListener, HMSAction
     dev.log('Removed from room: ${hmsPeerRemovedFromPeer.reason}', name: 'VideoRoomService');
     _isInRoom(false);
     _currentVideoRoom(null);
-    _remotePeers.clear();
-    _reactions.clear();
+    // _remotePeers.clear();
+    // _reactions.clear();
   }
 
   @override
@@ -495,35 +500,35 @@ class HMSRoomService extends GetxService implements HMSUpdateListener, HMSAction
   // }
 
   /// Send reaction to room using 100ms broadcast message
-  Future<void> sendReaction(String emoji) async {
-    try {
-      if (_currentVideoRoom.value == null) {
-        dev.log('Cannot send reaction - not in a room', name: 'VideoRoomService');
-        return;
-      }
+  // Future<void> sendReaction(String emoji) async {
+  //   try {
+  //     if (_currentVideoRoom.value == null) {
+  //       dev.log('Cannot send reaction - not in a room', name: 'VideoRoomService');
+  //       return;
+  //     }
 
-      // Get local peer information
-      final localPeer = await _hmsSDK.getLocalPeer();
-      if (localPeer == null) {
-        dev.log('Cannot send reaction - local peer not available', name: 'VideoRoomService');
-        return;
-      }
+  //     // Get local peer information
+  //     final localPeer = await _hmsSDK.getLocalPeer();
+  //     if (localPeer == null) {
+  //       dev.log('Cannot send reaction - local peer not available', name: 'VideoRoomService');
+  //       return;
+  //     }
 
-      // Create reaction message
-      final reactionMessage = jsonEncode({
-        'type': 'reaction',
-        'emoji': emoji,
-        'sender': {'peerId': localPeer.peerId, 'name': localPeer.name},
-      });
+  //     // Create reaction message
+  //     final reactionMessage = jsonEncode({
+  //       'type': 'reaction',
+  //       'emoji': emoji,
+  //       'sender': {'peerId': localPeer.peerId, 'name': localPeer.name},
+  //     });
 
-      dev.log('Sending reaction: $emoji to room: ${_currentVideoRoom.value!.objectId}', name: 'VideoRoomService');
+  //     dev.log('Sending reaction: $emoji to room: ${_currentVideoRoom.value!.objectId}', name: 'VideoRoomService');
 
-      // Send broadcast message using 100ms SDK
-      _hmsSDK.sendBroadcastMessage(message: reactionMessage, type: 'reaction', hmsActionResultListener: this);
-    } catch (e) {
-      dev.log('Error sending reaction: $e', name: 'VideoRoomService');
-    }
-  }
+  //     // Send broadcast message using 100ms SDK
+  //     _hmsSDK.sendBroadcastMessage(message: reactionMessage, type: 'reaction', hmsActionResultListener: this);
+  //   } catch (e) {
+  //     dev.log('Error sending reaction: $e', name: 'VideoRoomService');
+  //   }
+  // }
 
   // Removed toggleCamera and toggleMicrophone methods as hms_room_kit handles this
   // /// Toggle camera

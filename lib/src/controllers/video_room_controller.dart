@@ -2,18 +2,17 @@ import 'dart:developer';
 
 import 'package:fiwe/src/models/hms_reaction.dart';
 import 'package:fiwe/src/models/hmsvideo_room.dart';
+import 'package:fiwe/src/services/crashlytics_service.dart';
 import 'package:get/get.dart';
 import 'package:hmssdk_flutter/hmssdk_flutter.dart';
 
 import '../repositories/room_repository.dart';
 import '../services/hms_room_service.dart';
-import '../services/permission_service.dart';
 
 class VideoRoomController extends GetxController {
   static VideoRoomController get instance => Get.find<VideoRoomController>();
 
   final HMSRoomService _roomService = Get.find<HMSRoomService>();
-  final PermissionService _permissionService = Get.find<PermissionService>();
   final RoomRepository _roomRepository = Get.find<RoomRepository>();
 
   // Room state
@@ -137,7 +136,7 @@ class VideoRoomController extends GetxController {
   /// Leave the current video room
   Future<void> leaveRoom() async {
     try {
-      _isLoading(true);
+      Get.offAndToNamed('/');
 
       // 1. Call backend API to leave room
       final apiSuccess = await _roomRepository.leaveRoom(_currentRoom.value!.objectId);
@@ -155,18 +154,11 @@ class VideoRoomController extends GetxController {
         _isInRoom(false);
         _reactions.clear();
         _remotePeers.clear();
-
-        // 4. Navigate back to lobby
-        Get.back();
-
-        Get.snackbar('Room Left', response.message, snackPosition: SnackPosition.BOTTOM);
       } else {
-        Get.snackbar('Error', response.message, snackPosition: SnackPosition.BOTTOM);
+        CrashlyticsService.log("Error : ${response.message}");
       }
-    } catch (e) {
-      Get.snackbar('Error', 'Failed to leave video room: $e', snackPosition: SnackPosition.BOTTOM);
-    } finally {
-      _isLoading(false);
+    } catch (e, s) {
+      CrashlyticsService.recordError(e, s);
     }
   }
 
@@ -177,19 +169,19 @@ class VideoRoomController extends GetxController {
     ever(_roomService.isLoadingObservable, (value) => _isLoading(value));
     ever(_roomService.isInRoomObservable, (value) => _isInRoom(value));
     ever(_roomService.currentVideoRoomObservable, (value) => _currentRoom(value));
-    ever(_roomService.remotePeersObservable, (value) => _remotePeers(value));
-    ever(_roomService.reactionsObservable, (value) => _reactions(value));
+    // ever(_roomService.remotePeersObservable, (value) => _remotePeers(value));
+    // ever(_roomService.reactionsObservable, (value) => _reactions(value));
     // Removed media state listeners as hms_room_kit handles this
     // ever(_roomService.isMicOnObservable, (value) => _isMicOn(value));
     // ever(_roomService.isCameraOnObservable, (value) => _isCameraOn(value));
   }
 
   /// Send reaction to room
-  Future<void> sendReaction(String emoji) async {
-    if (_currentRoom.value != null) {
-      await _roomService.sendReaction(emoji);
-    }
-  }
+  // Future<void> sendReaction(String emoji) async {
+  //   if (_currentRoom.value != null) {
+  //     await _roomService.sendReaction(emoji);
+  //   }
+  // }
 
   // Removed toggleCamera and toggleMic methods as hms_room_kit handles this
   // /// Toggle camera

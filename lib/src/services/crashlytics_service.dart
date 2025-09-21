@@ -1,10 +1,12 @@
+import 'dart:developer' as dev;
+
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/foundation.dart';
 
 class CrashlyticsService {
   static Future<void> initialize() async {
     if (kIsWeb) return;
-
+    dev.log('Initializing Crashlytics Service', name: 'CrashlyticsService');
     // Handle uncaught errors
     FlutterError.onError = FirebaseCrashlytics.instance.recordFlutterError;
 

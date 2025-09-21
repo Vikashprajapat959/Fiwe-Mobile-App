@@ -33,6 +33,7 @@ class Topic {
   final String? category;
   final List<String>? tags;
   final String? activityLevel;
+  final bool? isPrimary;
   final bool? isPopular;
   final DateTime? createdAt;
   final DateTime? updatedAt;
@@ -49,6 +50,7 @@ class Topic {
     this.popularityScore,
     this.isEnabled,
     this.isFeatured,
+    this.isPrimary,
     this.category,
     this.tags,
     this.activityLevel,
@@ -65,6 +67,7 @@ class Topic {
       slug: json['slug'] as String?,
       description: json['description'] as String?,
       avatar: json['avatar'] as String?,
+      isPrimary: json['is_primary'] as bool?,
       peopleCount: json['people_count'] != null ? json['people_count'] as int : null,
       viewCount: json['view_count'] != null ? json['view_count'] as int : null,
       popularityScore: json['popularity_score'] != null ? (json['popularity_score'] as num).toDouble() : null,

@@ -1,5 +1,9 @@
+import 'dart:developer';
+
 import 'package:fiwe/src/controllers/home_controller.dart';
+import 'package:fiwe/src/services/http_service.dart';
 import 'package:fiwe/src/utils/colors.dart';
+import 'package:fiwe/src/views/profile/profile_view.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -55,12 +59,10 @@ class HomeScreen extends StatelessWidget {
   }
 
   Widget _buildHeader() {
+    final HomeController controller = Get.find();
     return Row(
       children: [
-        ProfileAvatar(
-          imageUrl: 'assets/profile.jpg', // Replace with actual asset
-          size: 48,
-        ),
+        ProfileAvatar(imageUrl: controller.user?.profileBase64 ?? "", size: 48),
         const SizedBox(width: 12),
         Expanded(
           child: Column(
@@ -68,14 +70,17 @@ class HomeScreen extends StatelessWidget {
             children: [
               Row(
                 children: [
-                  Text('San jose', style: AppTextStyles.headerTitle),
+                  Text('${controller.user?.name}', style: AppTextStyles.headerTitle),
                   const SizedBox(width: 4),
                   const Icon(Icons.star, color: AppColors.orange, size: 16),
                 ],
               ),
               Row(
                 children: [
-                  Text('Sport, ', style: AppTextStyles.subtitle),
+                  Text(
+                    controller.user?.topics?.firstWhereOrNull((t) => t.isPrimary ?? false)?.title ?? "No Interest",
+                    style: AppTextStyles.subtitle,
+                  ),
                   const Icon(Icons.star, color: AppColors.orange, size: 12),
                   Text('4.5', style: AppTextStyles.subtitle),
                 ],
@@ -231,15 +236,22 @@ class ProfileAvatar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: size,
-      height: size,
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        color: AppColors.lightGray,
-        image: DecorationImage(image: AssetImage(imageUrl), fit: BoxFit.cover, onError: (exception, stackTrace) {}),
+    var img = '${Get.find<HttpService>().baseUrl}$imageUrl';
+    log(img);
+    return GestureDetector(
+      onTap: () {
+        Get.to(() => ProfileScreen());
+      },
+      child: Container(
+        width: size,
+        height: size,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          color: AppColors.lightGray,
+          image: DecorationImage(image: NetworkImage(img), fit: BoxFit.cover, onError: (exception, stackTrace) {}),
+        ),
+        child: imageUrl.isEmpty ? Icon(Icons.person, color: AppColors.gray, size: size * 0.6) : null,
       ),
-      child: imageUrl.isEmpty ? Icon(Icons.person, color: AppColors.gray, size: size * 0.6) : null,
     );
   }
 }
