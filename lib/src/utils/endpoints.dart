@@ -11,4 +11,6 @@ class Endpoints {
   static String getTopicsByCategories = "/topics/categories/";
 
   static String createRoom = "/rooms/create";
+
+  static String fetchUserNotifications = '/notifications/user/';
 }

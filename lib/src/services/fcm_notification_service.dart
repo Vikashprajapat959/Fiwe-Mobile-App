@@ -49,6 +49,7 @@ Future<void> _handleBackgroundNotificationStatic(RemoteMessage message) async {
 
     if (message.data['type'] == 'room_invite') {
       final inviteData = RoomInviteData.fromJson(message.data);
+      // TODO:
       await _showLocalNotificationStatic(localNotifications, inviteData, NotificationType.roomInvite);
       // await _updateBadgeCountStatic();
       dev.log('Background room invite notification processed: ${inviteData.title}', name: 'NotificationService');
@@ -104,19 +105,15 @@ Future<void> _showLocalNotificationStatic(
       RoomInviteData inviteData = notificationData as RoomInviteData;
       await localNotifications.show(
         inviteData.hashCode,
-        notificationData.title,
+        "Room Invite",
         "${notificationData.inviteeName} invited you to a room",
         notificationDetails,
       );
     }
     // Show marketing notification
     else if (notificationType == NotificationType.promotional) {
-      await localNotifications.show(
-        notificationData.hashCode,
-        notificationData.title,
-        notificationData.body,
-        notificationDetails,
-      );
+      FCMNotificationData promoData = notificationData as FCMNotificationData;
+      await localNotifications.show(promoData.hashCode, promoData.title, promoData.body, notificationDetails);
     }
 
     dev.log('Background local notification shown: ${notificationData.title}', name: 'NotificationService');
@@ -571,8 +568,15 @@ class FCMNotificationService extends GetxService {
   /// Handle notification action (tap, navigation)
   void _onNotificationAction(dynamic data, NotificationType notificationType) {
     try {
+      if (notificationType == NotificationType.roomInvite && data is! RoomInviteData) {
+        Future.delayed(2.seconds, () {
+          _roomInviteStreamController.add(data as RoomInviteData);
+        });
+        return;
+      }
       // Navigate to specific route if provided
       if (data == null) {
+        return;
         // Get.toNamed(notificationData.route!);
       } else {
         // Default navigation based on notification type

@@ -1,12 +1,15 @@
 import 'package:fiwe/src/models/standard_api_response.dart'; // Add this import
+import 'package:fiwe/src/models/user_notification.dart';
 import 'package:fiwe/src/services/http_service.dart';
 import 'package:fiwe/src/services/shared_pref_service.dart';
 import 'package:fiwe/src/utils/constants.dart';
 import 'package:fiwe/src/utils/endpoints.dart';
 import 'package:get/get.dart';
 
-class UserService {
+class UserService extends GetxService {
   final _httService = Get.find<HttpService>();
+
+  static UserService get instance => Get.find<UserService>();
 
   Future<ApiResponse<bool>> followTopics(List<String> topics, String primaryTopic) async {
     try {
@@ -28,5 +31,15 @@ class UserService {
     } catch (e) {
       return ApiResponse<bool>.error(message: 'Network error occurred while following topics: $e', data: false);
     }
+  }
+
+  Future<ApiResponse<UserNotificationPage>> fetchUserNotifications() async {
+    final response = await _httService.get(Endpoints.fetchUserNotifications, isAuthorized: true);
+    return response.success
+        ? ApiResponse<UserNotificationPage>.success(
+            data: UserNotificationPage.fromJson(response.data as Map<String, dynamic>),
+            message: response.message,
+          )
+        : ApiResponse<UserNotificationPage>.error(message: response.message, data: null);
   }
 }

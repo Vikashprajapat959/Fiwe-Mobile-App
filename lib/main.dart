@@ -7,6 +7,7 @@ import 'package:fiwe/src/repositories/room_repository.dart';
 import 'package:fiwe/src/services/forground_handler.dart';
 import 'package:fiwe/src/services/http_service.dart';
 import 'package:fiwe/src/services/topic_service.dart';
+import 'package:fiwe/src/services/user_service.dart';
 import 'package:fiwe/src/utils/colors.dart';
 import 'package:fiwe/src/views/home/create_room_view.dart';
 import 'package:fiwe/src/views/home/home_view.dart';
@@ -83,6 +84,7 @@ Future<void> _initializeServices() async {
   Get.put(FCMNotificationService(), permanent: true);
   Get.put(HttpService(), permanent: true);
   Get.put(BadgeService(), permanent: true);
+  Get.put(UserService(), permanent: true);
   Get.lazyPut<TopicService>(() => TopicService());
   // Get.put(NotificationService(), permanent: true);
   // Get.put(NotificationController(), permanent: true);

@@ -1,3 +1,7 @@
+// ignore_for_file: library_private_types_in_public_api
+
+import 'dart:convert';
+
 import 'package:firebase_messaging/firebase_messaging.dart';
 
 import 'fcm_action.dart';
@@ -78,7 +82,7 @@ class FCMNotificationData {
 
     return FCMNotificationData(
       id: message.messageId ?? DateTime.now().millisecondsSinceEpoch.toString(),
-      title: message.notification?.title ?? 'New Notification',
+      title: message.notification?.title ?? 'New Notification Marketing',
       body: message.notification?.body ?? '',
       imageUrl: message.notification?.android?.imageUrl ?? message.notification?.apple?.imageUrl,
       data: message.data,
@@ -274,7 +278,6 @@ class FCMNotificationData {
 }
 
 class RoomInviteData {
-  // {topic_details: {"topic_id": "675ac87f-df07-4903-a167-040672e8a10c", "title": "Mental Health & Mindfulness", "description": "Mental wellness discussions, meditation practices, stress management, and psychological well-being", "avatar": "https://example.com/avatars/mental-health.png"}, room_id: d077b858-65a9-4e53-9997-d4c14448685c, room_host_code: gcv-jyja-xig, user_details: {"user_id": "26", "name": "Mahesh", "email": "l.k.jarwal315@gmail.com"}, expiry: 2025-09-19T10:45:08.787600+00:00, room_guest_code: ugi-bpom-yed, type: room_invite, title: Mental Health Mindfulness, invitee_name: Mahesh, deep_link: fiwe://room/d077b858-65a9-4e53-9997-d4c14448685c}
   final String roomId;
   final String roomHostCode;
   final String roomGuestCode;
@@ -305,8 +308,8 @@ class RoomInviteData {
       inviteeName: json['invitee_name'] ?? '',
       deepLink: json['deep_link'] ?? '',
       expiry: DateTime.parse(json['expiry'] ?? DateTime.now().toIso8601String()),
-      topicDetails: _TopicData.fromJson(Map<String, dynamic>.from(json['topic_details'] ?? {})),
-      userDetails: _UserData.fromJson(Map<String, dynamic>.from(json['user_details'] ?? {})),
+      topicDetails: _TopicData.fromJson(Map.from(json['topic_details'])),
+      userDetails: _UserData.fromJson(jsonDecode(json['user_details']) ?? {}),
     );
   }
 }
@@ -326,15 +329,13 @@ class _TopicData {
   final String topicId;
   final String title;
   final String description;
-  final String avatar;
-  _TopicData({required this.topicId, required this.title, required this.description, required this.avatar});
+  _TopicData({required this.topicId, required this.title, required this.description});
 
   factory _TopicData.fromJson(Map<String, dynamic> json) {
     return _TopicData(
       topicId: json['topic_id'] ?? '',
       title: json['title'] ?? '',
       description: json['description'] ?? '',
-      avatar: json['avatar'] ?? '',
     );
   }
 }

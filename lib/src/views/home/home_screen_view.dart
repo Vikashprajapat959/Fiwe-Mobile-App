@@ -3,9 +3,11 @@ import 'dart:developer';
 import 'package:fiwe/src/controllers/home_controller.dart';
 import 'package:fiwe/src/services/http_service.dart';
 import 'package:fiwe/src/utils/colors.dart';
+import 'package:fiwe/src/views/home/user_notification_view.dart';
 import 'package:fiwe/src/views/profile/profile_view.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 // Controller for managing state
 
@@ -90,12 +92,13 @@ class HomeScreen extends StatelessWidget {
         ),
         Row(
           children: [
-            ActionButton(icon: Icons.map_outlined, onTap: () {}, backgroundColor: AppColors.lightBlue),
+            ActionButton(icon: Icon(Icons.map_outlined), onTap: () {}),
             const SizedBox(width: 8),
             ActionButton(
-              icon: Icons.notifications,
-              onTap: () {},
-              backgroundColor: AppColors.orange,
+              icon: Icon(LucideIcons.bell, color: AppColors.secondaryYellow),
+              onTap: () {
+                Get.to(() => const UserNotificationView());
+              },
               hasNotification: true,
             ),
           ],
@@ -257,17 +260,17 @@ class ProfileAvatar extends StatelessWidget {
 }
 
 class ActionButton extends StatelessWidget {
-  final IconData icon;
+  final Widget icon;
   final VoidCallback onTap;
-  final Color backgroundColor;
   final bool hasNotification;
+  final String? notificationCount;
 
   const ActionButton({
     super.key,
     required this.icon,
     required this.onTap,
-    required this.backgroundColor,
     this.hasNotification = false,
+    this.notificationCount,
   });
 
   @override
@@ -277,10 +280,15 @@ class ActionButton extends StatelessWidget {
         GestureDetector(
           onTap: onTap,
           child: Container(
-            width: 40,
-            height: 40,
-            decoration: BoxDecoration(color: backgroundColor, borderRadius: BorderRadius.circular(12)),
-            child: Icon(icon, color: Colors.white, size: 20),
+            margin: const EdgeInsets.all(2),
+            width: 44,
+            height: 44,
+            decoration: BoxDecoration(
+              border: Border.all(color: AppColors.primary.withAlpha(90), width: 2),
+              color: AppColors.primary.withAlpha(50),
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: icon,
           ),
         ),
         if (hasNotification)
@@ -290,7 +298,12 @@ class ActionButton extends StatelessWidget {
             child: Container(
               width: 16,
               height: 16,
-              decoration: const BoxDecoration(color: Colors.red, shape: BoxShape.circle),
+
+              decoration: BoxDecoration(
+                border: Border.all(color: Colors.white, width: 1),
+                color: AppColors.errorBorder,
+                shape: BoxShape.circle,
+              ),
               child: const Center(
                 child: Text(
                   '2',
