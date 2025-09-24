@@ -13,4 +13,6 @@ class Endpoints {
   static String createRoom = "/rooms/create";
 
   static String fetchUserNotifications = '/notifications/user/';
+
+  static String discussionRandomTopic = "/discussion-topics/random/";
 }

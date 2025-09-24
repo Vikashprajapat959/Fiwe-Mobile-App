@@ -40,8 +40,8 @@ class UserNotificationController extends GetxController {
         // Handle error response
         Get.snackbar('Error', response.message);
       }
-    } catch (e) {
-      log(e.toString());
+    } catch (e, s) {
+      log(e.toString(), stackTrace: s);
       Get.snackbar('Error', 'Failed to fetch notifications: $e');
     } finally {
       isLoading.value = false;

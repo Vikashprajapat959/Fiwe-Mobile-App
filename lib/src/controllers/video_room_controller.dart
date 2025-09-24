@@ -3,6 +3,7 @@ import 'dart:developer';
 import 'package:fiwe/src/models/hms_reaction.dart';
 import 'package:fiwe/src/models/hmsvideo_room.dart';
 import 'package:fiwe/src/services/crashlytics_service.dart';
+import 'package:fiwe/src/utils/constants.dart';
 import 'package:get/get.dart';
 import 'package:hmssdk_flutter/hmssdk_flutter.dart';
 
@@ -51,6 +52,7 @@ class VideoRoomController extends GetxController {
 
       if (success) {
         log("Room Data: $currentRoom", name: "RoomData");
+        _isInRoom(true);
         // Success message and navigation will be handled by repository
         // Get.snackbar('Room Created', 'Video room created successfully', snackPosition: SnackPosition.BOTTOM);
       } else {
@@ -136,7 +138,7 @@ class VideoRoomController extends GetxController {
   /// Leave the current video room
   Future<void> leaveRoom() async {
     try {
-      Get.offAndToNamed('/');
+      Get.offAndToNamed(Constants.homeViewRoute);
 
       // 1. Call backend API to leave room
       final apiSuccess = await _roomRepository.leaveRoom(_currentRoom.value!.objectId);

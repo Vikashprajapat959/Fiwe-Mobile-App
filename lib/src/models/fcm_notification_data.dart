@@ -309,7 +309,7 @@ class RoomInviteData {
       deepLink: json['deep_link'] ?? '',
       expiry: DateTime.parse(json['expiry'] ?? DateTime.now().toIso8601String()),
       topicDetails: _TopicData.fromJson(Map.from(json['topic_details'])),
-      userDetails: _UserData.fromJson(jsonDecode(json['user_details']) ?? {}),
+      userDetails: _UserData.fromJson(Map.from(json['user_details'])),
     );
   }
 }

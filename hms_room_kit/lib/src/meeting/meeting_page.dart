@@ -25,7 +25,6 @@ import 'package:hms_room_kit/src/meeting/pip_view.dart';
 import 'package:hms_room_kit/src/preview_for_role/preview_for_role_bottom_sheet.dart';
 import 'package:hms_room_kit/src/preview_for_role/preview_for_role_header.dart';
 import 'package:hms_room_kit/src/widgets/common_widgets/hms_circular_avatar.dart';
-import 'package:hms_room_kit/src/widgets/common_widgets/hms_left_room_screen.dart';
 import 'package:hms_room_kit/src/widgets/common_widgets/transcription_view.dart';
 
 ///[MeetingPage] is the main page of the meeting
@@ -93,14 +92,15 @@ class _MeetingPageState extends State<MeetingPage> {
               meetingStore.localPeer?.role.permissions.hlsStreaming ?? false),
           builder: (_, failureErrors, __) {
             if (failureErrors.item1) {
-              WidgetsBinding.instance.addPostFrameCallback((_) {
-                context.read<MeetingStore>().removeAllBottomSheets();
-                Navigator.of(context).pushReplacement(MaterialPageRoute(
-                    builder: (context) => HMSLeftRoomScreen(
-                          isEndRoomCalled: failureErrors.item3,
-                          doesRoleHasStreamPermission: failureErrors.item4,
-                        )));
-              });
+              // TODO: Handle room ended scenario
+              // WidgetsBinding.instance.addPostFrameCallback((_) {
+              //   context.read<MeetingStore>().removeAllBottomSheets();
+              //   Navigator.of(context).pushReplacement(MaterialPageRoute(
+              //       builder: (context) => HMSLeftRoomScreen(
+              //             isEndRoomCalled: failureErrors.item3,
+              //             doesRoleHasStreamPermission: failureErrors.item4,
+              //           )));
+              // });
             }
             return Selector<MeetingStore, bool>(
                 selector: (_, meetingStore) => meetingStore.isPipActive,

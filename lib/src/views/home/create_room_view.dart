@@ -84,7 +84,7 @@ class CreateRoomView extends StatelessWidget {
                 child: Card(
                   child: Padding(
                     padding: const EdgeInsets.all(8.0),
-                    child: SizedBox(width: Get.width, child: Text("Some random topic from AI")),
+                    child: SizedBox(width: Get.width, child: Text(controller.randomText.value)),
                   ),
                 ),
               ),

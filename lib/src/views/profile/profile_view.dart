@@ -1,6 +1,7 @@
 import 'package:fiwe/src/utils/app_text_styles.dart';
 import 'package:fiwe/src/utils/colors.dart';
 import 'package:fiwe/src/utils/constants.dart';
+import 'package:fiwe/src/views/profile/edit_profile_view.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
@@ -121,7 +122,7 @@ class ProfileController extends GetxController {
   var toppedRooms = 3.obs;
 
   void editProfile() {
-    Get.snackbar('Edit Profile', 'Navigating to edit profile screen');
+    Get.to(() => EditProfileScreen());
   }
 
   void logout() {

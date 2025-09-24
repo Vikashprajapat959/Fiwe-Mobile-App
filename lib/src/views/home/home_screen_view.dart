@@ -1,8 +1,9 @@
 import 'dart:developer';
+import 'dart:typed_data';
 
 import 'package:fiwe/src/controllers/home_controller.dart';
-import 'package:fiwe/src/services/http_service.dart';
 import 'package:fiwe/src/utils/colors.dart';
+import 'package:fiwe/src/utils/helper.dart';
 import 'package:fiwe/src/views/home/user_notification_view.dart';
 import 'package:fiwe/src/views/profile/profile_view.dart';
 import 'package:flutter/material.dart';
@@ -239,8 +240,7 @@ class ProfileAvatar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    var img = '${Get.find<HttpService>().baseUrl}$imageUrl';
-    log(img);
+    log(imageUrl);
     return GestureDetector(
       onTap: () {
         Get.to(() => ProfileScreen());
@@ -251,7 +251,11 @@ class ProfileAvatar extends StatelessWidget {
         decoration: BoxDecoration(
           shape: BoxShape.circle,
           color: AppColors.lightGray,
-          image: DecorationImage(image: NetworkImage(img), fit: BoxFit.cover, onError: (exception, stackTrace) {}),
+          image: DecorationImage(
+            image: MemoryImage(Helper.base64ToBytes(imageUrl) ?? Uint8List(255)),
+            fit: BoxFit.cover,
+            onError: (exception, stackTrace) {},
+          ),
         ),
         child: imageUrl.isEmpty ? Icon(Icons.person, color: AppColors.gray, size: size * 0.6) : null,
       ),

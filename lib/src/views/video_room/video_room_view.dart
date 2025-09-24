@@ -42,11 +42,11 @@ class VideoRoomView extends StatelessWidget {
           return const Center(child: CircularProgressIndicator());
         }
 
-        // if (!controller.isInRoom) {
-        //   return const Center(
-        //     child: Text('Not in a room', style: TextStyle(color: Colors.white)),
-        //   );
-        // }
+        if (!controller.isInRoom) {
+          return const Center(
+            child: Text('Not in a room', style: TextStyle(color: Colors.white)),
+          );
+        }
 
         // Use HMSPrebuilt widget instead of custom UI
         // Pass the room code and authentication token to HMSPrebuilt
@@ -57,7 +57,6 @@ class VideoRoomView extends StatelessWidget {
             options: HMSPrebuiltOptions(userName: Get.routing.args?['userName'] ?? ''),
 
             onLeave: () {
-             
               controller.leaveRoom();
             },
           ),

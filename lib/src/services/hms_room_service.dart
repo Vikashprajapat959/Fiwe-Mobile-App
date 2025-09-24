@@ -353,7 +353,7 @@ class HMSRoomService extends GetxService implements HMSUpdateListener, HMSAction
   @override
   void onJoin({required HMSRoom room}) {
     _currentRoom = room;
-    _isInRoom(true);
+
     dev.log('Successfully joined room: ${room.id}', name: 'VideoRoomService');
   }
 

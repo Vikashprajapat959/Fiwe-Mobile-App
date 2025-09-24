@@ -67,4 +67,26 @@ class TopicService extends GetxService {
       );
     }
   }
+
+  Future<ApiResponse<String>> getRandomTopic() async {
+    try {
+      final response = await _httpService.get(Endpoints.discussionRandomTopic, isAuthorized: true);
+      final responseBody = response.data;
+
+      if (response.success) {
+        final String topic = "${responseBody?['title'] ?? 'Random Topic'}\n ${responseBody?['description'] ?? ''}";
+        return ApiResponse<String>.success(
+          message: responseBody?['message'] ?? 'Random topic retrieved successfully',
+          data: topic,
+        );
+      } else {
+        return ApiResponse<String>.error(
+          message: responseBody?['message'] ?? 'Failed to retrieve random topic',
+          errors: responseBody?['errors'],
+        );
+      }
+    } catch (e) {
+      return ApiResponse<String>.error(message: 'Network error occurred while fetching random topic: $e');
+    }
+  }
 }

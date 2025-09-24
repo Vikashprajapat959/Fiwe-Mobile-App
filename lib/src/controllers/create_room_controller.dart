@@ -56,6 +56,11 @@ class CreateRoomController extends GetxController {
     super.onInit();
     // Sample topics for demonstration
     _loadTopics();
+    currentTab.listen((index) {
+      if (index == 1) {
+        getRandomTopic();
+      }
+    });
   }
 
   Future<void> _loadTopics() async {
@@ -106,6 +111,19 @@ class CreateRoomController extends GetxController {
       selectedTopicId.value = "";
     } else {
       selectedTopicId.value = topicId;
+    }
+  }
+
+  Future<void> getRandomTopic() async {
+    try {
+      final response = await topicService.getRandomTopic();
+      if (response.success) {
+        randomText.value = response.data ?? "Discuss anything!";
+      } else {
+        Get.snackbar('Error', response.message, snackPosition: SnackPosition.BOTTOM);
+      }
+    } catch (e) {
+      Get.snackbar('Error', 'Failed to fetch random topic: $e', snackPosition: SnackPosition.BOTTOM);
     }
   }
 }
