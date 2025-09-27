@@ -1,19 +1,10 @@
+import 'package:fiwe/src/controllers/profile_controller.dart';
 import 'package:fiwe/src/utils/app_text_styles.dart';
 import 'package:fiwe/src/utils/colors.dart';
 import 'package:fiwe/src/utils/constants.dart';
-import 'package:fiwe/src/views/profile/edit_profile_view.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
-
-class AppSizes {
-  static const double paddingSmall = 8.0;
-  static const double paddingMedium = 16.0;
-  static const double paddingLarge = 24.0;
-  static const double borderRadius = 12.0;
-  static const double iconSize = 24.0;
-  static const double avatarSize = 60.0;
-}
 
 class BadgeSection extends StatelessWidget {
   const BadgeSection({super.key});
@@ -27,9 +18,9 @@ class BadgeSection extends StatelessWidget {
           const Text('Badge', style: AppTextStyles.subHeading),
           Spacer(),
           _buildBadge(Icons.hexagon, CustomColors.textSecondary),
-          const SizedBox(width: AppSizes.paddingSmall),
+          const SizedBox(width: Constants.paddingSmall),
           _buildBadge(Icons.star, CustomColors.warning),
-          const SizedBox(width: AppSizes.paddingSmall),
+          const SizedBox(width: Constants.paddingSmall),
           _buildBadge(Icons.workspace_premium, CustomColors.error),
         ],
       ),
@@ -41,8 +32,8 @@ class BadgeSection extends StatelessWidget {
       width: 40,
       height: 40,
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(AppSizes.borderRadius),
+        color: color.withAlpha(25),
+        borderRadius: BorderRadius.circular(Constants.borderRadius),
       ),
       child: Icon(icon, color: color, size: 20),
     );
@@ -93,52 +84,13 @@ class MenuTile extends StatelessWidget {
       leading: Container(
         width: 40,
         height: 40,
-        decoration: BoxDecoration(color: iconColor, borderRadius: BorderRadius.circular(AppSizes.borderRadius)),
+        decoration: BoxDecoration(color: iconColor, borderRadius: BorderRadius.circular(Constants.borderRadius)),
         child: Icon(icon, color: Colors.white, size: 20),
       ),
       title: Text(title, style: AppTextStyles.body),
       trailing: const Icon(Icons.chevron_right, color: CustomColors.textSecondary),
       onTap: onTap,
     );
-  }
-}
-
-// Controller
-class ProfileController extends GetxController {
-  // Profile data
-  var userName = 'John Smit'.obs;
-  var rating = 4.5.obs;
-  var reviewCount = 10.obs;
-  var tagline = 'Your voice. Their ears. Let\'s go!'.obs;
-  var profileCompletion = 75.obs;
-
-  // Stats
-  var totalRoomsCreated = 5.obs;
-  var joinedRooms = 2.obs;
-  var faceOfWeek = 2.obs;
-  var totalCommence = 7.obs;
-  var followers = 9.obs;
-  var audiences = 50.obs;
-  var toppedRooms = 3.obs;
-
-  void editProfile() {
-    Get.to(() => EditProfileScreen());
-  }
-
-  void logout() {
-    Get.snackbar('Logout', 'Logging out...');
-  }
-
-  void openAvailability() {
-    Get.snackbar('Availability', 'Opening availability settings');
-  }
-
-  void openCommunes() {
-    Get.snackbar('Communes', 'Opening communes');
-  }
-
-  void openPreferences() {
-    Get.snackbar('Preferences', 'Opening preferences');
   }
 }
 
@@ -186,7 +138,7 @@ class ProfileHeader extends StatelessWidget {
             Positioned(top: 0, right: 0, child: Icon(Icons.star, color: Colors.yellow)),
           ],
         ),
-        const SizedBox(width: AppSizes.paddingMedium),
+        const SizedBox(width: Constants.paddingMedium),
         // Profile info
         Expanded(
           child: Column(
@@ -249,10 +201,10 @@ class ProfileScreen extends StatelessWidget {
                 CustomCard(
                   child: Obx(
                     () => ProfileHeader(
-                      name: controller.userName.value,
-                      rating: controller.rating.value,
-                      reviewCount: controller.reviewCount.value,
-                      tagline: controller.tagline.value,
+                      name: controller.user?.name ?? 'Guest User',
+                      rating: 4.5,
+                      reviewCount: 32,
+                      tagline: "",
                     ),
                   ),
                 ),
@@ -260,7 +212,7 @@ class ProfileScreen extends StatelessWidget {
                 // Progress Bar
                 CustomCard(
                   child: Obx(
-                    () => ProgressBar(percentage: controller.profileCompletion.value, title: 'Complete Your Profile'),
+                    () => ProgressBar(percentage: controller.profileCompletion.toInt(), title: 'Complete Your Profile'),
                   ),
                 ),
 
@@ -287,7 +239,7 @@ class ProfileScreen extends StatelessWidget {
               ],
             ),
 
-            const SizedBox(height: AppSizes.paddingMedium),
+            const SizedBox(height: Constants.paddingMedium),
 
             // Menu Items
             CustomCard(
@@ -330,6 +282,7 @@ class ProfileScreen extends StatelessWidget {
                 ],
               ),
             ),
+            const SizedBox(height: 30),
           ],
         ),
       ),
@@ -355,7 +308,7 @@ class ProgressBar extends StatelessWidget {
             Text('$percentage%', style: AppTextStyles.subHeading),
           ],
         ),
-        const SizedBox(height: AppSizes.paddingSmall),
+        const SizedBox(height: Constants.paddingSmall),
         Container(
           height: 8,
           decoration: BoxDecoration(borderRadius: BorderRadius.circular(4), color: CustomColors.divider),

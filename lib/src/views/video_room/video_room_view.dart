@@ -53,7 +53,7 @@ class VideoRoomView extends StatelessWidget {
         return WithForegroundTask(
           child: HMSPrebuilt(
             roomCode: controller.currentRoom?.roomHostCode ?? '',
-            authToken: controller.currentRoom?.joinToken ?? '',
+            // authToken: controller.currentRoom?.joinToken ?? '',
             options: HMSPrebuiltOptions(userName: Get.routing.args?['userName'] ?? ''),
 
             onLeave: () {

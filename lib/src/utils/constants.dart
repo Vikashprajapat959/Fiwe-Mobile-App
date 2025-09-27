@@ -141,6 +141,13 @@ class Constants {
 
   static String profileScreenRoute = "/profile";
 
+  static const double paddingSmall = 8.0;
+  static const double paddingMedium = 16.0;
+  static const double paddingLarge = 24.0;
+  static const double borderRadius = 12.0;
+  static const double iconSize = 24.0;
+  static const double avatarSize = 60.0;
+
   // Colors
   // static const int primaryColor = 0xFF0891B2;
   // static const int backgroundColor = 0xFFF9FAFB;

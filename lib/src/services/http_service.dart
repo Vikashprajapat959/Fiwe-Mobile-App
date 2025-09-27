@@ -16,7 +16,7 @@ class HttpService extends GetxService {
   final bool enableLogging;
 
   HttpService({
-    this.baseUrl = "https://fiwe.in/api", // "http://10.35.236.250:8000/api", // "https://fiwe.in/api",
+    this.baseUrl = "http://192.168.29.12:8000/api", // "http://10.35.236.250:8000/api", // "https://fiwe.in/api",
     this.defaultHeaders = const {'Content-Type': 'application/json', 'accept': 'application/json'},
     this.enableLogging = kDebugMode,
   });

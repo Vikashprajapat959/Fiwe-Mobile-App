@@ -33,6 +33,19 @@ class VideoRoomController extends GetxController {
 
   // Getters
   HMSVideoRoom? get currentRoom => _currentRoom.value;
+
+  // setter for currentRoom
+  set currentRoom(HMSVideoRoom? room) {
+    _currentRoom.value = room;
+    update();
+  }
+
+  //setter for isInRoom
+  set isInRoom(bool value) {
+    _isInRoom.value = value;
+    update();
+  }
+
   // bool get isCameraOn => _isCameraOn.value; // Removed as hms_room_kit handles this
   bool get isInRoom => _isInRoom.value;
   bool get isLoading => _isLoading.value;

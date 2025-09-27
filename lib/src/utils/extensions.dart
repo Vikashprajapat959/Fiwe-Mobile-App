@@ -8,3 +8,7 @@ extension StringExtensions on String {
 
   Map<String, dynamic> toJson() => json.decode(this);
 }
+
+extension NullableStringExtensions on String? {
+  bool get isNullOrEmpty => this == null || this!.isEmpty;
+}

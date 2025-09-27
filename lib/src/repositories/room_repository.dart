@@ -1,6 +1,9 @@
 import 'dart:developer' as dev;
 
+import 'package:fiwe/src/models/hmsvideo_room.dart';
+import 'package:fiwe/src/models/standard_api_response.dart';
 import 'package:fiwe/src/services/forground_handler.dart';
+import 'package:fiwe/src/utils/endpoints.dart';
 import 'package:get/get.dart';
 
 import '../controllers/auth_controller.dart';
@@ -38,7 +41,7 @@ class RoomRepository extends GetxService {
 
       // 2. Call backend API endpoint to create room
       // Using the existing VideoRoomService method for consistency
-      final response = await _videoRoomService.createRoom(title,topicId);
+      final response = await _videoRoomService.createRoom(title, topicId);
 
       if (response.success && response.data != null) {
         dev.log('Room created successfully with ID: ${response.data!.objectId}', name: 'RoomRepository');
@@ -52,7 +55,7 @@ class RoomRepository extends GetxService {
             'roomId': response.data!.objectId,
             'roomName': response.data!.title,
             'userName': userName,
-            'roomToken': response.data?.joinToken,
+            // 'roomToken': response.data?.joinToken,
             'roomObj': response.data,
           },
         );
@@ -99,6 +102,26 @@ class RoomRepository extends GetxService {
     } catch (e) {
       dev.log('Error leaving room: $e', name: 'RoomRepository');
       return false;
+    }
+  }
+
+  // get user active room details
+  Future<ApiResponse<HMSVideoRoom>> getActiveRoomDetails() async {
+    try {
+      final response = await _httpService.get(Endpoints.currentActiveRoom, isAuthorized: true);
+      if (response.success && response.data != null) {
+        final room = HMSVideoRoom.fromJson(response.data!);
+        return ApiResponse<HMSVideoRoom>(success: true, data: room, message: 'Active room fetched successfully');
+      } else {
+        return ApiResponse<HMSVideoRoom>(success: false, data: null, message: response.message);
+      }
+    } catch (e) {
+      dev.log('Error fetching active room details: $e', name: 'RoomRepository');
+      return ApiResponse<HMSVideoRoom>(
+        success: false,
+        data: null,
+        message: 'An error occurred while fetching active room details: $e',
+      );
     }
   }
 }

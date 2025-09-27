@@ -17,4 +17,6 @@ class Endpoints {
   static String discussionRandomTopic = "/discussion-topics/random/";
 
   static String updateProfile = "/user/profile/update";
+
+  static String currentActiveRoom = "/rooms/current-active-room";
 }

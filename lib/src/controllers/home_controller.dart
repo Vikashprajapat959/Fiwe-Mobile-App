@@ -1,9 +1,13 @@
 import 'dart:developer' as dev;
 
 import 'package:fiwe/src/controllers/auth_controller.dart';
+import 'package:fiwe/src/controllers/video_room_controller.dart';
 import 'package:fiwe/src/models/fcm_notification_data.dart';
+import 'package:fiwe/src/models/hmsvideo_room.dart';
 import 'package:fiwe/src/models/user_model.dart';
+import 'package:fiwe/src/repositories/room_repository.dart';
 import 'package:fiwe/src/services/fcm_notification_service.dart';
+import 'package:fiwe/src/utils/constants.dart';
 import 'package:fiwe_notification/fiwe_notification.dart';
 import 'package:flutter/widgets.dart';
 import 'package:get/get.dart';
@@ -36,6 +40,7 @@ class HomeController extends GetxController {
   void onInit() {
     // Get.put(NotificationService(), permanent: true);
     _notificationService = FCMNotificationService.instance;
+    fetchActiveRoomDetails();
     super.onInit();
   }
 
@@ -89,6 +94,64 @@ class HomeController extends GetxController {
       );
     } else {
       dev.log('No context available to show room invite notification: ${inviteData.title}', name: 'HomeController');
+    }
+  }
+
+  // get user active room details
+  Future<void> fetchActiveRoomDetails() async {
+    try {
+      final roomRepository = RoomRepository.instance;
+      final response = await roomRepository.getActiveRoomDetails();
+      if (response.success && response.data != null) {
+        dev.log('Active room details fetched successfully: ${response.data!.title}', name: 'HomeController');
+        // You can store the room details in a variable or state management solution as needed
+        showJoinPreviousRoomNotification(response.data!);
+      } else {
+        dev.log('No active room found or failed to fetch: ${response.message}', name: 'HomeController');
+      }
+    } catch (e) {
+      dev.log('Error fetching active room details: $e', name: 'HomeController');
+    }
+  }
+
+  // show user notification to join previos room if any
+  void showJoinPreviousRoomNotification(HMSVideoRoom room) {
+    VideoRoomController controller = VideoRoomController.instance;
+    controller.currentRoom = room;
+    controller.isInRoom = true;
+    final context = _context ?? Get.overlayContext;
+    if (context != null) {
+      InAppNotificationManager.setContext(context).show(
+        NotificationConfig(
+          title: "Rejoin Room",
+          description: "You have an active room: ${room.title}.\nWould you like to rejoin?",
+          icon: Icon(LucideIcons.video),
+          onDismiss: () {
+            // Clear current room if user dismisses the notification
+            InAppNotificationManager.dismiss();
+            controller.leaveRoom();
+          },
+          actions: [
+            NotificationAction(
+              label: "Dismiss",
+              style: NotificationActionStyle.secondary,
+              onPressed: () {
+                // leave room action
+                controller.leaveRoom();
+              },
+            ),
+            NotificationAction(
+              label: "Join",
+              onPressed: () {
+                InAppNotificationManager.dismiss();
+                Get.toNamed(Constants.videoRoomRoute, arguments: {'userName': user?.name ?? '  Guest'});
+              },
+            ),
+          ],
+        ),
+      );
+    } else {
+      dev.log('No context available to show rejoin room notification for room: ${room.title}', name: 'HomeController');
     }
   }
 }
