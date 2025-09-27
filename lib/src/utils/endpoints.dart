@@ -15,4 +15,6 @@ class Endpoints {
   static String fetchUserNotifications = '/notifications/user/';
 
   static String discussionRandomTopic = "/discussion-topics/random/";
+
+  static String updateProfile = "/user/profile/update";
 }

@@ -69,6 +69,7 @@ class AuthController extends GetxController {
   bool get supportsAuthenticate => _googleAuthService.supportsAuthenticate;
 
   User? get userProfile => _userProfile.value;
+  set userProfile(User? user) => _userProfile(user);
 
   Future<void> completeSignUp(Map<String, dynamic> data) async {
     try {

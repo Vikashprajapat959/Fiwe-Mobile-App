@@ -1,6 +1,8 @@
 import 'package:fiwe/src/controllers/edit_profile_controller.dart';
+import 'package:fiwe/src/utils/helper.dart';
 import 'package:fiwe/src/widgets/custom_button.dart';
 import 'package:fiwe/src/widgets/custom_text_field.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
@@ -41,93 +43,100 @@ class EditProfileScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: const CustomAppBar(title: 'Edit Profile'),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          children: [
-            // Profile Avatar Section
-            Center(
-              child: Obx(
-                () => ProfileAvatar(
-                  imageUrl: controller.profileImage.value,
-                  onTap: () {
-                    // Handle image selection
-                    Get.snackbar('Photo', 'Photo selection feature would go here', snackPosition: SnackPosition.BOTTOM);
-                  },
+      body: Stack(
+        children: [
+          SingleChildScrollView(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              children: [
+                // Profile Avatar Section
+                Center(
+                  child: Obx(
+                    () => ProfileAvatar(
+                      imageData: controller.profileImage.value,
+                      onTap: () {
+                        controller.pickProfileImage();
+                      },
+                    ),
+                  ),
                 ),
-              ),
+                const SizedBox(height: 30),
+
+                // Form Fields
+                AppTextField(
+                  lableText: "Your Name",
+                  hintText: 'Enter your name ',
+                  controller: controller.nameController,
+                ),
+                const SizedBox(height: 20),
+
+                AppTextField(
+                  lableText: 'Nick Name',
+                  hintText: "Enter your nick name",
+                  controller: controller.nickNameController,
+                ),
+                const SizedBox(height: 20),
+
+                AppTextField(
+                  lableText: 'Email address',
+                  hintText: 'Enter your email',
+                  controller: controller.emailController,
+                  keyboardType: TextInputType.emailAddress,
+                ),
+                const SizedBox(height: 20),
+
+                AppTextField(
+                  lableText: 'Date of Birth',
+                  hintText: ' elect your date of birth',
+                  controller: controller.dobController,
+                  readOnly: true,
+                  onTap: () => controller.selectDate(context),
+                  suffixIcon: const Icon(LucideIcons.calendar),
+                ),
+                const SizedBox(height: 20),
+
+                AppTextField(
+                  lableText: 'Pin Code',
+                  hintText: 'Your pin code',
+                  controller: controller.pinController,
+                  keyboardType: TextInputType.number,
+                ),
+                const SizedBox(height: 20),
+
+                AppTextField(
+                  lableText: 'Five words that describe you',
+                  hintText: 'Your Five words',
+                  controller: controller.fiveWordsController,
+                ),
+                const SizedBox(height: 20),
+
+                AppTextField(
+                  // : 'BIO',
+                  lableText: 'BIO',
+                  controller: controller.bioController,
+                  maxLines: 3,
+                  hintText: 'Enter BIO',
+                ),
+
+                // Word count
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: Padding(
+                    padding: const EdgeInsets.only(top: 8),
+                    child: Text('Max 80 Word', style: TextStyle(color: Colors.grey[500], fontSize: 12)),
+                  ),
+                ),
+
+                const SizedBox(height: 40),
+
+                // Update Button
+                AppButtonElevated(text: 'Update Profile', onPressed: controller.updateProfile),
+
+                const SizedBox(height: 20),
+              ],
             ),
-            const SizedBox(height: 30),
-
-            // Form Fields
-            AppTextField(lableText: "Your Name", hintText: 'Enter your name ', controller: controller.nameController),
-            const SizedBox(height: 20),
-
-            AppTextField(
-              lableText: 'Nick Name',
-              hintText: "Enter your nick name",
-              controller: controller.nickNameController,
-            ),
-            const SizedBox(height: 20),
-
-            AppTextField(
-              lableText: 'Email address',
-              hintText: 'Enter your email',
-              controller: controller.emailController,
-              keyboardType: TextInputType.emailAddress,
-            ),
-            const SizedBox(height: 20),
-
-            AppTextField(
-              lableText: 'Date of Birth',
-              hintText: ' elect your date of birth',
-              controller: controller.dobController,
-              readOnly: true,
-              onTap: () => controller.selectDate(context),
-              suffixIcon: const Icon(LucideIcons.calendar),
-            ),
-            const SizedBox(height: 20),
-
-            AppTextField(
-              lableText: 'Pin Code',
-              hintText: 'Your pin code',
-              controller: controller.pinController,
-              keyboardType: TextInputType.number,
-            ),
-            const SizedBox(height: 20),
-
-            AppTextField(
-              lableText: 'Five words that describe you',
-              hintText: 'Your Five words',
-              controller: controller.fiveWordsController,
-            ),
-            const SizedBox(height: 20),
-
-            AppTextField(
-              // : 'BIO',
-              lableText: 'BIO',
-              controller: controller.bioController,
-              maxLines: 3,
-              hintText: 'Enter BIO',
-            ),
-
-            // Word count
-            Align(
-              alignment: Alignment.centerRight,
-              child: Padding(
-                padding: const EdgeInsets.only(top: 8),
-                child: Text('Max 80 Word', style: TextStyle(color: Colors.grey[500], fontSize: 12)),
-              ),
-            ),
-
-            const SizedBox(height: 40),
-
-            // Update Button
-            AppButtonElevated(text: 'Update Profile', onPressed: controller.updateProfile),
-
-            const SizedBox(height: 20),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
@@ -244,11 +253,11 @@ class EditProfileScreen extends StatelessWidget {
 
 // Reusable Profile Avatar Component
 class ProfileAvatar extends StatelessWidget {
-  final String imageUrl;
+  final String imageData;
   final double size;
   final VoidCallback? onTap;
 
-  const ProfileAvatar({super.key, required this.imageUrl, this.size = 120, this.onTap});
+  const ProfileAvatar({super.key, required this.imageData, this.size = 120, this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -262,7 +271,10 @@ class ProfileAvatar extends StatelessWidget {
             decoration: BoxDecoration(
               shape: BoxShape.circle,
               border: Border.all(color: Colors.grey[300]!, width: 2),
-              image: DecorationImage(image: NetworkImage(imageUrl), fit: BoxFit.cover),
+              image: DecorationImage(
+                image: MemoryImage(Helper.base64ToBytes(imageData) ?? Uint8List(255)),
+                fit: BoxFit.cover,
+              ),
             ),
           ),
           Positioned(

@@ -74,7 +74,7 @@ class TopicService extends GetxService {
       final responseBody = response.data;
 
       if (response.success) {
-        final String topic = "${responseBody?['title'] ?? 'Random Topic'}\n ${responseBody?['description'] ?? ''}";
+        final String topic = "${responseBody?['title'] ?? 'Random Topic'}\n${responseBody?['description'] ?? ''}";
         return ApiResponse<String>.success(
           message: responseBody?['message'] ?? 'Random topic retrieved successfully',
           data: topic,

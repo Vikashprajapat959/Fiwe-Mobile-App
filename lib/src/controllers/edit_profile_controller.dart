@@ -1,7 +1,11 @@
 // Controller for managing profile data
 import 'package:fiwe/src/controllers/auth_controller.dart';
+import 'package:fiwe/src/services/user_service.dart';
+import 'package:fiwe/src/utils/helper.dart';
+import 'package:fiwe/src/utils/loading_overlay.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:image_picker/image_picker.dart';
 
 class EditProfileController extends GetxController {
   final TextEditingController nameController = TextEditingController();
@@ -14,6 +18,8 @@ class EditProfileController extends GetxController {
 
   RxString profileImage = ''.obs;
   final authController = Get.find<AuthController>();
+
+  final userService = UserService.instance;
   @override
   void onClose() {
     nameController.dispose();
@@ -36,13 +42,13 @@ class EditProfileController extends GetxController {
     var user = authController.userProfile;
     if (user != null) {
       nameController.text = user.name ?? '';
-      nickNameController.text = "" ?? '';
+      nickNameController.text = user.nickName ?? '';
       emailController.text = user.email ?? '';
       dobController.text = user.dateOfBirth ?? '';
       pinController.text = user.pincode ?? '';
-      fiveWordsController.text = "" ?? '';
-      bioController.text = "" ?? '';
-      profileImage.value = user.profileImageUrl ?? '';
+      fiveWordsController.text = user.fiveWords ?? '';
+      bioController.text = user.bio ?? '';
+      profileImage.value = user.profileBase64 ?? '';
     }
   }
 
@@ -59,14 +65,77 @@ class EditProfileController extends GetxController {
     }
   }
 
-  void updateProfile() {
-    // Handle profile update logic
-    Get.snackbar(
-      'Success',
-      'Profile updated successfully!',
-      snackPosition: SnackPosition.BOTTOM,
-      backgroundColor: Colors.green,
-      colorText: Colors.white,
-    );
+  void updateProfile() async {
+    // check if no updates made
+    final user = authController.userProfile;
+    if (user != null &&
+        nameController.text == (user.name ?? '') &&
+        nickNameController.text == (user.nickName ?? '') &&
+        emailController.text == (user.email ?? '') &&
+        dobController.text == (user.dateOfBirth ?? '') &&
+        pinController.text == (user.pincode ?? '') &&
+        fiveWordsController.text == (user.fiveWords ?? '') &&
+        profileImage.value == (user.profileBase64 ?? '') &&
+        bioController.text == (user.bio ?? '')) {
+      Get.snackbar('Info', 'No changes made to update');
+      return;
+    }
+
+    try {
+      LoadingOverlay.show();
+
+      var response = await userService.updateProfile(
+        nameController.text,
+        nickNameController.text,
+        emailController.text,
+        dobController.text,
+        pinController.text,
+        fiveWordsController.text,
+        bioController.text,
+        imageBase64: profileImage.value,
+      );
+      if (response.success) {
+        Get.snackbar('Success', 'Profile updated successfully', snackPosition: SnackPosition.BOTTOM);
+        // Update local user profile
+        authController.userProfile = authController.userProfile?.copyWith(
+          name: nameController.text,
+          nickName: nickNameController.text,
+          email: emailController.text,
+          dateOfBirth: dobController.text,
+          pincode: pinController.text,
+          fiveWords: fiveWordsController.text,
+          bio: bioController.text,
+          profileImageBase64: profileImage.value,
+        );
+        // Close the edit profile view
+      } else {
+        Get.snackbar('Error', response.message, snackPosition: SnackPosition.BOTTOM);
+      }
+    } catch (e) {
+      Get.snackbar('Error', 'Failed to update profile: $e', snackPosition: SnackPosition.BOTTOM);
+    } finally {
+      LoadingOverlay.hide();
+    }
+  }
+
+  void pickProfileImage() {
+    ImagePicker()
+        .pickImage(source: ImageSource.gallery, maxWidth: 600, maxHeight: 600, imageQuality: 80)
+        .then((pickedFile) {
+          if (pickedFile != null) {
+            //profileImage.value = pickedFile.path;
+            // convert image to base64 and update user profile
+            Helper.imageFileToBase64(pickedFile)
+                .then((base64Image) {
+                  profileImage.value = base64Image;
+                })
+                .catchError((e) {
+                  Get.snackbar('Error', 'Failed to process image: $e', snackPosition: SnackPosition.BOTTOM);
+                });
+          }
+        })
+        .catchError((e) {
+          Get.snackbar('Error', 'Failed to pick image: $e', snackPosition: SnackPosition.BOTTOM);
+        });
   }
 }

@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
+import 'package:image_picker/image_picker.dart';
 
 class Helper {
   // convert base64 string to bytes
@@ -12,5 +13,12 @@ class Helper {
     } catch (e) {
       return null;
     }
+  }
+
+  static Future<String> imageFileToBase64(XFile pickedFile) {
+    return compute((XFile file) async {
+      final bytes = await file.readAsBytes();
+      return base64Encode(bytes);
+    }, pickedFile);
   }
 }
