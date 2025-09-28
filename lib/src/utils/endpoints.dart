@@ -19,4 +19,6 @@ class Endpoints {
   static String updateProfile = "/user/profile/update";
 
   static String currentActiveRoom = "/rooms/current-active-room";
+
+  static String submitRatings = "/ratings/submit";
 }

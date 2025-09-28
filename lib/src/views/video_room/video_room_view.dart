@@ -5,38 +5,69 @@ import 'package:hms_room_kit/hms_room_kit.dart';
 
 import '../../controllers/video_room_controller.dart';
 
-class VideoRoomView extends StatelessWidget {
+class VideoRoomView extends StatefulWidget {
   const VideoRoomView({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    final controller = Get.put(VideoRoomController());
+  State<VideoRoomView> createState() => _VideoRoomViewState();
+}
 
+class _VideoRoomViewState extends State<VideoRoomView> with WidgetsBindingObserver {
+  late VideoRoomController controller;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    controller = Get.put(VideoRoomController());
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.grey[900],
-      // appBar: AppBar(
-      //   title: Obx(() => Text(controller.currentRoom?.title ?? 'Video Room')),
-      //   backgroundColor: Colors.grey[800],
-      //   foregroundColor: Colors.white,
-      //   actions: [
-      //     // Occupancy indicator
-      //     Obx(() {
-      //       final occupancy = controller.remotePeers.length + 1; // +1 for local participant
-      //       final maxParticipants = controller.currentRoom?.capacity ?? 5;
-      //       return Padding(
-      //         padding: const EdgeInsets.all(16.0),
-      //         child: Container(
-      //           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-      //           decoration: BoxDecoration(color: Colors.blue, borderRadius: BorderRadius.circular(12)),
-      //           child: Text(
-      //             '$occupancy/$maxParticipants',
-      //             style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-      //           ),
+      // Add floating action button for manual PIP entry (for testing)
+      // floatingActionButton: Obx(() {
+      //   if (!controller.isInRoom) return const SizedBox.shrink();
+
+      //   return Column(
+      //     mainAxisSize: MainAxisSize.min,
+      //     children: [
+      //       // PIP toggle button
+      //       FloatingActionButton(
+      //         mini: true,
+      //         heroTag: "pip",
+      //         onPressed: () {
+      //           if (controller.isPipActive) {
+      //             controller.exitPipMode();
+      //           } else {
+      //             controller.enterPipMode();
+      //           }
+      //         },
+      //         child: Icon(
+      //           controller.isPipActive ? Icons.fullscreen : Icons.picture_in_picture,
       //         ),
-      //       );
-      //     }),
-      //   ],
-      // ),
+      //       ),
+      //       const SizedBox(height: 8),
+      //       // Debug info button (only in debug mode)
+      //       if (kDebugMode)
+      //         FloatingActionButton(
+      //           mini: true,
+      //           heroTag: "debug",
+      //           onPressed: () {
+      //             _showDebugInfo(context);
+      //           },
+      //           child: const Icon(Icons.info),
+      //         ),
+      //     ],
+      //   );
+      // }),
       body: Obx(() {
         if (controller.isLoading) {
           return const Center(child: CircularProgressIndicator());
@@ -62,6 +93,25 @@ class VideoRoomView extends StatelessWidget {
           ),
         );
       }),
+    );
+  }
+
+  /// Show debug information dialog
+  void _showDebugInfo(BuildContext context) {
+    final debugInfo = controller.getDebugInfo();
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Debug Information'),
+        content: SingleChildScrollView(
+          child: Text(
+            debugInfo.entries.map((e) => '${e.key}: ${e.value}').join('\n'),
+            style: const TextStyle(fontFamily: 'monospace', fontSize: 12),
+          ),
+        ),
+        actions: [TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('Close'))],
+      ),
     );
   }
 }

@@ -11,10 +11,11 @@ class HMSVideoRoom {
   final int? currentOccupancy;
   final int? availableSlots;
   final bool isPublic;
+  final String? joinToken;
   final DateTime? expiresAt;
   final DateTime? createdAt;
   final _Topic? topic;
-  final String userRole;
+  final String? userRole;
   final DateTime? joinedAt;
   final String roomHostCode;
   final String roomGuestCode;
@@ -30,6 +31,7 @@ class HMSVideoRoom {
     required this.currentOccupancy,
     required this.availableSlots,
     required this.isPublic,
+    this.joinToken,
     this.expiresAt,
     this.createdAt,
     required this.topic,
@@ -48,17 +50,20 @@ class HMSVideoRoom {
       description: json['description'] as String,
       status: json['status'] as String,
       capacity: json['capacity'] as int,
-      currentOccupancy: json['current_occupancy'] as int,
-      availableSlots: json['available_slots'] as int,
+      currentOccupancy: json['current_occupancy'] != null ? json['current_occupancy'] as int : null,
+      availableSlots: json['available_slots'] != null ? json['available_slots'] as int : null,
       isPublic: json['is_public'] as bool,
+      joinToken: json['join_token'] != null ? json['join_token'] as String : null,
       expiresAt: json['expires_at'] != null ? DateTime.parse(json['expires_at'] as String) : null,
       createdAt: json['created_at'] != null ? DateTime.parse(json['created_at'] as String) : null,
-      topic: _Topic.fromJson(json['topic'] as Map<String, dynamic>),
-      userRole: json['user_role'] as String,
+      // can be null
+      topic: json['topic'] != null ? _Topic.fromJson(json['topic'] as Map<String, dynamic>) : null,
+      userRole: json['user_role'] as String?,
       joinedAt: json['joined_at'] != null ? DateTime.parse(json['joined_at'] as String) : null,
       roomHostCode: json['room_host_code'] as String,
       roomGuestCode: json['room_guest_code'] as String,
-      creator: _Creator.fromJson(json['creator'] as Map<String, dynamic>),
+      // can be null
+      creator: json['creator'] != null ? _Creator.fromJson(json['creator'] as Map<String, dynamic>) : null,
     );
   }
 
@@ -79,6 +84,7 @@ class HMSVideoRoom {
       'user_role': userRole,
       'joined_at': joinedAt?.toIso8601String(),
       'room_host_code': roomHostCode,
+      'join_token': joinToken,
       'room_guest_code': roomGuestCode,
       'creator': creator?.toJson(),
     };
