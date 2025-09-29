@@ -40,7 +40,7 @@ Future<void> _handleBackgroundNotificationStatic(RemoteMessage message) async {
 
     // Initialize with minimal settings for background
     const AndroidInitializationSettings initializationSettingsAndroid = AndroidInitializationSettings(
-      '@mipmap/ic_launcher',
+      '@mipmap/launcher_icon',
     );
     const InitializationSettings initializationSettings = InitializationSettings(
       android: initializationSettingsAndroid,
@@ -102,17 +102,17 @@ Future<void> _showLocalNotificationStatic(
 
     if (notificationType == NotificationType.roomInvite) {
       // For room invite, customize notification if needed
-      RoomInviteData inviteData = notificationData as RoomInviteData;
+      final RoomInviteData inviteData = notificationData as RoomInviteData;
       await localNotifications.show(
         inviteData.hashCode,
-        "Room Invite",
-        "${notificationData.inviteeName} invited you to a room",
+        'Room Invite',
+        '${notificationData.inviteeName} invited you to a room',
         notificationDetails,
       );
     }
     // Show marketing notification
     else if (notificationType == NotificationType.promotional) {
-      FCMNotificationData promoData = notificationData as FCMNotificationData;
+      final FCMNotificationData promoData = notificationData as FCMNotificationData;
       await localNotifications.show(promoData.hashCode, promoData.title, promoData.body, notificationDetails);
     }
 
@@ -378,7 +378,7 @@ class FCMNotificationService extends GetxService {
   /// Handle initial message when app is launched from notification
   Future<void> _handleInitialMessage() async {
     try {
-      RemoteMessage? initialMessage = await _messaging.getInitialMessage();
+      final RemoteMessage? initialMessage = await _messaging.getInitialMessage();
       if (initialMessage != null) {
         dev.log('App launched from notification: ${initialMessage.messageId}', name: 'NotificationService');
         CrashlyticsService.log('App launched from notification: ${initialMessage.messageId}');
@@ -470,7 +470,7 @@ class FCMNotificationService extends GetxService {
     try {
       // Android initialization settings
       const AndroidInitializationSettings initializationSettingsAndroid = AndroidInitializationSettings(
-        '@mipmap/ic_launcher',
+        '@mipmap/launcher_icon',
       );
 
       // iOS initialization settings
@@ -628,7 +628,7 @@ class FCMNotificationService extends GetxService {
   Future<bool> _requestPermissions() async {
     try {
       // Request Firebase Messaging permissions
-      NotificationSettings settings = await _messaging.requestPermission(
+      final NotificationSettings settings = await _messaging.requestPermission(
         alert: true,
         announcement: false,
         badge: true,

@@ -25,7 +25,7 @@ class HomeScreen extends StatelessWidget {
           decoration: BoxDecoration(
             gradient: LinearGradient(
               colors: [AppColors.primary.withAlpha(20), AppColors.secondaryYellow.withAlpha(20)],
-              stops: [0.0, .4],
+              stops: const [0.0, .4],
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
             ),
@@ -65,7 +65,7 @@ class HomeScreen extends StatelessWidget {
     final HomeController controller = Get.find();
     return Row(
       children: [
-        ProfileAvatar(imageUrl: controller.user?.profileBase64 ?? "", size: 48),
+        ProfileAvatar(imageUrl: controller.user?.profileBase64 ?? '', size: 48),
         const SizedBox(width: 12),
         Expanded(
           child: Column(
@@ -81,11 +81,11 @@ class HomeScreen extends StatelessWidget {
               Row(
                 children: [
                   Text(
-                    controller.user?.topics?.firstWhereOrNull((t) => t.isPrimary ?? false)?.title ?? "No Interest",
+                    controller.user?.topics?.firstWhereOrNull((t) => t.isPrimary ?? false)?.title ?? 'No Interest',
                     style: AppTextStyles.subtitle,
                   ),
                   const Icon(Icons.star, color: AppColors.orange, size: 12),
-                  Text('4.5', style: AppTextStyles.subtitle),
+                  const Text('4.5', style: AppTextStyles.subtitle),
                 ],
               ),
             ],
@@ -93,10 +93,10 @@ class HomeScreen extends StatelessWidget {
         ),
         Row(
           children: [
-            ActionButton(icon: Icon(Icons.map_outlined), onTap: () {}),
+            ActionButton(icon: const Icon(Icons.map_outlined), onTap: () {}),
             const SizedBox(width: 8),
             ActionButton(
-              icon: Icon(LucideIcons.bell, color: AppColors.secondaryYellow),
+              icon: const Icon(LucideIcons.bell, color: AppColors.secondaryYellow),
               onTap: () {
                 Get.to(() => const UserNotificationView());
               },
@@ -112,7 +112,7 @@ class HomeScreen extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Face of Week', style: AppTextStyles.sectionTitle),
+        const Text('Face of Week', style: AppTextStyles.sectionTitle),
         const SizedBox(height: 16),
         SizedBox(
           height: 120,
@@ -140,10 +140,10 @@ class HomeScreen extends StatelessWidget {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text('Active Room', style: AppTextStyles.sectionTitle),
+            const Text('Active Room', style: AppTextStyles.sectionTitle),
             TextButton(
               onPressed: () {},
-              child: Text('View All', style: AppTextStyles.viewAll),
+              child: const Text('View All', style: AppTextStyles.viewAll),
             ),
           ],
         ),
@@ -175,10 +175,10 @@ class HomeScreen extends StatelessWidget {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text('Trending', style: AppTextStyles.sectionTitle),
+            const Text('Trending', style: AppTextStyles.sectionTitle),
             TextButton(
               onPressed: () {},
-              child: Text('View All', style: AppTextStyles.viewAll),
+              child: const Text('View All', style: AppTextStyles.viewAll),
             ),
           ],
         ),
@@ -208,7 +208,7 @@ class HomeScreen extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Interests', style: AppTextStyles.sectionTitle),
+        const Text('Interests', style: AppTextStyles.sectionTitle),
         const SizedBox(height: 16),
         SizedBox(
           height: 160,
@@ -233,17 +233,16 @@ class HomeScreen extends StatelessWidget {
 // Reusable Components
 
 class ProfileAvatar extends StatelessWidget {
+  const ProfileAvatar({super.key, required this.imageUrl, this.size = 48});
   final String imageUrl;
   final double size;
-
-  const ProfileAvatar({super.key, required this.imageUrl, this.size = 48});
 
   @override
   Widget build(BuildContext context) {
     log(imageUrl);
     return GestureDetector(
       onTap: () {
-        Get.to(() => ProfileScreen());
+        Get.to(() => const ProfileScreen());
       },
       child: Container(
         width: size,
@@ -264,11 +263,6 @@ class ProfileAvatar extends StatelessWidget {
 }
 
 class ActionButton extends StatelessWidget {
-  final Widget icon;
-  final VoidCallback onTap;
-  final bool hasNotification;
-  final String? notificationCount;
-
   const ActionButton({
     super.key,
     required this.icon,
@@ -276,6 +270,10 @@ class ActionButton extends StatelessWidget {
     this.hasNotification = false,
     this.notificationCount,
   });
+  final Widget icon;
+  final VoidCallback onTap;
+  final bool hasNotification;
+  final String? notificationCount;
 
   @override
   Widget build(BuildContext context) {
@@ -322,11 +320,10 @@ class ActionButton extends StatelessWidget {
 }
 
 class FaceOfWeekCard extends StatelessWidget {
+  const FaceOfWeekCard({super.key, required this.name, required this.rating, required this.imageUrl});
   final String name;
   final double rating;
   final String imageUrl;
-
-  const FaceOfWeekCard({super.key, required this.name, required this.rating, required this.imageUrl});
 
   @override
   Widget build(BuildContext context) {
@@ -375,11 +372,6 @@ class FaceOfWeekCard extends StatelessWidget {
 }
 
 class RoomCard extends StatelessWidget {
-  final String roomName;
-  final String createdBy;
-  final String joinedUsers;
-  final String imageUrl;
-
   const RoomCard({
     super.key,
     required this.roomName,
@@ -387,6 +379,10 @@ class RoomCard extends StatelessWidget {
     required this.joinedUsers,
     required this.imageUrl,
   });
+  final String roomName;
+  final String createdBy;
+  final String joinedUsers;
+  final String imageUrl;
 
   @override
   Widget build(BuildContext context) {
@@ -435,14 +431,14 @@ class RoomCard extends StatelessWidget {
                 const SizedBox(height: 4),
                 Row(
                   children: [
-                    Text('Created by ', style: AppTextStyles.cardSubtitle),
+                    const Text('Created by ', style: AppTextStyles.cardSubtitle),
                     Text(createdBy, style: AppTextStyles.cardSubtitleBold),
                   ],
                 ),
                 const SizedBox(height: 4),
                 Row(
                   children: [
-                    Text('Joined User', style: AppTextStyles.cardSubtitle),
+                    const Text('Joined User', style: AppTextStyles.cardSubtitle),
                     const Spacer(),
                     Text(joinedUsers, style: AppTextStyles.cardSubtitleBold),
                   ],
@@ -459,12 +455,6 @@ class RoomCard extends StatelessWidget {
 }
 
 class TrendingCard extends StatelessWidget {
-  final String roomName;
-  final String interestName;
-  final String category;
-  final int createdRooms;
-  final String imageUrl;
-
   const TrendingCard({
     super.key,
     required this.roomName,
@@ -473,6 +463,11 @@ class TrendingCard extends StatelessWidget {
     required this.createdRooms,
     required this.imageUrl,
   });
+  final String roomName;
+  final String interestName;
+  final String category;
+  final int createdRooms;
+  final String imageUrl;
 
   @override
   Widget build(BuildContext context) {
@@ -518,11 +513,10 @@ class TrendingCard extends StatelessWidget {
 }
 
 class InterestCard extends StatelessWidget {
+  const InterestCard({super.key, required this.title, required this.rating, required this.imageUrl});
   final String title;
   final double rating;
   final String imageUrl;
-
-  const InterestCard({super.key, required this.title, required this.rating, required this.imageUrl});
 
   @override
   Widget build(BuildContext context) {
@@ -576,10 +570,9 @@ class InterestCard extends StatelessWidget {
 }
 
 class GradientButton extends StatelessWidget {
+  const GradientButton({super.key, required this.text, required this.onPressed});
   final String text;
   final VoidCallback onPressed;
-
-  const GradientButton({super.key, required this.text, required this.onPressed});
 
   @override
   Widget build(BuildContext context) {
