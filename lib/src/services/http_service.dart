@@ -10,18 +10,23 @@ import 'package:http/http.dart' as http;
 import '../models/standard_api_response.dart';
 import '../utils/exceptions.dart';
 
+/// HTTP service for making API requests with error handling and logging
 class HttpService extends GetxService {
+  HttpService({
+    this.baseUrl = 'http://192.168.29.12:8000/api', // 'http://10.35.236.250:8000/api', // 'https://fiwe.in/api',
+    this.defaultHeaders = const <String, String>{
+      'Content-Type': 'application/json',
+      'accept': 'application/json',
+    },
+    this.enableLogging = kDebugMode,
+  });
+
   final String? baseUrl;
   final Map<String, String> defaultHeaders;
   final bool enableLogging;
 
-  HttpService({
-    this.baseUrl = "http://192.168.29.12:8000/api", // "http://10.35.236.250:8000/api", // "https://fiwe.in/api",
-    this.defaultHeaders = const {'Content-Type': 'application/json', 'accept': 'application/json'},
-    this.enableLogging = kDebugMode,
-  });
-
-  Future<ApiResponse> delete(
+  /// Performs a DELETE request
+  Future<ApiResponse<Map<String, dynamic>>> delete(
     String endpoint, {
     Map<String, dynamic>? body,
     Map<String, String>? headers,
@@ -36,7 +41,11 @@ class HttpService extends GetxService {
     final stopwatch = Stopwatch()..start();
 
     try {
-      final response = await http.delete(uri, headers: requestHeaders, body: requestBody);
+      final response = await http.delete(
+        uri,
+        headers: requestHeaders,
+        body: requestBody,
+      );
 
       stopwatch.stop();
 
@@ -55,6 +64,7 @@ class HttpService extends GetxService {
     }
   }
 
+  /// Performs a GET request
   Future<ApiResponse<Map<String, dynamic>>> get(
     String endpoint, {
     Map<String, dynamic>? queryParams,
@@ -65,7 +75,9 @@ class HttpService extends GetxService {
     final uri = _buildUri(endpoint, queryParams);
     final requestHeaders = await _buildHeaders(headers, isAuthorized);
 
-    _logRequest('GET', uri, headers: requestHeaders);
+    if (log) {
+      _logRequest('GET', uri, headers: requestHeaders);
+    }
 
     final stopwatch = Stopwatch()..start();
 
@@ -91,6 +103,7 @@ class HttpService extends GetxService {
     }
   }
 
+  /// Performs a POST request
   Future<ApiResponse<Map<String, dynamic>>> post(
     String endpoint, {
     Map<String, dynamic>? body,
@@ -106,7 +119,11 @@ class HttpService extends GetxService {
     final stopwatch = Stopwatch()..start();
 
     try {
-      final response = await http.post(uri, headers: requestHeaders, body: requestBody);
+      final response = await http.post(
+        uri,
+        headers: requestHeaders,
+        body: requestBody,
+      );
 
       stopwatch.stop();
 
@@ -125,7 +142,8 @@ class HttpService extends GetxService {
     }
   }
 
-  Future<ApiResponse> put(
+  /// Performs a PUT request
+  Future<ApiResponse<Map<String, dynamic>>> put(
     String endpoint, {
     Map<String, dynamic>? body,
     Map<String, String>? headers,
@@ -140,7 +158,11 @@ class HttpService extends GetxService {
     final stopwatch = Stopwatch()..start();
 
     try {
-      final response = await http.put(uri, headers: requestHeaders, body: requestBody);
+      final response = await http.put(
+        uri,
+        headers: requestHeaders,
+        body: requestBody,
+      );
 
       stopwatch.stop();
 
@@ -159,12 +181,16 @@ class HttpService extends GetxService {
     }
   }
 
-  Future<Map<String, String>> _buildHeaders(Map<String, String>? headers, bool isAuthorized) async {
-    final requestHeaders = {...defaultHeaders, ...?headers};
+  /// Builds headers for the request
+  Future<Map<String, String>> _buildHeaders(
+    Map<String, String>? headers,
+    bool isAuthorized,
+  ) async {
+    final requestHeaders = <String, String>{...defaultHeaders, ...?headers};
 
     if (isAuthorized) {
       final token = await _getBearerToken();
-      if (token != null) {
+      if (token != null && token.isNotEmpty) {
         requestHeaders['Authorization'] = 'Bearer $token';
       }
     }
@@ -172,14 +198,19 @@ class HttpService extends GetxService {
     return requestHeaders;
   }
 
+  /// Builds URI from endpoint and query parameters
   Uri _buildUri(String endpoint, [Map<String, dynamic>? queryParams]) {
-    return Uri.parse('$baseUrl$endpoint').replace(queryParameters: queryParams);
+    return Uri.parse('$baseUrl$endpoint').replace(
+      queryParameters: queryParams,
+    );
   }
 
+  /// Gets the bearer token from shared preferences
   Future<String?> _getBearerToken() async {
-    return await SharedPrefService.getString(Constants.storageBearerTokenKey) ?? "";
+    return SharedPrefService.getString(Constants.storageBearerTokenKey);
   }
 
+  /// Handles HTTP errors and throws appropriate exceptions
   void _handleError(http.Response response) {
     if (response.statusCode >= 200 && response.statusCode < 300) return;
 
@@ -200,33 +231,53 @@ class HttpService extends GetxService {
       case 500:
         throw ServerException(message, uri: uri);
       default:
-        throw BaseHttpException(message, uri: uri, statusCode: response.statusCode);
+        throw BaseHttpException(
+          message,
+          uri: uri,
+          statusCode: response.statusCode,
+        );
     }
   }
 
+  /// Logs error information
   void _logError(Exception error, Uri uri, Duration duration) {
     if (!enableLogging) return;
 
     final timestamp = DateTime.now().toIso8601String();
-    developer.log('\n💥 ═══════════════════════════════════════════════════════════════', name: 'HTTP_ERROR');
+    developer.log(
+      '\n💥 ═══════════════════════════════════════════════════════════════',
+      name: 'HTTP_ERROR',
+    );
     developer.log('📅 $timestamp', name: 'HTTP_ERROR');
     developer.log('🚨 Error occurred for: $uri', name: 'HTTP_ERROR');
     developer.log('⏱️  Duration: ${duration.inMilliseconds}ms', name: 'HTTP_ERROR');
     developer.log('💢 Error: $error', name: 'HTTP_ERROR');
-    developer.log('═══════════════════════════════════════════════════════════════\n', name: 'HTTP_ERROR');
+    developer.log(
+      '═══════════════════════════════════════════════════════════════\n',
+      name: 'HTTP_ERROR',
+    );
   }
 
-  void _logRequest(String method, Uri uri, {Map<String, String>? headers, String? body}) {
+  /// Logs request information
+  void _logRequest(
+    String method,
+    Uri uri, {
+    Map<String, String>? headers,
+    String? body,
+  }) {
     if (!enableLogging) return;
 
     final timestamp = DateTime.now().toIso8601String();
-    developer.log('\n🚀 ═══════════════════════════════════════════════════════════════', name: 'HTTP_REQUEST');
+    developer.log(
+      '\n🚀 ═══════════════════════════════════════════════════════════════',
+      name: 'HTTP_REQUEST',
+    );
     developer.log('📅 $timestamp', name: 'HTTP_REQUEST');
     developer.log('🔥 $method ${uri.toString()}', name: 'HTTP_REQUEST');
 
     if (headers != null && headers.isNotEmpty) {
       developer.log('📋 Headers:', name: 'HTTP_REQUEST');
-      headers.forEach((key, value) {
+      headers.forEach((String key, String value) {
         developer.log('   $key: $value', name: 'HTTP_REQUEST');
       });
     }
@@ -243,9 +294,13 @@ class HttpService extends GetxService {
       }
     }
 
-    developer.log('═══════════════════════════════════════════════════════════════\n', name: 'HTTP_REQUEST');
+    developer.log(
+      '═══════════════════════════════════════════════════════════════\n',
+      name: 'HTTP_REQUEST',
+    );
   }
 
+  /// Logs response information
   void _logResponse(http.Response response, Duration duration) {
     if (!enableLogging) return;
 
@@ -259,13 +314,22 @@ class HttpService extends GetxService {
       name: 'HTTP_RESPONSE',
     );
     developer.log('📅 $timestamp', name: 'HTTP_RESPONSE');
-    developer.log('⚡ ${response.request?.method} ${response.request?.url}', name: 'HTTP_RESPONSE');
-    developer.log('🎯 Status: $statusCode ${response.reasonPhrase ?? ""}', name: 'HTTP_RESPONSE');
-    developer.log('⏱️  Duration: ${duration.inMilliseconds}ms', name: 'HTTP_RESPONSE');
+    developer.log(
+      '⚡ ${response.request?.method} ${response.request?.url}',
+      name: 'HTTP_RESPONSE',
+    );
+    developer.log(
+      '🎯 Status: $statusCode ${response.reasonPhrase ?? ""}',
+      name: 'HTTP_RESPONSE',
+    );
+    developer.log(
+      '⏱️  Duration: ${duration.inMilliseconds}ms',
+      name: 'HTTP_RESPONSE',
+    );
 
     if (response.headers.isNotEmpty) {
       developer.log('📋 Response Headers:', name: 'HTTP_RESPONSE');
-      response.headers.forEach((key, value) {
+      response.headers.forEach((String key, String value) {
         developer.log('   $key: $value', name: 'HTTP_RESPONSE');
       });
     }
@@ -285,21 +349,25 @@ class HttpService extends GetxService {
       }
     }
 
-    developer.log('═══════════════════════════════════════════════════════════════\n', name: 'HTTP_RESPONSE');
+    developer.log(
+      '═══════════════════════════════════════════════════════════════\n',
+      name: 'HTTP_RESPONSE',
+    );
   }
 
+  /// Parses API response into standardized format
   ApiResponse<Map<String, dynamic>> _parseApiResponse(http.Response response) {
     try {
       final responseBody = jsonDecode(response.body) as Map<String, dynamic>;
-      if (responseBody.containsKey("success") && responseBody['success'] == true) {
+      if (responseBody.containsKey('success') && responseBody['success'] == true) {
         return ApiResponse.success(
-          message: responseBody['message'] ?? 'Request successful',
-          data: responseBody['data'],
+          message: responseBody['message'] as String? ?? 'Request successful',
+          data: responseBody['data'] as Map<String, dynamic>?,
           statusCode: response.statusCode,
         );
       } else {
         return ApiResponse.error(
-          message: responseBody['message'] ?? 'Request failed',
+          message: responseBody['message'] as String? ?? 'Request failed',
           errors: responseBody['errors'] as Map<String, dynamic>?,
           statusCode: response.statusCode,
         );

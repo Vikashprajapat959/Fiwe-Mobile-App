@@ -19,27 +19,29 @@ import '../views/interest/interest_selection_view.dart';
 import '../views/login/login_view.dart';
 import '../views/login/signup_view.dart';
 
+/// Authentication controller handling user sign-in/sign-out operations
 class AuthController extends GetxController {
   // Services
   final _googleAuthService = GoogleAuthService();
   final _httpService = Get.find<HttpService>();
 
   // Observables
-  final _googleUser = Rx<GoogleSignInAccount?>(null);
-  final _appleUser = Rx<AuthorizationCredentialAppleID?>(null);
-  final _userProfile = Rx<User?>(null);
-  final _currentProvider = Rx<LoginProvider?>(null);
-  final _isInitializing = RxBool(true);
-  final _isSigningUp = RxBool(false);
-  final _isSplashComplete = RxBool(false);
-  final _isHandlingAuthentication = RxBool(false);
+  final Rx<GoogleSignInAccount?> _googleUser = Rx<GoogleSignInAccount?>(null);
+  final Rx<AuthorizationCredentialAppleID?> _appleUser = Rx<AuthorizationCredentialAppleID?>(null);
+  final Rx<User?> _userProfile = Rx<User?>(null);
+  final Rx<LoginProvider?> _currentProvider = Rx<LoginProvider?>(null);
+  final RxBool _isInitializing = RxBool(true);
+  final RxBool _isSigningUp = RxBool(false);
+  final RxBool _isSplashComplete = RxBool(false);
+  final RxBool _isHandlingAuthentication = RxBool(false);
 
   AuthorizationCredentialAppleID? get appleUser => _appleUser.value;
   LoginProvider? get currentProvider => _currentProvider.value;
+  /// Gets current user info based on active provider
   Map<String, String?> get currentUserInfo {
     if (_googleUser.value != null) {
       final user = _googleUser.value!;
-      return {
+      return <String, String?>{
         Constants.userInfoEmailKey: user.email,
         Constants.userInfoDisplayNameKey: user.displayName,
         Constants.userInfoIdKey: user.id,
@@ -50,14 +52,18 @@ class AuthController extends GetxController {
       final fullName = [
         user.givenName,
         user.familyName,
-      ].where((name) => name?.isNotEmpty == true).join(Constants.nameSeparator);
-      return {
+      ].where((String? name) => name?.isNotEmpty == true).join(Constants.nameSeparator);
+      return <String, String?>{
         Constants.userInfoEmailKey: user.email,
         Constants.userInfoDisplayNameKey: fullName.isEmpty ? null : fullName,
         Constants.userInfoIdKey: user.userIdentifier,
       };
     }
-    return {Constants.userInfoEmailKey: null, Constants.userInfoDisplayNameKey: null, Constants.userInfoIdKey: null};
+    return <String, String?>{
+      Constants.userInfoEmailKey: null,
+      Constants.userInfoDisplayNameKey: null,
+      Constants.userInfoIdKey: null,
+    };
   }
 
   GoogleSignInAccount? get googleUser => _googleUser.value;
@@ -71,22 +77,26 @@ class AuthController extends GetxController {
   User? get userProfile => _userProfile.value;
   set userProfile(User? user) => _userProfile(user);
 
+  /// Completes user sign up process
   Future<void> completeSignUp(Map<String, dynamic> data) async {
     try {
-      CrashlyticsService.setCustomKey("action", "complete_sign_up");
+      CrashlyticsService.setCustomKey('action', 'complete_sign_up');
 
       _isSigningUp(true);
 
-      _userProfile(User.fromJson(data['user']));
-      Logger.info("Completing sign up for user: ${userProfile?.email}");
-      CrashlyticsService.setUserIdentifier("${userProfile?.email}");
+      _userProfile(User.fromJson(data['user'] as Map<String, dynamic>));
+      Logger.info('Completing sign up for user: ${userProfile?.email}');
+      CrashlyticsService.setUserIdentifier('${userProfile?.email}');
 
       Get.snackbar(Strings.success, Strings.signUpSuccess);
       _navigateToInterestSelection();
     } catch (e, s) {
-      Logger.error("Error completing sign up", error: e, stackTrace: s);
-      CrashlyticsService.recordError(e, s, reason: "Sign up completion failed");
-      Get.snackbar(Strings.error, Strings.formatErrorMessage(Strings.signUpError, e));
+      Logger.error('Error completing sign up', error: e, stackTrace: s);
+      CrashlyticsService.recordError(e, s, reason: 'Sign up completion failed');
+      Get.snackbar(
+        Strings.error,
+        Strings.formatErrorMessage(Strings.signUpError, e),
+      );
     } finally {
       _isSigningUp(false);
     }
@@ -94,10 +104,11 @@ class AuthController extends GetxController {
 
   Future<String?> getStoredUserEmail() => SharedPrefService.getString(Constants.storageLoginEmailKey);
 
+  /// Checks if stored authentication data exists
   Future<bool> hasStoredAuthData() async => (await Future.wait([
-    _googleAuthService.hasStoredAuthData(),
-    AppleAuthService.hasStoredAuthData(),
-  ])).any((hasData) => hasData);
+        _googleAuthService.hasStoredAuthData(),
+        AppleAuthService.hasStoredAuthData(),
+      ])).any((bool hasData) => hasData);
 
   @override
   void onClose() {
@@ -112,61 +123,85 @@ class AuthController extends GetxController {
     _startSplashTimer();
   }
 
+  /// Sends ID token to backend for authentication
   Future<Map<String, dynamic>?> sendIdTokenToBackend() async {
     try {
       final google = _googleUser.value;
       final apple = _appleUser.value;
 
-      final idToken = google != null ? (google.authentication).idToken : apple?.identityToken;
-      final provider = google != null ? Constants.googleProvider : Constants.appleProvider;
+      final idToken = google != null 
+          ? (google.authentication).idToken 
+          : apple?.identityToken;
+      final provider = google != null 
+          ? Constants.googleProvider 
+          : Constants.appleProvider;
 
-      if (idToken == null) throw Exception(Strings.unableToGetIdToken);
+      if (idToken == null) {
+        throw Exception(Strings.unableToGetIdToken);
+      }
 
       final response = await _httpService
           .post(
             Endpoints.idToken,
-            body: {
+            body: <String, dynamic>{
               Constants.requestIdTokenKey: idToken,
               Constants.requestProviderKey: provider,
-              "device_id": await _getDeviceId(),
+              'device_id': await _getDeviceId(),
             },
           )
-          .timeout(Duration(seconds: Constants.apiTimeoutSeconds));
+          .timeout(const Duration(seconds: Constants.apiTimeoutSeconds));
 
       if (response.data != null && response.data!.isNotEmpty) {
         final data = response.data!;
         if (data[Constants.responseAccessKey] != null) {
-          await SharedPrefService.setString(Constants.storageBearerTokenKey, data[Constants.responseAccessKey]);
+          await SharedPrefService.setString(
+            Constants.storageBearerTokenKey,
+            data[Constants.responseAccessKey] as String,
+          );
         }
         if (data[Constants.responseRefreshKey] != null) {
-          await SharedPrefService.setString(Constants.storageBearerTokenRefreshKey, data[Constants.responseRefreshKey]);
+          await SharedPrefService.setString(
+            Constants.storageBearerTokenRefreshKey,
+            data[Constants.responseRefreshKey] as String,
+          );
         }
         if (response.data!.containsKey('user')) {
-          _userProfile(User.fromJson(response.data?['user']));
+          _userProfile(User.fromJson(
+            response.data?['user'] as Map<String, dynamic>,
+          ));
         }
 
         return data;
       }
-      return {Constants.responseSuccessKey: true, Constants.responseMessageKey: Strings.tokenSentSuccessfully};
+      return <String, dynamic>{
+        Constants.responseSuccessKey: true,
+        Constants.responseMessageKey: Strings.tokenSentSuccessfully,
+      };
     } catch (e) {
-      if (kDebugMode) print(Strings.formatErrorMessage(Strings.errorSendingIdToken, e));
-      Get.snackbar(Strings.apiError, Strings.formatErrorMessage(Strings.failedToSendAuthToken, e));
+      if (kDebugMode) {
+        print(Strings.formatErrorMessage(Strings.errorSendingIdToken, e));
+      }
+      Get.snackbar(
+        Strings.apiError,
+        Strings.formatErrorMessage(Strings.failedToSendAuthToken, e),
+      );
       return null;
     }
   }
 
+  /// Signs in with Apple
   Future<void> signInWithApple() async {
     try {
-      Logger.info("Attempting Apple sign in");
-      CrashlyticsService.setCustomKey("action", "apple_sign_in");
+      Logger.info('Attempting Apple sign in');
+      CrashlyticsService.setCustomKey('action', 'apple_sign_in');
 
       final credential = await AppleAuthService.signIn();
       if (credential == null) {
-        Logger.warning("Apple sign in returned null credential");
+        Logger.warning('Apple sign in returned null credential');
         Get.snackbar(
           Strings.authenticationFailed,
           Strings.unableToSignInWithApple,
-          duration: Duration(seconds: Constants.snackbarDurationSeconds),
+          duration: const Duration(seconds: Constants.snackbarDurationSeconds),
         );
         return;
       }
@@ -174,32 +209,34 @@ class AuthController extends GetxController {
       _appleUser(credential);
       _googleUser(null);
       _currentProvider(LoginProvider.apple);
-      // await _createSocialProfileFromApple(credential);
       await _handleAuthenticatedUser();
     } catch (e, s) {
-      Logger.error("Error during Apple sign in", error: e, stackTrace: s);
-      CrashlyticsService.recordError(e, s, reason: "Apple sign in failed");
-      if (kDebugMode) print(Strings.formatErrorMessage(Strings.appleSignInError, e));
+      Logger.error('Error during Apple sign in', error: e, stackTrace: s);
+      CrashlyticsService.recordError(e, s, reason: 'Apple sign in failed');
+      if (kDebugMode) {
+        print(Strings.formatErrorMessage(Strings.appleSignInError, e));
+      }
       Get.snackbar(
         Strings.appleSignInFailed,
         Strings.formatErrorMessage(Strings.authenticationFailedError, e),
-        duration: Duration(seconds: Constants.snackbarDurationSeconds),
+        duration: const Duration(seconds: Constants.snackbarDurationSeconds),
       );
     }
   }
 
+  /// Signs in with Google
   Future<void> signInWithGoogle() async {
     try {
-      Logger.info("Attempting Google sign in");
-      CrashlyticsService.setCustomKey("action", "google_sign_in");
+      Logger.info('Attempting Google sign in');
+      CrashlyticsService.setCustomKey('action', 'google_sign_in');
 
       final account = await _googleAuthService.signIn();
       if (account == null) {
-        Logger.warning("Google sign in returned null account");
+        Logger.warning('Google sign in returned null account');
         Get.snackbar(
           Strings.authenticationFailed,
           Strings.unableToSignInWithGoogle,
-          duration: Duration(seconds: Constants.snackbarDurationSeconds),
+          duration: const Duration(seconds: Constants.snackbarDurationSeconds),
         );
         return;
       }
@@ -207,25 +244,37 @@ class AuthController extends GetxController {
       _googleUser(account);
       _appleUser(null);
       _currentProvider(LoginProvider.google);
-      // await _createSocialProfileFromGoogle(account);
       await _handleAuthenticatedUser();
     } on GoogleSignInException catch (e) {
       final message = e.code == GoogleSignInExceptionCode.canceled
           ? Strings.signInProcessCancelled
-          : Strings.formatErrorMessage(Strings.authenticationFailedError, e.description ?? e.code);
-      Logger.error("Google sign in exception: ${e.code}", error: e, stackTrace: e.details as StackTrace?);
+          : Strings.formatErrorMessage(
+              Strings.authenticationFailedError,
+              e.description ?? e.code,
+            );
+      Logger.error(
+        'Google sign in exception: ${e.code}',
+        error: e,
+        stackTrace: e.details as StackTrace?,
+      );
       Get.snackbar(
-        e.code == GoogleSignInExceptionCode.canceled ? Strings.signInCancelled : Strings.googleSignInError,
+        e.code == GoogleSignInExceptionCode.canceled
+            ? Strings.signInCancelled
+            : Strings.googleSignInError,
         message,
-        duration: Duration(seconds: Constants.snackbarDurationSeconds),
+        duration: const Duration(seconds: Constants.snackbarDurationSeconds),
       );
     } catch (e, s) {
-      Logger.error("Unexpected error during Google sign in", error: e, stackTrace: s);
-      CrashlyticsService.recordError(e, s, reason: "Google sign in failed");
-      Get.snackbar(Strings.signInFailed, Strings.formatErrorMessage(Strings.unexpectedError, e));
+      Logger.error('Unexpected error during Google sign in', error: e, stackTrace: s);
+      CrashlyticsService.recordError(e, s, reason: 'Google sign in failed');
+      Get.snackbar(
+        Strings.signInFailed,
+        Strings.formatErrorMessage(Strings.unexpectedError, e),
+      );
     }
   }
 
+  /// Signs out the current user
   Future<void> signOut() async {
     try {
       _isHandlingAuthentication(false);
@@ -239,16 +288,21 @@ class AuthController extends GetxController {
       await SharedPrefService.clearAuthData();
       _googleUser(null);
       _appleUser(null);
-      // _userProfile(null);
       _currentProvider(null);
       _navigateToLogin();
     } catch (e) {
-      Get.snackbar(Strings.error, Strings.formatErrorMessage(Strings.failedToSignOut, e));
+      Get.snackbar(
+        Strings.error,
+        Strings.formatErrorMessage(Strings.failedToSignOut, e),
+      );
     }
   }
 
+  /// Checks if navigation is ready and performs navigation
   void _checkNavigationReady() {
-    if (!_isInitializing.value && _isSplashComplete.value) _performNavigation();
+    if (!_isInitializing.value && _isSplashComplete.value) {
+      _performNavigation();
+    }
   }
 
   // Future<void> _createSocialProfileFromApple(AuthorizationCredentialAppleID credential) async {
@@ -287,6 +341,7 @@ class AuthController extends GetxController {
   //   }
   // }
 
+  /// Handles authenticated user workflow
   Future<void> _handleAuthenticatedUser() async {
     if (_isHandlingAuthentication.value) {
       if (kDebugMode) print(Strings.authInProgress);
@@ -298,9 +353,9 @@ class AuthController extends GetxController {
       final backendResponse = await sendIdTokenToBackend();
 
       if (backendResponse != null) {
-        if (backendResponse[Constants.responseIsNewKey]) {
+        if (backendResponse[Constants.responseIsNewKey] as bool? ?? false) {
           _navigateToSignUp();
-        } else if (backendResponse['is_interests_pending']) {
+        } else if (backendResponse['is_interests_pending'] as bool? ?? false) {
           _navigateToInterestSelection();
         } else {
           _navigateToHome();
@@ -309,7 +364,9 @@ class AuthController extends GetxController {
         _navigateToLogin();
       }
     } catch (e) {
-      if (kDebugMode) print(Strings.formatErrorMessage(Strings.errorHandlingAuthUser, e));
+      if (kDebugMode) {
+        print(Strings.formatErrorMessage(Strings.errorHandlingAuthUser, e));
+      }
       _navigateToLogin();
     } finally {
       _isHandlingAuthentication(false);
@@ -373,7 +430,7 @@ class AuthController extends GetxController {
 
   void _navigateToHome() {
     if (Get.currentRoute != Constants.homeViewRoute) {
-      Future.delayed(Duration(milliseconds: Constants.navigationDelayMilliseconds), () {
+      Future.delayed(const Duration(milliseconds: Constants.navigationDelayMilliseconds), () {
         if (!Get.isDialogOpen! && !Get.isBottomSheetOpen!) Get.offAll(() => const HomeView());
       });
     }
@@ -381,7 +438,7 @@ class AuthController extends GetxController {
 
   void _navigateToInterestSelection() {
     if (Get.currentRoute != Constants.interestSelectionViewRoute) {
-      Future.delayed(Duration(milliseconds: Constants.navigationDelayMilliseconds), () {
+      Future.delayed(const Duration(milliseconds: Constants.navigationDelayMilliseconds), () {
         if (!Get.isDialogOpen! && !Get.isBottomSheetOpen!) {
           Get.offAll(() => const InterestSelectionView());
         }
@@ -391,7 +448,7 @@ class AuthController extends GetxController {
 
   void _navigateToLogin() {
     if (Get.currentRoute != Constants.loginViewRoute) {
-      Future.delayed(Duration(milliseconds: Constants.navigationDelayMilliseconds), () {
+      Future.delayed(const Duration(milliseconds: Constants.navigationDelayMilliseconds), () {
         if (!Get.isDialogOpen! && !Get.isBottomSheetOpen!) Get.offAll(() => const LoginView());
       });
     }
@@ -399,7 +456,7 @@ class AuthController extends GetxController {
 
   void _navigateToSignUp() {
     if (Get.currentRoute != Constants.signUpViewRoute) {
-      Future.delayed(Duration(milliseconds: Constants.navigationDelayMilliseconds), () {
+      Future.delayed(const Duration(milliseconds: Constants.navigationDelayMilliseconds), () {
         if (!Get.isDialogOpen! && !Get.isBottomSheetOpen!) Get.offAll(() => const SignUpView());
       });
     }
@@ -410,15 +467,16 @@ class AuthController extends GetxController {
   }
 
   void _startSplashTimer() {
-    Future.delayed(Duration(seconds: Constants.splashDelaySeconds), () {
+    Future.delayed(const Duration(seconds: Constants.splashDelaySeconds), () {
       _isSplashComplete(true);
       _checkNavigationReady();
     });
   }
 
-  Future _getDeviceId() async {
+  /// Gets device ID for authentication
+  Future<String> _getDeviceId() async {
     try {
-      return FCMNotificationService.instance.deviceToken ?? 'Unknown Device';
+      return FCMNotificationService.instance.deviceToken ?? Constants.unknownDevice;
     } catch (e) {
       return Constants.unknownDevice;
     }

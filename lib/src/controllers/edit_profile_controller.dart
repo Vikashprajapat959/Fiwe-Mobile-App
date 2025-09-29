@@ -39,7 +39,7 @@ class EditProfileController extends GetxController {
   }
 
   void _loadUserData() {
-    var user = authController.userProfile;
+    final user = authController.userProfile;
     if (user != null) {
       nameController.text = user.name ?? '';
       nickNameController.text = user.nickName ?? '';
@@ -84,7 +84,7 @@ class EditProfileController extends GetxController {
     try {
       LoadingOverlay.show();
 
-      var response = await userService.updateProfile(
+      final response = await userService.updateProfile(
         nameController.text,
         nickNameController.text,
         emailController.text,
@@ -105,7 +105,7 @@ class EditProfileController extends GetxController {
           pincode: pinController.text,
           fiveWords: fiveWordsController.text,
           bio: bioController.text,
-          profileImageBase64: profileImage.value,
+          profileBase64: profileImage.value,
         );
         // Close the edit profile view
       } else {
