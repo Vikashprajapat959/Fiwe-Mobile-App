@@ -2,25 +2,6 @@
 // ignore_for_file: library_private_types_in_public_api
 
 class HMSVideoRoom {
-  final String objectId;
-  final String hmsRoomId;
-  final String title;
-  final String description;
-  final String status;
-  final int? capacity;
-  final int? currentOccupancy;
-  final int? availableSlots;
-  final bool isPublic;
-  final String? joinToken;
-  final DateTime? expiresAt;
-  final DateTime? createdAt;
-  final _Topic? topic;
-  final String? userRole;
-  final DateTime? joinedAt;
-  final String roomHostCode;
-  final String roomGuestCode;
-  final _Creator? creator;
-
   HMSVideoRoom({
     required this.objectId,
     required this.hmsRoomId,
@@ -66,6 +47,24 @@ class HMSVideoRoom {
       creator: json['creator'] != null ? _Creator.fromJson(json['creator'] as Map<String, dynamic>) : null,
     );
   }
+  final String objectId;
+  final String hmsRoomId;
+  final String title;
+  final String description;
+  final String status;
+  final int? capacity;
+  final int? currentOccupancy;
+  final int? availableSlots;
+  final bool isPublic;
+  final String? joinToken;
+  final DateTime? expiresAt;
+  final DateTime? createdAt;
+  final _Topic? topic;
+  final String? userRole;
+  final DateTime? joinedAt;
+  final String roomHostCode;
+  final String roomGuestCode;
+  final _Creator? creator;
 
   Map<String, dynamic> toJson() {
     return {
@@ -92,15 +91,14 @@ class HMSVideoRoom {
 }
 
 class _Topic {
-  final String id;
-  final String name;
-  final String description;
-
   _Topic({required this.id, required this.name, required this.description});
 
   factory _Topic.fromJson(Map<String, dynamic> json) {
     return _Topic(id: json['id'] as String, name: json['name'] as String, description: json['description'] as String);
   }
+  final String id;
+  final String name;
+  final String description;
 
   Map<String, dynamic> toJson() {
     return {'id': id, 'name': name, 'description': description};
@@ -108,15 +106,14 @@ class _Topic {
 }
 
 class _Creator {
-  final String id;
-  final String name;
-  final String email;
-
   _Creator({required this.id, required this.name, required this.email});
 
   factory _Creator.fromJson(Map<String, dynamic> json) {
     return _Creator(id: json['id'] as String, name: json['name'] as String, email: json['email'] as String);
   }
+  final String id;
+  final String name;
+  final String email;
 
   Map<String, dynamic> toJson() {
     return {'id': id, 'name': name, 'email': email};

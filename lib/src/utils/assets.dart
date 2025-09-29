@@ -152,6 +152,9 @@ class AppSvgs {
 /// SvgPicture.asset(Assets.svgs.welcomeIcon)
 /// ```
 class Assets {
+  // Private constructor to prevent instantiation
+  Assets._();
+
   /// Base paths for different asset types
   static const String _basePath = 'assets';
 
@@ -160,14 +163,11 @@ class Assets {
   static const String _svgsPath = '$_basePath/svgs';
 
   /// Icons assets
-  static AppIcons get icons => AppIcons._();
+  static AppIcons get icons => const AppIcons._();
 
   /// Images assets
-  static AppImages get images => AppImages._();
+  static AppImages get images => const AppImages._();
 
   /// SVG assets
-  static AppSvgs get svgs => AppSvgs._();
-
-  // Private constructor to prevent instantiation
-  Assets._();
+  static AppSvgs get svgs => const AppSvgs._();
 }

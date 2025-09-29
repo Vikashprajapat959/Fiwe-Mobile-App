@@ -13,16 +13,16 @@ class UserService extends GetxService {
 
   Future<ApiResponse<bool>> followTopics(List<String> topics, String primaryTopic) async {
     try {
-      String token = await SharedPrefService.getString(Constants.storageBearerTokenKey) ?? "";
+      final String token = await SharedPrefService.getString(Constants.storageBearerTokenKey) ?? '';
 
       final response = await _httService.post(
         Endpoints.followTopicsBulk,
         body: {
-          "topics": topics
-              .map((topic) => {"topic_id": topic, "set_interest_is_primary": topic == primaryTopic})
+          'topics': topics
+              .map((topic) => {'topic_id': topic, 'set_interest_is_primary': topic == primaryTopic})
               .toList(),
         },
-        headers: {"Authorization": "Bearer $token"},
+        headers: {'Authorization': 'Bearer $token'},
       );
 
       return response.success
@@ -58,14 +58,14 @@ class UserService extends GetxService {
       final response = await _httService.put(
         Endpoints.updateProfile,
         body: {
-          "name": name,
-          "nickname": nickname,
-          "email": email,
-          "date_of_birth": dob,
-          "pincode": pincode,
-          "your_five_word": fiweWord,
-          "bio": bio,
-          "profile_image_base64": imageBase64,
+          'name': name,
+          'nickname': nickname,
+          'email': email,
+          'date_of_birth': dob,
+          'pincode': pincode,
+          'your_five_word': fiweWord,
+          'bio': bio,
+          'profile_image_base64': imageBase64,
         },
         isAuthorized: true,
       );

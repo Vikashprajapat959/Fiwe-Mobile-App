@@ -20,12 +20,12 @@ class HomeView extends StatelessWidget {
       floatingActionButton: DecoratedBox(
         decoration: Constants.gradientDecoration.copyWith(shape: BoxShape.circle),
         child: FloatingActionButton(
-          shape: CircleBorder(),
+          shape: const CircleBorder(),
           backgroundColor: Colors.transparent,
-          child: Icon(LucideIcons.plus, color: AppColors.surface),
+          child: const Icon(LucideIcons.plus, color: AppColors.surface),
           onPressed: () {
             // Get.to(() => EditProfileScreen());
-            Get.to(() => CreateRoomView());
+            Get.to(() => const CreateRoomView());
             // Get.find<VideoRoomController>().createRoom("Music");
           },
         ),
@@ -49,8 +49,8 @@ class HomeView extends StatelessWidget {
       body: Obx(
         () => IndexedStack(
           index: controller.pageIndex(),
-          children: [
-            const HomeScreen(),
+          children: const [
+            HomeScreen(),
             Center(child: Text('Rooms Page', style: TextStyle(fontSize: 24))),
             Center(child: Text('Communes Page', style: TextStyle(fontSize: 24))),
             Center(child: Text('Followers Page', style: TextStyle(fontSize: 24))),

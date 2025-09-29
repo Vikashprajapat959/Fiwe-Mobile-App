@@ -35,13 +35,13 @@ class ForegroundHandler extends TaskHandler {
 
   Future<void> init() async {
     FlutterForegroundTask.init(
-      androidNotificationOptions: AndroidNotificationOptions(channelId: 'fiwe.id', channelName: "fiwe.channel"),
-      iosNotificationOptions: IOSNotificationOptions(),
+      androidNotificationOptions: AndroidNotificationOptions(channelId: 'fiwe.id', channelName: 'fiwe.channel'),
+      iosNotificationOptions: const IOSNotificationOptions(),
       foregroundTaskOptions: ForegroundTaskOptions(eventAction: ForegroundTaskEventAction.nothing()),
     );
     FlutterForegroundTask.startService(
-      notificationTitle: "Active Video call",
-      notificationText: "Join video call",
+      notificationTitle: 'Active Video call',
+      notificationText: 'Join video call',
       callback: startCallback,
     );
   }

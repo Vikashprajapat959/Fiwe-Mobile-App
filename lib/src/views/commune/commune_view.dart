@@ -17,12 +17,6 @@ class AppColors {
 
 // Community Member Model
 class CommunityMember {
-  final String name;
-  final String category;
-  final String profileImage;
-  final double rating;
-  final bool hasVerifiedBadge;
-
   CommunityMember({
     required this.name,
     required this.category,
@@ -30,14 +24,18 @@ class CommunityMember {
     required this.rating,
     this.hasVerifiedBadge = true,
   });
+  final String name;
+  final String category;
+  final String profileImage;
+  final double rating;
+  final bool hasVerifiedBadge;
 }
 
 // Reusable Community Member Tile
 class CommunityMemberTile extends StatelessWidget {
+  const CommunityMemberTile({super.key, required this.member, this.onTap});
   final CommunityMember member;
   final VoidCallback? onTap;
-
-  const CommunityMemberTile({super.key, required this.member, this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -62,8 +60,8 @@ class CommunityMemberTile extends StatelessWidget {
                   // Placeholder when image is not available
                   child: member.profileImage.isEmpty
                       ? Container(
-                          decoration: BoxDecoration(color: AppColors.divider, shape: BoxShape.circle),
-                          child: Icon(Icons.person, color: AppColors.textSecondary, size: 28),
+                          decoration: const BoxDecoration(color: AppColors.divider, shape: BoxShape.circle),
+                          child: const Icon(Icons.person, color: AppColors.textSecondary, size: 28),
                         )
                       : null,
                 ),

@@ -2,20 +2,16 @@ import 'package:get/get.dart';
 
 /// Room state model for tracking video room information
 class VideoRoomState {
+  VideoRoomState({required this.roomId, required this.roomTitle, DateTime? joinTime})
+    : joinTime = joinTime ?? DateTime.now();
   final String roomId;
   final String roomTitle;
   final DateTime joinTime;
   final RxInt participantCount = 0.obs;
   final Rx<ConnectionStatus> connectionStatus = ConnectionStatus.connected.obs;
-  final Rx<MediaState> mediaState = MediaState().obs;
+  final Rx<MediaState> mediaState = const MediaState().obs;
   final RxBool isInPip = false.obs;
   final RxBool hasActiveNotification = false.obs;
-
-  VideoRoomState({
-    required this.roomId,
-    required this.roomTitle,
-    DateTime? joinTime,
-  }) : joinTime = joinTime ?? DateTime.now();
 
   /// Get current call duration
   Duration get callDuration => DateTime.now().difference(joinTime);
@@ -29,11 +25,11 @@ class VideoRoomState {
 
     if (hours > 0) {
       return '${hours.toString().padLeft(hours >= 10 ? 2 : 1, '0')}:'
-             '${minutes.toString().padLeft(2, '0')}:'
-             '${seconds.toString().padLeft(2, '0')}';
+          '${minutes.toString().padLeft(2, '0')}:'
+          '${seconds.toString().padLeft(2, '0')}';
     } else {
       return '${minutes.toString().padLeft(2, '0')}:'
-             '${seconds.toString().padLeft(2, '0')}';
+          '${seconds.toString().padLeft(2, '0')}';
     }
   }
 
@@ -53,13 +49,13 @@ class VideoRoomState {
       roomTitle: roomTitle ?? this.roomTitle,
       joinTime: joinTime ?? this.joinTime,
     );
-    
+
     if (participantCount != null) newState.participantCount.value = participantCount;
     if (connectionStatus != null) newState.connectionStatus.value = connectionStatus;
     if (mediaState != null) newState.mediaState.value = mediaState;
     if (isInPip != null) newState.isInPip.value = isInPip;
     if (hasActiveNotification != null) newState.hasActiveNotification.value = hasActiveNotification;
-    
+
     return newState;
   }
 
@@ -80,13 +76,6 @@ class VideoRoomState {
 
 /// Participant model
 class Participant {
-  final String userId;
-  final String displayName;
-  final bool isAudioMuted;
-  final bool isVideoMuted;
-  final bool isSpeaking;
-  final bool isLocal;
-
   const Participant({
     required this.userId,
     required this.displayName,
@@ -95,6 +84,12 @@ class Participant {
     this.isSpeaking = false,
     this.isLocal = false,
   });
+  final String userId;
+  final String displayName;
+  final bool isAudioMuted;
+  final bool isVideoMuted;
+  final bool isSpeaking;
+  final bool isLocal;
 
   Participant copyWith({
     String? userId,
@@ -128,24 +123,18 @@ class Participant {
 
 /// Media state model
 class MediaState {
-  final bool isMicrophoneOn;
-  final bool isCameraOn;
-  final String activeAudioDevice;
-  final String videoQuality;
-
   const MediaState({
     this.isMicrophoneOn = true,
     this.isCameraOn = true,
     this.activeAudioDevice = 'Speaker',
     this.videoQuality = 'HD',
   });
+  final bool isMicrophoneOn;
+  final bool isCameraOn;
+  final String activeAudioDevice;
+  final String videoQuality;
 
-  MediaState copyWith({
-    bool? isMicrophoneOn,
-    bool? isCameraOn,
-    String? activeAudioDevice,
-    String? videoQuality,
-  }) {
+  MediaState copyWith({bool? isMicrophoneOn, bool? isCameraOn, String? activeAudioDevice, String? videoQuality}) {
     return MediaState(
       isMicrophoneOn: isMicrophoneOn ?? this.isMicrophoneOn,
       isCameraOn: isCameraOn ?? this.isCameraOn,
@@ -193,15 +182,6 @@ enum ConnectionStatus {
 
 /// Notification state model
 class NotificationState {
-  final String notificationId;
-  final String roomTitle;
-  final Duration activeDuration;
-  final int participantCount;
-  final ConnectionStatus connectionStatus;
-  final List<NotificationActionData> actions;
-  final DateTime lastUpdate;
-  final bool isVisible;
-
   const NotificationState({
     required this.notificationId,
     required this.roomTitle,
@@ -212,6 +192,14 @@ class NotificationState {
     required this.lastUpdate,
     this.isVisible = true,
   });
+  final String notificationId;
+  final String roomTitle;
+  final Duration activeDuration;
+  final int participantCount;
+  final ConnectionStatus connectionStatus;
+  final List<NotificationActionData> actions;
+  final DateTime lastUpdate;
+  final bool isVisible;
 
   NotificationState copyWith({
     String? notificationId,
@@ -251,24 +239,18 @@ class NotificationState {
 
 /// Notification action data
 class NotificationActionData {
-  final String actionId;
-  final String label;
-  final NotificationActionType type;
-  final bool isEnabled;
-
   const NotificationActionData({
     required this.actionId,
     required this.label,
     required this.type,
     this.isEnabled = true,
   });
+  final String actionId;
+  final String label;
+  final NotificationActionType type;
+  final bool isEnabled;
 
-  NotificationActionData copyWith({
-    String? actionId,
-    String? label,
-    NotificationActionType? type,
-    bool? isEnabled,
-  }) {
+  NotificationActionData copyWith({String? actionId, String? label, NotificationActionType? type, bool? isEnabled}) {
     return NotificationActionData(
       actionId: actionId ?? this.actionId,
       label: label ?? this.label,
@@ -278,12 +260,7 @@ class NotificationActionData {
   }
 
   Map<String, dynamic> toJson() {
-    return {
-      'actionId': actionId,
-      'label': label,
-      'type': type.toString(),
-      'isEnabled': isEnabled,
-    };
+    return {'actionId': actionId, 'label': label, 'type': type.toString(), 'isEnabled': isEnabled};
   }
 }
 
@@ -318,14 +295,6 @@ enum NotificationActionType {
 
 /// Participant rating model for user rating screen
 class ParticipantRating {
-  final String userId;
-  final String displayName;
-  final String? avatarUrl;
-  final RxInt ratingScore; // 1-5 stars
-  final RxString feedbackText;
-  final RxBool isAnonymous;
-  final RxBool hasChanges;
-
   ParticipantRating({
     required this.userId,
     required this.displayName,
@@ -337,6 +306,17 @@ class ParticipantRating {
        feedbackText = RxString(initialFeedback),
        isAnonymous = RxBool(initialAnonymous),
        hasChanges = RxBool(false);
+
+  factory ParticipantRating.fromParticipant(Participant participant) {
+    return ParticipantRating(userId: participant.userId, displayName: participant.displayName);
+  }
+  final String userId;
+  final String displayName;
+  final String? avatarUrl;
+  final RxInt ratingScore; // 1-5 stars
+  final RxString feedbackText;
+  final RxBool isAnonymous;
+  final RxBool hasChanges;
 
   void updateRating(int score) {
     if (score >= 1 && score <= 5) {
@@ -357,13 +337,6 @@ class ParticipantRating {
 
   bool get isValid => ratingScore.value > 0;
 
-  factory ParticipantRating.fromParticipant(Participant participant) {
-    return ParticipantRating(
-      userId: participant.userId,
-      displayName: participant.displayName,
-    );
-  }
-
   Map<String, dynamic> toSubmissionJson(String roomParticipationId) {
     return {
       'rated_user_id': userId,
@@ -376,12 +349,6 @@ class ParticipantRating {
 }
 
 class RatingSubmission {
-  final String ratedUserId;
-  final String roomParticipationId;
-  final int ratingScore;
-  final String? feedbackText;
-  final bool isAnonymous;
-
   const RatingSubmission({
     required this.ratedUserId,
     required this.roomParticipationId,
@@ -389,6 +356,11 @@ class RatingSubmission {
     this.feedbackText,
     required this.isAnonymous,
   });
+  final String ratedUserId;
+  final String roomParticipationId;
+  final int ratingScore;
+  final String? feedbackText;
+  final bool isAnonymous;
 
   bool get isValid => ratedUserId.isNotEmpty && roomParticipationId.isNotEmpty && ratingScore >= 1 && ratingScore <= 5;
 

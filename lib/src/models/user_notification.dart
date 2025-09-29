@@ -1,20 +1,6 @@
 import 'package:fiwe/src/models/fcm_notification_data.dart';
 
 class UserNotification {
-  final String id;
-  final String notificationType;
-  final String status;
-  final String title;
-  final String body;
-  final DateTime sentAt;
-  final DateTime? deliveredAt;
-  final DateTime? readAt;
-  final DateTime? expiresAt;
-  final String? roomId;
-  final Map<String, dynamic>? actionData;
-  final RoomInviteData? roomInviteData;
-  final String? campaignName;
-
   UserNotification({
     required this.id,
     required this.notificationType,
@@ -45,11 +31,24 @@ class UserNotification {
       roomId: json['room_id'],
       actionData: json['action_data'] != null ? Map<String, dynamic>.from(json['action_data']) : null,
       campaignName: json['campaign_name'],
-      roomInviteData: json['action_data'] != null && json['notification_type'] == "room_invite"
+      roomInviteData: json['action_data'] != null && json['notification_type'] == 'room_invite'
           ? RoomInviteData.fromJson(Map<String, dynamic>.from(json['action_data']))
           : null,
     );
   }
+  final String id;
+  final String notificationType;
+  final String status;
+  final String title;
+  final String body;
+  final DateTime sentAt;
+  final DateTime? deliveredAt;
+  final DateTime? readAt;
+  final DateTime? expiresAt;
+  final String? roomId;
+  final Map<String, dynamic>? actionData;
+  final RoomInviteData? roomInviteData;
+  final String? campaignName;
 
   Map<String, dynamic> toJson() {
     return {
@@ -70,12 +69,6 @@ class UserNotification {
 }
 
 class UserNotificationPage {
-  final List<UserNotification> notifications;
-  final int totalCount;
-  final int currentPage;
-  final int totalPages;
-  final int pageSize;
-
   UserNotificationPage({
     required this.notifications,
     required this.totalCount,
@@ -95,6 +88,11 @@ class UserNotificationPage {
       pageSize: json['page_size'],
     );
   }
+  final List<UserNotification> notifications;
+  final int totalCount;
+  final int currentPage;
+  final int totalPages;
+  final int pageSize;
 
   Map<String, dynamic> toJson() {
     return {

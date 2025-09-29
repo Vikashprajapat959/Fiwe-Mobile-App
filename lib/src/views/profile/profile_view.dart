@@ -16,7 +16,7 @@ class BadgeSection extends StatelessWidget {
       child: Row(
         children: [
           const Text('Badge', style: AppTextStyles.subHeading),
-          Spacer(),
+          const Spacer(),
           _buildBadge(Icons.hexagon, CustomColors.textSecondary),
           const SizedBox(width: Constants.paddingSmall),
           _buildBadge(Icons.star, CustomColors.warning),
@@ -41,16 +41,16 @@ class BadgeSection extends StatelessWidget {
 }
 
 class CustomCard extends StatelessWidget {
+  const CustomCard({super.key, required this.child, this.padding});
   final Widget child;
 
   final EdgeInsets? padding;
-  const CustomCard({super.key, required this.child, this.padding});
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      padding: padding ?? EdgeInsets.all(12),
-      decoration: BoxDecoration(borderRadius: BorderRadius.all(Radius.circular(12)), color: AppColors.surface),
+      margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      padding: padding ?? const EdgeInsets.all(12),
+      decoration: const BoxDecoration(borderRadius: BorderRadius.all(Radius.circular(12)), color: AppColors.surface),
       child: child,
     );
   }
@@ -71,12 +71,11 @@ class CustomColors {
 }
 
 class MenuTile extends StatelessWidget {
+  const MenuTile({super.key, required this.icon, required this.title, required this.iconColor, required this.onTap});
   final IconData icon;
   final String title;
   final Color iconColor;
   final VoidCallback onTap;
-
-  const MenuTile({super.key, required this.icon, required this.title, required this.iconColor, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -96,12 +95,6 @@ class MenuTile extends StatelessWidget {
 
 // Reusable Components
 class ProfileHeader extends StatelessWidget {
-  final String name;
-  final double rating;
-  final int reviewCount;
-  final String tagline;
-  final String? avatarUrl;
-
   const ProfileHeader({
     super.key,
     required this.name,
@@ -110,6 +103,11 @@ class ProfileHeader extends StatelessWidget {
     required this.tagline,
     this.avatarUrl,
   });
+  final String name;
+  final double rating;
+  final int reviewCount;
+  final String tagline;
+  final String? avatarUrl;
 
   @override
   Widget build(BuildContext context) {
@@ -135,7 +133,7 @@ class ProfileHeader extends StatelessWidget {
                     )
                   : const Icon(LucideIcons.user, size: 30, color: CustomColors.textSecondary),
             ),
-            Positioned(top: 0, right: 0, child: Icon(Icons.star, color: Colors.yellow)),
+            const Positioned(top: 0, right: 0, child: Icon(Icons.star, color: Colors.yellow)),
           ],
         ),
         const SizedBox(width: Constants.paddingMedium),
@@ -148,7 +146,7 @@ class ProfileHeader extends StatelessWidget {
               const SizedBox(height: 4),
               Row(
                 children: [
-                  Text('Rating', style: AppTextStyles.caption),
+                  const Text('Rating', style: AppTextStyles.caption),
                   const Icon(Icons.star, color: CustomColors.warning, size: 16),
                   const SizedBox(width: 4),
                   Text('$rating', style: AppTextStyles.body),
@@ -204,7 +202,7 @@ class ProfileScreen extends StatelessWidget {
                       name: controller.user?.name ?? 'Guest User',
                       rating: 4.5,
                       reviewCount: 32,
-                      tagline: "",
+                      tagline: '',
                     ),
                   ),
                 ),
@@ -217,11 +215,11 @@ class ProfileScreen extends StatelessWidget {
                 ),
 
                 // Badges
-                CustomCard(child: const BadgeSection()),
+                const CustomCard(child: BadgeSection()),
 
                 // Stats Grid
                 CustomCard(
-                  padding: EdgeInsets.only(top: 12, right: 12, left: 12),
+                  padding: const EdgeInsets.only(top: 12, right: 12, left: 12),
                   child: Obx(
                     () => StatsGrid(
                       stats: {
@@ -251,28 +249,28 @@ class ProfileScreen extends StatelessWidget {
                     iconColor: CustomColors.primary,
                     onTap: controller.editProfile,
                   ),
-                  Divider(),
+                  const Divider(),
                   MenuTile(
                     icon: Icons.tune,
                     title: 'Preference',
                     iconColor: CustomColors.secondary,
                     onTap: controller.openPreferences,
                   ),
-                  Divider(),
+                  const Divider(),
                   MenuTile(
                     icon: Icons.schedule,
                     title: 'Availability',
                     iconColor: CustomColors.accent,
                     onTap: controller.openAvailability,
                   ),
-                  Divider(),
+                  const Divider(),
                   MenuTile(
                     icon: Icons.groups,
                     title: 'Communes',
                     iconColor: CustomColors.error,
                     onTap: controller.openCommunes,
                   ),
-                  Divider(),
+                  const Divider(),
                   MenuTile(
                     icon: Icons.logout,
                     title: 'Logout',
@@ -291,10 +289,9 @@ class ProfileScreen extends StatelessWidget {
 }
 
 class ProgressBar extends StatelessWidget {
+  const ProgressBar({super.key, required this.percentage, required this.title});
   final int percentage;
   final String title;
-
-  const ProgressBar({super.key, required this.percentage, required this.title});
 
   @override
   Widget build(BuildContext context) {
@@ -329,9 +326,8 @@ class ProgressBar extends StatelessWidget {
 }
 
 class StatsGrid extends StatelessWidget {
-  final Map<String, int> stats;
-
   const StatsGrid({super.key, required this.stats});
+  final Map<String, int> stats;
 
   @override
   Widget build(BuildContext context) {
@@ -347,8 +343,8 @@ class StatsGrid extends StatelessWidget {
       itemCount: stats.length,
 
       itemBuilder: (context, index) {
-        String key = stats.keys.elementAt(index);
-        int value = stats[key]!;
+        final String key = stats.keys.elementAt(index);
+        final int value = stats[key]!;
         return _buildStatItem(key, value);
       },
     );

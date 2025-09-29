@@ -57,10 +57,10 @@ class _UserNotificationViewState extends State<UserNotificationView> {
             }
             final notification = controller.notifications[index];
             return ListTile(
-              leading: Icon(Icons.notifications, color: Colors.blue),
+              leading: const Icon(Icons.notifications, color: Colors.blue),
               title: Text(notification.title),
               subtitle: Text(notification.body),
-              trailing: Text("${notification.deliveredAt}", style: const TextStyle(fontSize: 12, color: Colors.grey)),
+              trailing: Text('${notification.deliveredAt}', style: const TextStyle(fontSize: 12, color: Colors.grey)),
             );
           },
         );

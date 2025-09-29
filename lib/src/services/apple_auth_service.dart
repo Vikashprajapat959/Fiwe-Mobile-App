@@ -7,6 +7,9 @@ import 'shared_pref_service.dart';
 
 /// Service for managing Apple Sign-In authentication
 class AppleAuthService {
+  // Private constructor to prevent direct instantiation
+  AppleAuthService._();
+
   /// Check if Apple Sign-In is available on the current platform
   static Future<bool> get isAvailable async {
     try {
@@ -15,9 +18,6 @@ class AppleAuthService {
       return false;
     }
   }
-
-  // Private constructor to prevent direct instantiation
-  AppleAuthService._();
 
   /// Check if user has stored Apple authentication data
   static Future<bool> hasStoredAuthData() async {

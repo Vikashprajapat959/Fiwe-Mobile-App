@@ -1,11 +1,5 @@
 // Model for Reaction
 class HMSReaction {
-  final String id;
-  final String userId;
-  final String emoji;
-  final DateTime timestamp;
-  final String roomId;
-
   HMSReaction({
     required this.id,
     required this.userId,
@@ -24,6 +18,11 @@ class HMSReaction {
       roomId: json['room_id'] as String,
     );
   }
+  final String id;
+  final String userId;
+  final String emoji;
+  final DateTime timestamp;
+  final String roomId;
 
   // Convert Reaction to JSON
   Map<String, dynamic> toJson() {

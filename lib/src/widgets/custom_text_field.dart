@@ -2,22 +2,6 @@ import 'package:fiwe/src/utils/colors.dart';
 import 'package:flutter/material.dart';
 
 class AppTextField extends StatelessWidget {
-  final String hintText;
-  final IconData? prefixIcon;
-  final TextEditingController? controller;
-  final TextInputType keyboardType;
-  final bool readOnly;
-  final VoidCallback? onTap;
-  final String? Function(String?)? validator;
-  final bool obscureText;
-  final int maxLines;
-  final TextCapitalization textCapitalization;
-  final int? maxLength;
-  final ValueChanged<String>? onChanged; // Add this line
-  final BorderSide? borderSide;
-  final String? lableText;
-  final Widget? suffixIcon;
-
   const AppTextField({
     super.key,
     required this.hintText,
@@ -36,6 +20,21 @@ class AppTextField extends StatelessWidget {
     this.lableText,
     this.suffixIcon,
   });
+  final String hintText;
+  final IconData? prefixIcon;
+  final TextEditingController? controller;
+  final TextInputType keyboardType;
+  final bool readOnly;
+  final VoidCallback? onTap;
+  final String? Function(String?)? validator;
+  final bool obscureText;
+  final int maxLines;
+  final TextCapitalization textCapitalization;
+  final int? maxLength;
+  final ValueChanged<String>? onChanged; // Add this line
+  final BorderSide? borderSide;
+  final String? lableText;
+  final Widget? suffixIcon;
 
   @override
   Widget build(BuildContext context) {
@@ -44,7 +43,7 @@ class AppTextField extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(lableText!, style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+          Text(lableText!, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
           const SizedBox(height: 8),
           _buildTextField(),
         ],
@@ -54,7 +53,7 @@ class AppTextField extends StatelessWidget {
   }
 
   TextFormField _buildTextField() {
-    var outlineInputBorder = OutlineInputBorder(
+    final outlineInputBorder = OutlineInputBorder(
       borderRadius: BorderRadius.circular(16),
       borderSide: borderSide ?? BorderSide.none,
     );
@@ -68,7 +67,7 @@ class AppTextField extends StatelessWidget {
       obscureText: obscureText,
       maxLines: maxLines,
       textCapitalization: textCapitalization,
-      onChanged: onChanged, 
+      onChanged: onChanged,
       style: const TextStyle(fontSize: 16, color: Color(0xFF2D3748), fontWeight: FontWeight.w400),
       decoration: InputDecoration(
         suffixIcon: suffixIcon,
@@ -78,12 +77,12 @@ class AppTextField extends StatelessWidget {
         filled: true,
         prefixIcon: prefixIcon != null ? Icon(prefixIcon, color: const Color(0xFF6B7280), size: 20) : null,
         counter: const SizedBox.shrink(),
-        
+
         border: outlineInputBorder,
         enabledBorder: outlineInputBorder,
         focusedBorder: outlineInputBorder,
-        errorBorder: outlineInputBorder.copyWith(borderSide: BorderSide(color: AppColors.errorBorder)),
-        focusedErrorBorder: outlineInputBorder.copyWith(borderSide: BorderSide(color: AppColors.errorBorder)),
+        errorBorder: outlineInputBorder.copyWith(borderSide: const BorderSide(color: AppColors.errorBorder)),
+        focusedErrorBorder: outlineInputBorder.copyWith(borderSide: const BorderSide(color: AppColors.errorBorder)),
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
         constraints: const BoxConstraints(minHeight: 44),
       ),

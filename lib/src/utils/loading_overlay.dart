@@ -102,10 +102,9 @@ class LoadingOverlay {
 
 /// Internal widget for the loading overlay
 class _LoadingOverlayWidget extends StatelessWidget {
+  const _LoadingOverlayWidget({required this.backgroundColor, required this.indicatorColor});
   final Color backgroundColor;
   final Color indicatorColor;
-
-  const _LoadingOverlayWidget({required this.backgroundColor, required this.indicatorColor});
 
   @override
   Widget build(BuildContext context) {

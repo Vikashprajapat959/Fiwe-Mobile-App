@@ -31,7 +31,10 @@ class HomeController extends GetxController {
     final context = _context ?? Get.overlayContext;
     if (context != null) {
       InAppNotificationManager.setContext(context).show(
-        NotificationConfig(title: "Test Notification", description: "This is a test notification triggered from code"),
+        const NotificationConfig(
+          title: 'Test Notification',
+          description: 'This is a test notification triggered from code',
+        ),
       );
     }
   }
@@ -65,11 +68,11 @@ class HomeController extends GetxController {
       InAppNotificationManager.setContext(context).show(
         NotificationConfig(
           title: inviteData.title,
-          description: "You have a new room invite from ${inviteData.inviteeName}",
-          icon: Icon(LucideIcons.users),
+          description: 'You have a new room invite from ${inviteData.inviteeName}',
+          icon: const Icon(LucideIcons.users),
           actions: [
             NotificationAction(
-              label: "Dismiss",
+              label: 'Dismiss',
               style: NotificationActionStyle.secondary,
               onPressed: () {
                 // Handle dismiss action
@@ -77,7 +80,7 @@ class HomeController extends GetxController {
               },
             ),
             NotificationAction(
-              label: "Join",
+              label: 'Join',
 
               onPressed: () {
                 // Get.off(()=>VideoRoomView(
@@ -116,16 +119,16 @@ class HomeController extends GetxController {
 
   // show user notification to join previos room if any
   void showJoinPreviousRoomNotification(HMSVideoRoom room) {
-    VideoRoomController controller = VideoRoomController.instance;
+    final VideoRoomController controller = VideoRoomController.instance;
     controller.currentRoom = room;
     controller.isInRoom = true;
     final context = _context ?? Get.overlayContext;
     if (context != null) {
       InAppNotificationManager.setContext(context).show(
         NotificationConfig(
-          title: "Rejoin Room",
-          description: "You have an active room: ${room.title}.\nWould you like to rejoin?",
-          icon: Icon(LucideIcons.video),
+          title: 'Rejoin Room',
+          description: 'You have an active room: ${room.title}.\nWould you like to rejoin?',
+          icon: const Icon(LucideIcons.video),
           onDismiss: () {
             // Clear current room if user dismisses the notification
             InAppNotificationManager.dismiss();
@@ -133,7 +136,7 @@ class HomeController extends GetxController {
           },
           actions: [
             NotificationAction(
-              label: "Dismiss",
+              label: 'Dismiss',
               style: NotificationActionStyle.secondary,
               onPressed: () {
                 // leave room action
@@ -141,7 +144,7 @@ class HomeController extends GetxController {
               },
             ),
             NotificationAction(
-              label: "Join",
+              label: 'Join',
               onPressed: () {
                 InAppNotificationManager.dismiss();
                 Get.toNamed(Constants.videoRoomRoute, arguments: {'userName': user?.name ?? '  Guest'});

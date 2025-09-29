@@ -6,7 +6,7 @@ class UserProfileScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return const Scaffold(
       backgroundColor: AppColors.background,
       body: SafeArea(
         child: Column(
@@ -56,10 +56,12 @@ class AppColors {
 
 // Custom App Bar
 class CustomAppBar extends StatelessWidget {
+  const CustomAppBar({super.key});
+
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       child: Row(
         children: [
           IconButton(
@@ -70,48 +72,22 @@ class CustomAppBar extends StatelessWidget {
               decoration: BoxDecoration(
                 color: AppColors.white,
                 borderRadius: BorderRadius.circular(12),
-                boxShadow: [
-                  BoxShadow(
-                    color: AppColors.shadow,
-                    blurRadius: 8,
-                    offset: Offset(0, 2),
-                  ),
-                ],
+                boxShadow: const [BoxShadow(color: AppColors.shadow, blurRadius: 8, offset: Offset(0, 2))],
               ),
-              child: Icon(
-                Icons.chevron_left,
-                color: AppColors.textPrimary,
-                size: 20,
-              ),
+              child: const Icon(Icons.chevron_left, color: AppColors.textPrimary, size: 20),
             ),
           ),
-          Expanded(
-            child: Text(
-              'User Profile',
-              textAlign: TextAlign.center,
-              style: AppTextStyles.title,
-            ),
+          const Expanded(
+            child: Text('User Profile', textAlign: TextAlign.center, style: AppTextStyles.title),
           ),
           PopupMenuButton<String>(
             icon: Container(
               width: 36,
               height: 36,
-              decoration: BoxDecoration(
-                color: AppColors.interestInactive,
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Icon(
-                Icons.more_horiz,
-                color: AppColors.textPrimary,
-                size: 20,
-              ),
+              decoration: BoxDecoration(color: AppColors.interestInactive, borderRadius: BorderRadius.circular(12)),
+              child: const Icon(Icons.more_horiz, color: AppColors.textPrimary, size: 20),
             ),
-            itemBuilder: (context) => [
-              PopupMenuItem(
-                value: 'block',
-                child: Text('Block'),
-              ),
-            ],
+            itemBuilder: (context) => [const PopupMenuItem(value: 'block', child: Text('Block'))],
           ),
         ],
       ),
@@ -121,9 +97,11 @@ class CustomAppBar extends StatelessWidget {
 
 // Profile Header
 class ProfileHeader extends StatelessWidget {
+  const ProfileHeader({super.key});
+
   @override
   Widget build(BuildContext context) {
-    return Column(
+    return const Column(
       children: [
         CircleAvatar(
           radius: 60,
@@ -136,34 +114,18 @@ class ProfileHeader extends StatelessWidget {
           ),
         ),
         SizedBox(height: 16),
-        Text(
-          'Josh',
-          style: AppTextStyles.profileName,
-        ),
+        Text('Josh', style: AppTextStyles.profileName),
         SizedBox(height: 8),
-        Text(
-          'Your voice. Their ears. Let\'s go!',
-          style: AppTextStyles.profileBio,
-        ),
+        Text('Your voice. Their ears. Let\'s go!', style: AppTextStyles.profileBio),
         SizedBox(height: 12),
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Text(
-              'Rating',
-              style: AppTextStyles.ratingLabel,
-            ),
+            Text('Rating', style: AppTextStyles.ratingLabel),
             SizedBox(width: 8),
-            Icon(
-              Icons.star,
-              color: AppColors.tertiary,
-              size: 16,
-            ),
+            Icon(Icons.star, color: AppColors.tertiary, size: 16),
             SizedBox(width: 4),
-            Text(
-              '4.5 (10)',
-              style: AppTextStyles.ratingValue,
-            ),
+            Text('4.5 (10)', style: AppTextStyles.ratingValue),
           ],
         ),
       ],
@@ -173,33 +135,23 @@ class ProfileHeader extends StatelessWidget {
 
 // Badges Section
 class BadgesSection extends StatelessWidget {
+  const BadgesSection({super.key});
+
   @override
   Widget build(BuildContext context) {
-    return Column(
+    return const Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          'Badges',
-          style: AppTextStyles.sectionTitle,
-        ),
+        Text('Badges', style: AppTextStyles.sectionTitle),
         SizedBox(height: 16),
         Row(
           mainAxisAlignment: MainAxisAlignment.end,
           children: [
-            BadgeIcon(
-              icon: Icons.star_border,
-              color: AppColors.interestInactive,
-            ),
+            BadgeIcon(icon: Icons.star_border, color: AppColors.interestInactive),
             SizedBox(width: 12),
-            BadgeIcon(
-              icon: Icons.star,
-              color: AppColors.tertiary,
-            ),
+            BadgeIcon(icon: Icons.star, color: AppColors.tertiary),
             SizedBox(width: 12),
-            BadgeIcon(
-              icon: Icons.star_half,
-              color: AppColors.quaternary,
-            ),
+            BadgeIcon(icon: Icons.star_half, color: AppColors.quaternary),
           ],
         ),
       ],
@@ -209,14 +161,9 @@ class BadgesSection extends StatelessWidget {
 
 // Badge Icon Widget
 class BadgeIcon extends StatelessWidget {
+  const BadgeIcon({super.key, required this.icon, required this.color});
   final IconData icon;
   final Color color;
-
-  const BadgeIcon({
-    Key? key,
-    required this.icon,
-    required this.color,
-  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -226,25 +173,17 @@ class BadgeIcon extends StatelessWidget {
       decoration: BoxDecoration(
         color: color,
         borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.shadow,
-            blurRadius: 4,
-            offset: Offset(0, 2),
-          ),
-        ],
+        boxShadow: const [BoxShadow(color: AppColors.shadow, blurRadius: 4, offset: Offset(0, 2))],
       ),
-      child: Icon(
-        icon,
-        color: AppColors.white,
-        size: 24,
-      ),
+      child: Icon(icon, color: AppColors.white, size: 24),
     );
   }
 }
 
 // Stats Section
 class StatsSection extends StatelessWidget {
+  const StatsSection({super.key});
+
   @override
   Widget build(BuildContext context) {
     final stats = [
@@ -261,18 +200,12 @@ class StatsSection extends StatelessWidget {
       children: [
         for (int i = 0; i < stats.length; i += 2)
           Padding(
-            padding: EdgeInsets.only(bottom: 16),
+            padding: const EdgeInsets.only(bottom: 16),
             child: Row(
               children: [
-                Expanded(
-                  child: StatCard(stat: stats[i]),
-                ),
-                SizedBox(width: 24),
-                Expanded(
-                  child: i + 1 < stats.length
-                      ? StatCard(stat: stats[i + 1])
-                      : SizedBox(),
-                ),
+                Expanded(child: StatCard(stat: stats[i])),
+                const SizedBox(width: 24),
+                Expanded(child: i + 1 < stats.length ? StatCard(stat: stats[i + 1]) : const SizedBox()),
               ],
             ),
           ),
@@ -283,24 +216,17 @@ class StatsSection extends StatelessWidget {
 
 // Stat Card
 class StatCard extends StatelessWidget {
+  const StatCard({super.key, required this.stat});
   final StatItem stat;
-
-  const StatCard({Key? key, required this.stat}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          stat.label,
-          style: AppTextStyles.statLabel,
-        ),
-        SizedBox(height: 4),
-        Text(
-          stat.value,
-          style: AppTextStyles.statValue,
-        ),
+        Text(stat.label, style: AppTextStyles.statLabel),
+        const SizedBox(height: 4),
+        Text(stat.value, style: AppTextStyles.statValue),
       ],
     );
   }
@@ -308,14 +234,15 @@ class StatCard extends StatelessWidget {
 
 // Stat Item Model
 class StatItem {
+  StatItem({required this.label, required this.value});
   final String label;
   final String value;
-
-  StatItem({required this.label, required this.value});
 }
 
 // Interests Section
 class InterestsSection extends StatelessWidget {
+  const InterestsSection({super.key});
+
   @override
   Widget build(BuildContext context) {
     final interests = [
@@ -329,17 +256,12 @@ class InterestsSection extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          'Interests',
-          style: AppTextStyles.sectionTitle,
-        ),
-        SizedBox(height: 16),
+        const Text('Interests', style: AppTextStyles.sectionTitle),
+        const SizedBox(height: 16),
         Wrap(
           spacing: 12,
           runSpacing: 12,
-          children: interests
-              .map((interest) => InterestChip(interest: interest))
-              .toList(),
+          children: interests.map((interest) => InterestChip(interest: interest)).toList(),
         ),
       ],
     );
@@ -348,23 +270,20 @@ class InterestsSection extends StatelessWidget {
 
 // Interest Chip
 class InterestChip extends StatelessWidget {
+  const InterestChip({super.key, required this.interest});
   final Interest interest;
-
-  const InterestChip({Key? key, required this.interest}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
       decoration: BoxDecoration(
         color: interest.isActive ? AppColors.interestActive : AppColors.interestInactive,
         borderRadius: BorderRadius.circular(25),
       ),
       child: Text(
         interest.name,
-        style: interest.isActive
-            ? AppTextStyles.interestActive
-            : AppTextStyles.interestInactive,
+        style: interest.isActive ? AppTextStyles.interestActive : AppTextStyles.interestInactive,
       ),
     );
   }
@@ -372,32 +291,29 @@ class InterestChip extends StatelessWidget {
 
 // Interest Model
 class Interest {
+  Interest({required this.name, required this.isActive});
   final String name;
   final bool isActive;
-
-  Interest({required this.name, required this.isActive});
 }
 
 // Commune Request Button
 class CommuneRequestButton extends StatelessWidget {
+  const CommuneRequestButton({super.key});
+
   @override
   Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
       height: 56,
       decoration: BoxDecoration(
-        gradient: LinearGradient(
+        gradient: const LinearGradient(
           colors: [AppColors.interestActive, AppColors.secondary],
           begin: Alignment.centerLeft,
           end: Alignment.centerRight,
         ),
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
-          BoxShadow(
-            color: AppColors.interestActive.withOpacity(0.3),
-            blurRadius: 12,
-            offset: Offset(0, 4),
-          ),
+          BoxShadow(color: AppColors.interestActive.withOpacity(0.3), blurRadius: 12, offset: const Offset(0, 4)),
         ],
       ),
       child: Material(
@@ -407,19 +323,12 @@ class CommuneRequestButton extends StatelessWidget {
           onTap: () {
             // Handle button press
           },
-          child: Row(
+          child: const Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(
-                Icons.add,
-                color: AppColors.white,
-                size: 24,
-              ),
+              Icon(Icons.add, color: AppColors.white, size: 24),
               SizedBox(width: 8),
-              Text(
-                'Commune Request',
-                style: AppTextStyles.buttonText,
-              ),
+              Text('Commune Request', style: AppTextStyles.buttonText),
             ],
           ),
         ),
@@ -430,11 +339,7 @@ class CommuneRequestButton extends StatelessWidget {
 
 // Text Styles
 class AppTextStyles {
-  static const TextStyle title = TextStyle(
-    fontSize: 18,
-    fontWeight: FontWeight.w600,
-    color: AppColors.textPrimary,
-  );
+  static const TextStyle title = TextStyle(fontSize: 18, fontWeight: FontWeight.w600, color: AppColors.textPrimary);
 
   static const TextStyle profileName = TextStyle(
     fontSize: 24,
@@ -472,17 +377,9 @@ class AppTextStyles {
     color: AppColors.textSecondary,
   );
 
-  static const TextStyle statValue = TextStyle(
-    fontSize: 18,
-    fontWeight: FontWeight.w700,
-    color: AppColors.primary,
-  );
+  static const TextStyle statValue = TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: AppColors.primary);
 
-  static const TextStyle interestActive = TextStyle(
-    fontSize: 14,
-    fontWeight: FontWeight.w500,
-    color: AppColors.white,
-  );
+  static const TextStyle interestActive = TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: AppColors.white);
 
   static const TextStyle interestInactive = TextStyle(
     fontSize: 14,
@@ -490,9 +387,5 @@ class AppTextStyles {
     color: AppColors.textSecondary,
   );
 
-  static const TextStyle buttonText = TextStyle(
-    fontSize: 16,
-    fontWeight: FontWeight.w600,
-    color: AppColors.white,
-  );
+  static const TextStyle buttonText = TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: AppColors.white);
 }

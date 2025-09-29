@@ -9,10 +9,9 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 // Reusable App Bar Component
 class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
+  const CustomAppBar({super.key, required this.title, this.onBackPressed});
   final String title;
   final VoidCallback? onBackPressed;
-
-  const CustomAppBar({super.key, required this.title, this.onBackPressed});
 
   @override
   Size get preferredSize => const Size.fromHeight(kToolbarHeight);
@@ -22,7 +21,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
     return AppBar(
       backgroundColor: Colors.white,
       elevation: 0,
-      leading: BackButton(),
+      leading: const BackButton(),
       title: Text(
         title,
         style: const TextStyle(color: Colors.black87, fontSize: 18, fontWeight: FontWeight.w600),
@@ -64,7 +63,7 @@ class EditProfileScreen extends StatelessWidget {
 
                 // Form Fields
                 AppTextField(
-                  lableText: "Your Name",
+                  lableText: 'Your Name',
                   hintText: 'Enter your name ',
                   controller: controller.nameController,
                 ),
@@ -72,7 +71,7 @@ class EditProfileScreen extends StatelessWidget {
 
                 AppTextField(
                   lableText: 'Nick Name',
-                  hintText: "Enter your nick name",
+                  hintText: 'Enter your nick name',
                   controller: controller.nickNameController,
                 ),
                 const SizedBox(height: 20),
@@ -253,11 +252,10 @@ class EditProfileScreen extends StatelessWidget {
 
 // Reusable Profile Avatar Component
 class ProfileAvatar extends StatelessWidget {
+  const ProfileAvatar({super.key, required this.imageData, this.size = 120, this.onTap});
   final String imageData;
   final double size;
   final VoidCallback? onTap;
-
-  const ProfileAvatar({super.key, required this.imageData, this.size = 120, this.onTap});
 
   @override
   Widget build(BuildContext context) {

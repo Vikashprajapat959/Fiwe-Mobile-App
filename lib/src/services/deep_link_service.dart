@@ -18,7 +18,7 @@ class DeepLinkService extends GetxService {
       final uri = Uri.parse(link);
 
       // Check if this is our custom scheme
-      if (uri.scheme.contains("fiwe") && uri.host == 'room') {
+      if (uri.scheme.contains('fiwe') && uri.host == 'room') {
         // Extract room ID from path
         final pathSegments = uri.pathSegments;
         if (pathSegments.isNotEmpty) {

@@ -33,7 +33,7 @@ class LoginView extends StatelessWidget {
           children: [
             Image.asset(Assets.images.logoTransparent, width: Get.width * 0.4),
             SizedBox(height: Get.height * .1),
-            Text(
+            const Text(
               Strings.loginSubtitle,
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.surface),
             ),

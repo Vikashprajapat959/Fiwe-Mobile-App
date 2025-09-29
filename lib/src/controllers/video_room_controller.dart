@@ -87,7 +87,7 @@ class VideoRoomController extends GetxController with WidgetsBindingObserver {
       final success = await _roomRepository.createRoom(title, topicId);
 
       if (success) {
-        log("Room Data: $currentRoom", name: "RoomData");
+        log('Room Data: $currentRoom', name: 'RoomData');
         _isInRoom(true);
 
         // Track room creation event
@@ -204,7 +204,7 @@ class VideoRoomController extends GetxController with WidgetsBindingObserver {
           _isPipActive(false);
           _hasActiveNotification(false);
         } else {
-          CrashlyticsService.log("Error : ${response.message}");
+          CrashlyticsService.log('Error : ${response.message}');
         }
       });
     } catch (e, s) {
@@ -378,7 +378,7 @@ class VideoRoomController extends GetxController with WidgetsBindingObserver {
         return;
       }
 
-      bool success = await _pipManager.enterPipMode();
+      final bool success = await _pipManager.enterPipMode();
       if (success) {
         _isPipActive(true);
         _roomStateMonitor.updatePipStatus(true);

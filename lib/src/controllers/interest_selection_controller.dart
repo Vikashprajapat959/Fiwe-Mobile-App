@@ -10,7 +10,7 @@ import 'package:get/get.dart';
 class InterestSelectionController extends GetxController {
   final selectedTopicIds = <String>[].obs;
 
-  final primaryTopicSelection = "".obs;
+  final primaryTopicSelection = ''.obs;
 
   final pageIndex = 0.obs;
 
@@ -61,24 +61,24 @@ class InterestSelectionController extends GetxController {
           topics = response.data ?? <Topic>[];
           return topics;
         } else {
-          Get.snackbar("Error", response.message);
+          Get.snackbar('Error', response.message);
           return <Topic>[];
         }
       } else {
         return topics;
       }
     } catch (e) {
-      Get.snackbar("Error", "Failed to load topics: ${e.toString()}");
+      Get.snackbar('Error', 'Failed to load topics: ${e.toString()}');
       rethrow;
     }
   }
 
   VoidCallback? onContinue() {
     if (selectedTopicIds().length < 5) {
-      return () => Get.snackbar("Error", "You must select at least 5 topics");
-    } else if (selectedTopicIds().length == 5 && primaryTopicSelection() == "") {
+      return () => Get.snackbar('Error', 'You must select at least 5 topics');
+    } else if (selectedTopicIds().length == 5 && primaryTopicSelection() == '') {
       return () {
-        pageController.nextPage(duration: Duration(milliseconds: 300), curve: Curves.easeIn);
+        pageController.nextPage(duration: const Duration(milliseconds: 300), curve: Curves.easeIn);
         pageIndex(1);
       };
     } else {
@@ -87,7 +87,7 @@ class InterestSelectionController extends GetxController {
   }
 
   void previousPage() {
-    pageController.previousPage(duration: Duration(milliseconds: 300), curve: Curves.easeIn);
+    pageController.previousPage(duration: const Duration(milliseconds: 300), curve: Curves.easeIn);
     pageIndex(0);
   }
 
@@ -97,7 +97,7 @@ class InterestSelectionController extends GetxController {
       selectedTopicIds.remove(topicId);
     } else {
       if (selectedTopicIds.length >= 5) {
-        Get.snackbar("Error", "You can only select up to 5 topics");
+        Get.snackbar('Error', 'You can only select up to 5 topics');
         return;
       }
       selectedTopicIds.add(topicId);
@@ -105,12 +105,12 @@ class InterestSelectionController extends GetxController {
   }
 
   void updateUserInterests() async {
-    var response = await executeWithLoading(_userService.followTopics(selectedTopicIds(), primaryTopicSelection()));
+    final response = await executeWithLoading(_userService.followTopics(selectedTopicIds(), primaryTopicSelection()));
 
     if (response.success) {
-      Get.offAll(() => HomeView());
+      Get.offAll(() => const HomeView());
     } else {
-      Get.snackbar("Error", response.message);
+      Get.snackbar('Error', response.message);
     }
   }
 }

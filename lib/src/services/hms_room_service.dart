@@ -111,9 +111,9 @@ class HMSRoomService extends GetxService implements HMSUpdateListener, HMSAction
           'title': title,
           'capacity': 5,
           'template_id': '68c14e6f74147bd574bb0e4b',
-          "topic_id": topicId,
+          'topic_id': topicId,
           //TODO: Update description based on user input
-          "description": "Room about $title",
+          'description': 'Room about $title',
         },
         isAuthorized: true,
       );

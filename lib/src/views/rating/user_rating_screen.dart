@@ -1,10 +1,10 @@
-import 'package:flutter/material.dart';
-import 'package:get/get.dart';
-import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:fiwe/src/controllers/user_rating_controller.dart';
 import 'package:fiwe/src/models/video_room_models.dart';
 import 'package:fiwe/src/utils/colors.dart';
 import 'package:fiwe/src/utils/constants.dart';
+import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 class UserRatingScreen extends StatefulWidget {
   const UserRatingScreen({super.key});
@@ -15,12 +15,12 @@ class UserRatingScreen extends StatefulWidget {
 
 class _UserRatingScreenState extends State<UserRatingScreen> {
   late UserRatingController controller;
-  
+
   @override
   void initState() {
     super.initState();
     controller = Get.put(UserRatingController());
-    
+
     // Get arguments from navigation
     final args = Get.arguments as Map<String, dynamic>?;
     if (args != null) {
@@ -59,10 +59,7 @@ class _UserRatingScreenState extends State<UserRatingScreen> {
                 children: [
                   Icon(LucideIcons.users, size: 64, color: Colors.grey),
                   SizedBox(height: 16),
-                  Text(
-                    'No participants to rate',
-                    style: TextStyle(fontSize: 16, color: Colors.grey),
-                  ),
+                  Text('No participants to rate', style: TextStyle(fontSize: 16, color: Colors.grey)),
                 ],
               ),
             );
@@ -72,10 +69,10 @@ class _UserRatingScreenState extends State<UserRatingScreen> {
             children: [
               // Progress indicator
               _buildProgressIndicator(),
-              
+
               // Global anonymous toggle
               _buildGlobalAnonymousToggle(),
-              
+
               // Participant list
               Expanded(
                 child: ListView.builder(
@@ -98,13 +95,13 @@ class _UserRatingScreenState extends State<UserRatingScreen> {
                   },
                 ),
               ),
-              
+
               // Submit button
               _buildSubmitButton(),
             ],
           );
         }),
-        
+
         // Loading overlay
         bottomSheet: Obx(() {
           if (controller.isSubmitting) {
@@ -134,7 +131,7 @@ class _UserRatingScreenState extends State<UserRatingScreen> {
       final completed = controller.completedRatingsCount;
       final total = controller.totalRatingsCount;
       final progress = total > 0 ? completed / total : 0.0;
-      
+
       return Container(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -145,10 +142,7 @@ class _UserRatingScreenState extends State<UserRatingScreen> {
               valueColor: const AlwaysStoppedAnimation<Color>(AppColors.primary),
             ),
             const SizedBox(height: 8),
-            Text(
-              '$completed of $total participants rated',
-              style: const TextStyle(fontSize: 14, color: Colors.grey),
-            ),
+            Text('$completed of $total participants rated', style: const TextStyle(fontSize: 14, color: Colors.grey)),
           ],
         ),
       );
@@ -168,7 +162,7 @@ class _UserRatingScreenState extends State<UserRatingScreen> {
             Switch(
               value: controller.globalAnonymous,
               onChanged: (_) => controller.toggleGlobalAnonymous(),
-              activeColor: AppColors.primary,
+              activeThumbColor: AppColors.primary,
             ),
           ],
         ),
@@ -179,7 +173,7 @@ class _UserRatingScreenState extends State<UserRatingScreen> {
   Widget _buildSubmitButton() {
     return Obx(() {
       final canSubmit = controller.allRatingsCompleted && !controller.isSubmitting;
-      
+
       return Container(
         padding: const EdgeInsets.all(16),
         width: double.infinity,
@@ -189,16 +183,14 @@ class _UserRatingScreenState extends State<UserRatingScreen> {
             backgroundColor: AppColors.primary,
             foregroundColor: Colors.white,
             padding: const EdgeInsets.symmetric(vertical: 16),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
-            ),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           ),
           child: Text(
-            controller.isSubmitting 
-                ? 'Submitting...' 
-                : canSubmit 
-                    ? 'Submit Ratings' 
-                    : 'Complete all ratings to submit',
+            controller.isSubmitting
+                ? 'Submitting...'
+                : canSubmit
+                ? 'Submit Ratings'
+                : 'Complete all ratings to submit',
             style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
           ),
         ),
@@ -213,10 +205,7 @@ class _UserRatingScreenState extends State<UserRatingScreen> {
         title: const Text('Leave Rating Screen?'),
         content: const Text('Your ratings will be lost if you leave now.'),
         actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('Cancel'),
-          ),
+          TextButton(onPressed: () => Navigator.of(context).pop(false), child: const Text('Cancel')),
           TextButton(
             onPressed: () => Navigator.of(context).pop(true),
             child: const Text('Leave', style: TextStyle(color: Colors.red)),
@@ -228,11 +217,6 @@ class _UserRatingScreenState extends State<UserRatingScreen> {
 }
 
 class ParticipantRatingCard extends StatefulWidget {
-  final ParticipantRating participantRating;
-  final Function(int) onRatingChanged;
-  final Function(String) onFeedbackChanged;
-  final VoidCallback onAnonymousToggle;
-
   const ParticipantRatingCard({
     super.key,
     required this.participantRating,
@@ -240,6 +224,10 @@ class ParticipantRatingCard extends StatefulWidget {
     required this.onFeedbackChanged,
     required this.onAnonymousToggle,
   });
+  final ParticipantRating participantRating;
+  final Function(int) onRatingChanged;
+  final Function(String) onFeedbackChanged;
+  final VoidCallback onAnonymousToggle;
 
   @override
   State<ParticipantRatingCard> createState() => _ParticipantRatingCardState();
@@ -252,9 +240,7 @@ class _ParticipantRatingCardState extends State<ParticipantRatingCard> {
   @override
   void initState() {
     super.initState();
-    feedbackController = TextEditingController(
-      text: widget.participantRating.feedbackText.value,
-    );
+    feedbackController = TextEditingController(text: widget.participantRating.feedbackText.value);
   }
 
   @override
@@ -272,9 +258,7 @@ class _ParticipantRatingCardState extends State<ParticipantRatingCard> {
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(12),
           side: BorderSide(
-            color: widget.participantRating.isValid 
-                ? AppColors.primary.withOpacity(0.3) 
-                : Colors.grey.withOpacity(0.3),
+            color: widget.participantRating.isValid ? AppColors.primary.withOpacity(0.3) : Colors.grey.withOpacity(0.3),
             width: 1,
           ),
         ),
@@ -305,7 +289,7 @@ class _ParticipantRatingCardState extends State<ParticipantRatingCard> {
                         : const Icon(LucideIcons.user, color: AppColors.primary),
                   ),
                   const SizedBox(width: 12),
-                  
+
                   // Name and rating stars
                   Expanded(
                     child: Column(
@@ -313,10 +297,7 @@ class _ParticipantRatingCardState extends State<ParticipantRatingCard> {
                       children: [
                         Text(
                           widget.participantRating.displayName,
-                          style: const TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
-                          ),
+                          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
                         ),
                         const SizedBox(height: 8),
                         StarRatingWidget(
@@ -326,19 +307,14 @@ class _ParticipantRatingCardState extends State<ParticipantRatingCard> {
                       ],
                     ),
                   ),
-                  
+
                   // Validation indicator
-                  if (widget.participantRating.isValid)
-                    const Icon(
-                      Icons.check_circle,
-                      color: Colors.green,
-                      size: 20,
-                    ),
+                  if (widget.participantRating.isValid) const Icon(Icons.check_circle, color: Colors.green, size: 20),
                 ],
               ),
-              
+
               const SizedBox(height: 16),
-              
+
               // Feedback section
               GestureDetector(
                 onTap: () => setState(() => isExpanded = !isExpanded),
@@ -346,10 +322,7 @@ class _ParticipantRatingCardState extends State<ParticipantRatingCard> {
                   children: [
                     const Icon(Icons.message, size: 16),
                     const SizedBox(width: 8),
-                    const Text(
-                      'Add feedback (optional)',
-                      style: TextStyle(fontSize: 14, color: Colors.grey),
-                    ),
+                    const Text('Add feedback (optional)', style: TextStyle(fontSize: 14, color: Colors.grey)),
                     const Spacer(),
                     Icon(
                       isExpanded ? Icons.keyboard_arrow_up : Icons.keyboard_arrow_down,
@@ -359,7 +332,7 @@ class _ParticipantRatingCardState extends State<ParticipantRatingCard> {
                   ],
                 ),
               ),
-              
+
               if (isExpanded) ...[
                 const SizedBox(height: 12),
                 TextField(
@@ -368,32 +341,27 @@ class _ParticipantRatingCardState extends State<ParticipantRatingCard> {
                   maxLength: 500,
                   decoration: InputDecoration(
                     hintText: 'Share your experience with this participant...',
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
                     filled: true,
                     fillColor: Colors.grey[50],
                   ),
                   onChanged: widget.onFeedbackChanged,
                 ),
               ],
-              
+
               const SizedBox(height: 12),
-              
+
               // Anonymous toggle
               Row(
                 children: [
                   const Icon(LucideIcons.eyeOff, size: 16, color: Colors.grey),
                   const SizedBox(width: 8),
-                  const Text(
-                    'Anonymous rating',
-                    style: TextStyle(fontSize: 14, color: Colors.grey),
-                  ),
+                  const Text('Anonymous rating', style: TextStyle(fontSize: 14, color: Colors.grey)),
                   const Spacer(),
                   Switch(
                     value: widget.participantRating.isAnonymous.value,
                     onChanged: (_) => widget.onAnonymousToggle(),
-                    activeColor: AppColors.primary,
+                    activeThumbColor: AppColors.primary,
                     materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
                   ),
                 ],
@@ -407,16 +375,10 @@ class _ParticipantRatingCardState extends State<ParticipantRatingCard> {
 }
 
 class StarRatingWidget extends StatelessWidget {
+  const StarRatingWidget({super.key, required this.rating, required this.onRatingChanged, this.maxRating = 5});
   final int rating;
   final Function(int) onRatingChanged;
   final int maxRating;
-
-  const StarRatingWidget({
-    super.key,
-    required this.rating,
-    required this.onRatingChanged,
-    this.maxRating = 5,
-  });
 
   @override
   Widget build(BuildContext context) {
@@ -425,7 +387,7 @@ class StarRatingWidget extends StatelessWidget {
       children: List.generate(maxRating, (index) {
         final starIndex = index + 1;
         final isFilled = starIndex <= rating;
-        
+
         return GestureDetector(
           onTap: () => onRatingChanged(starIndex),
           child: Padding(

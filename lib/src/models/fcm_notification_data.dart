@@ -1,7 +1,5 @@
 // ignore_for_file: library_private_types_in_public_api
 
-import 'dart:convert';
-
 import 'package:firebase_messaging/firebase_messaging.dart';
 
 import 'fcm_action.dart';
@@ -20,45 +18,6 @@ enum NotificationPriority { low, normal, high, urgent }
 
 /// Data model for representing notifications in the app
 class FCMNotificationData {
-  /// Unique identifier for the notification
-  final String id;
-
-  /// Notification title
-  final String title;
-
-  /// Notification body/message
-  final String body;
-
-  /// Optional image URL for rich notifications
-  final String? imageUrl;
-
-  /// Additional data payload
-  final Map<String, dynamic> data;
-
-  /// Type of notification
-  final NotificationType type;
-
-  /// Timestamp when notification was received
-  final DateTime timestamp;
-
-  /// Whether the notification has been read
-  final bool isRead;
-
-  /// Priority level of the notification
-  final NotificationPriority priority;
-
-  /// Route to navigate to when notification is tapped
-  final String? route;
-
-  /// User ID if this is a user-specific notification
-  final String? userId;
-
-  /// Actions associated with the notification (e.g., buttons)
-  final List<FCMAction> actions;
-
-  /// Room ID for room invite notifications
-  final String? roomId;
-
   const FCMNotificationData({
     required this.id,
     required this.title,
@@ -118,6 +77,45 @@ class FCMNotificationData {
       roomId: json['roomId'],
     );
   }
+
+  /// Unique identifier for the notification
+  final String id;
+
+  /// Notification title
+  final String title;
+
+  /// Notification body/message
+  final String body;
+
+  /// Optional image URL for rich notifications
+  final String? imageUrl;
+
+  /// Additional data payload
+  final Map<String, dynamic> data;
+
+  /// Type of notification
+  final NotificationType type;
+
+  /// Timestamp when notification was received
+  final DateTime timestamp;
+
+  /// Whether the notification has been read
+  final bool isRead;
+
+  /// Priority level of the notification
+  final NotificationPriority priority;
+
+  /// Route to navigate to when notification is tapped
+  final String? route;
+
+  /// User ID if this is a user-specific notification
+  final String? userId;
+
+  /// Actions associated with the notification (e.g., buttons)
+  final List<FCMAction> actions;
+
+  /// Room ID for room invite notifications
+  final String? roomId;
 
   /// Convert NotificationData to JSON
   Map<String, dynamic> toJson() {
@@ -278,15 +276,6 @@ class FCMNotificationData {
 }
 
 class RoomInviteData {
-  final String roomId;
-  final String roomHostCode;
-  final String roomGuestCode;
-  final String title;
-  final String inviteeName;
-  final String deepLink;
-  final DateTime expiry;
-  final _TopicData topicDetails;
-  final _UserData userDetails;
   RoomInviteData({
     required this.roomId,
     required this.roomHostCode,
@@ -312,23 +301,29 @@ class RoomInviteData {
       userDetails: _UserData.fromJson(Map.from(json['user_details'])),
     );
   }
+  final String roomId;
+  final String roomHostCode;
+  final String roomGuestCode;
+  final String title;
+  final String inviteeName;
+  final String deepLink;
+  final DateTime expiry;
+  final _TopicData topicDetails;
+  final _UserData userDetails;
 }
 
 class _UserData {
-  final String userId;
-  final String name;
-  final String email;
   _UserData({required this.userId, required this.name, required this.email});
 
   factory _UserData.fromJson(Map<String, dynamic> json) {
     return _UserData(userId: json['user_id'] ?? '', name: json['name'] ?? '', email: json['email'] ?? '');
   }
+  final String userId;
+  final String name;
+  final String email;
 }
 
 class _TopicData {
-  final String topicId;
-  final String title;
-  final String description;
   _TopicData({required this.topicId, required this.title, required this.description});
 
   factory _TopicData.fromJson(Map<String, dynamic> json) {
@@ -338,4 +333,7 @@ class _TopicData {
       description: json['description'] ?? '',
     );
   }
+  final String topicId;
+  final String title;
+  final String description;
 }

@@ -17,12 +17,6 @@ class AppColors {
 
 // Reusable Settings Item Model
 class SettingsItem {
-  final String title;
-  final IconData icon;
-  final Color iconColor;
-  final VoidCallback onTap;
-  final bool isDanger;
-
   SettingsItem({
     required this.title,
     required this.icon,
@@ -30,13 +24,17 @@ class SettingsItem {
     required this.onTap,
     this.isDanger = false,
   });
+  final String title;
+  final IconData icon;
+  final Color iconColor;
+  final VoidCallback onTap;
+  final bool isDanger;
 }
 
 // Reusable Settings Tile Component
 class SettingsTile extends StatelessWidget {
-  final SettingsItem item;
-
   const SettingsTile({super.key, required this.item});
+  final SettingsItem item;
 
   @override
   Widget build(BuildContext context) {
@@ -66,7 +64,7 @@ class SettingsTile extends StatelessWidget {
               ),
             ),
             // Arrow Icon
-            Icon(Icons.chevron_right, color: AppColors.textSecondary, size: 24),
+            const Icon(Icons.chevron_right, color: AppColors.textSecondary, size: 24),
           ],
         ),
       ),
@@ -76,10 +74,9 @@ class SettingsTile extends StatelessWidget {
 
 // Custom App Bar
 class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
+  const CustomAppBar({super.key, required this.title, this.onBackPressed});
   final String title;
   final VoidCallback? onBackPressed;
-
-  const CustomAppBar({super.key, required this.title, this.onBackPressed});
 
   @override
   Widget build(BuildContext context) {
@@ -91,7 +88,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
         icon: Container(
           width: 36,
           height: 36,
-          decoration: BoxDecoration(color: AppColors.background, shape: BoxShape.circle),
+          decoration: const BoxDecoration(color: AppColors.background, shape: BoxShape.circle),
           child: const Icon(Icons.arrow_back_ios_new, size: 18, color: AppColors.textPrimary),
         ),
         onPressed: onBackPressed ?? () => Navigator.pop(context),

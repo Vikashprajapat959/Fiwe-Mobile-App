@@ -10,7 +10,7 @@ class Strings {
   static const String loginSubtitle = 'Million of people\nconnect on fi.we';
   static const String loginWithGoogle = 'Continue with Google';
   static const String loginButton = 'Login';
-  static String loginWithApple = "Continue with Apple";
+  static String loginWithApple = 'Continue with Apple';
 
   // Signup screen
   static const String signUpTitle = 'Sign up';
@@ -236,9 +236,9 @@ class Strings {
 
   static String selectInterest = "Let's select your interests";
 
-  static String select5Interests = "Select at least 5 interests";
+  static String select5Interests = 'Select at least 5 interests';
 
-  static const String createRoom = "Create Room";
+  static const String createRoom = 'Create Room';
 
   // Helper method to capitalize a string
   static String capitalize(String value) {

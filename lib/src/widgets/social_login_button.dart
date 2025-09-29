@@ -2,15 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 class SocialLoginButton extends StatelessWidget {
-  final VoidCallback? onPressed;
-  final Color? backgroundColor;
-  final String title;
-  final Widget icon;
-  final Color? titleColor;
-
-  final double? height;
-  final double borderRadius;
-
   const SocialLoginButton({
     super.key,
     required this.onPressed,
@@ -21,6 +12,14 @@ class SocialLoginButton extends StatelessWidget {
     this.height = 54,
     this.borderRadius = 12.0,
   });
+  final VoidCallback? onPressed;
+  final Color? backgroundColor;
+  final String title;
+  final Widget icon;
+  final Color? titleColor;
+
+  final double? height;
+  final double borderRadius;
 
   @override
   Widget build(BuildContext context) {

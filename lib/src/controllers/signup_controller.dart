@@ -98,7 +98,7 @@ class SignUpController extends GetxController {
       Get.snackbar(
         Strings.apiError,
         Strings.formatErrorMessage(Strings.failedToCompleteSignup, e),
-        duration: Duration(seconds: Constants.snackbarDurationSeconds),
+        duration: const Duration(seconds: Constants.snackbarDurationSeconds),
       );
       return null;
     }
@@ -218,7 +218,7 @@ class SignUpController extends GetxController {
   Future<void> selectDateOfBirth() async {
     final picked = await Get.dialog<DateTime>(
       DatePickerDialog(
-        initialDate: DateTime.now().subtract(Duration(days: 365 * Constants.minAgeYears)),
+        initialDate: DateTime.now().subtract(const Duration(days: 365 * Constants.minAgeYears)),
         firstDate: DateTime(Constants.minYear),
         lastDate: DateTime.now(),
       ),
@@ -351,10 +351,10 @@ class SignUpController extends GetxController {
   /// Build OTP bottom sheet widget
   Widget _buildOtpBottomSheet() {
     return Container(
-      padding: EdgeInsets.all(24),
+      padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
         color: Get.theme.scaffoldBackgroundColor,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -363,18 +363,18 @@ class SignUpController extends GetxController {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(Strings.verifyPhoneTitle, style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600)),
+              const Text(Strings.verifyPhoneTitle, style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600)),
               IconButton(
                 onPressed: () {
                   _stopCountdown();
                   Get.back();
                 },
-                icon: Icon(Icons.close),
+                icon: const Icon(Icons.close),
               ),
             ],
           ),
 
-          SizedBox(height: 8),
+          const SizedBox(height: 8),
 
           // Phone number display
           Text(
@@ -382,7 +382,7 @@ class SignUpController extends GetxController {
             style: TextStyle(fontSize: 14, color: Colors.grey[600]),
           ),
 
-          SizedBox(height: 24),
+          const SizedBox(height: 24),
 
           // OTP input field
           // AppTextField(
@@ -405,7 +405,7 @@ class SignUpController extends GetxController {
             defaultPinTheme: PinTheme(
               width: 56,
               height: 56,
-              textStyle: TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
+              textStyle: const TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
               decoration: BoxDecoration(
                 border: Border.all(color: Colors.grey),
                 borderRadius: BorderRadius.circular(8),
@@ -414,7 +414,7 @@ class SignUpController extends GetxController {
             focusedPinTheme: PinTheme(
               width: 56,
               height: 56,
-              textStyle: TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
+              textStyle: const TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
               decoration: BoxDecoration(
                 border: Border.all(color: AppColors.primary),
                 borderRadius: BorderRadius.circular(8),
@@ -423,7 +423,7 @@ class SignUpController extends GetxController {
             submittedPinTheme: PinTheme(
               width: 56,
               height: 56,
-              textStyle: TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
+              textStyle: const TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
               decoration: BoxDecoration(
                 border: Border.all(color: Get.theme.primaryColor),
                 borderRadius: BorderRadius.circular(8),
@@ -433,21 +433,21 @@ class SignUpController extends GetxController {
             pinputAutovalidateMode: PinputAutovalidateMode.onSubmit,
             showCursor: true,
           ),
-          SizedBox(height: 24),
+          const SizedBox(height: 24),
 
           // Verify button
           Obx(() => AppButtonElevated(text: Strings.verifyOtp, onPressed: isPhoneVerifying ? null : verifyOtp)),
 
-          SizedBox(height: 16),
+          const SizedBox(height: 16),
 
           // Resend OTP
           Obx(
             () => otpResendEnabled
-                ? TextButton(onPressed: resendOtp, child: Text(Strings.resendOtp))
+                ? TextButton(onPressed: resendOtp, child: const Text(Strings.resendOtp))
                 : Text('${Strings.resendOtpIn} ${countdown}s', style: TextStyle(color: Colors.grey[600])),
           ),
 
-          SizedBox(height: 16),
+          const SizedBox(height: 16),
         ],
       ),
     );
@@ -507,7 +507,7 @@ class SignUpController extends GetxController {
     _otpResendEnabled.value = false;
     _countdown.value = Constants.otpResendTimeoutSeconds;
 
-    _countdownTimer = Timer.periodic(Duration(seconds: 1), (timer) {
+    _countdownTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
       if (_countdown.value > 0) {
         _countdown.value--;
       } else {

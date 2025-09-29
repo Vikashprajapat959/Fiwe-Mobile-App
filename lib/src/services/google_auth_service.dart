@@ -66,7 +66,7 @@ class GoogleAuthService {
   Future<GoogleSignInAccount?> signIn() async {
     try {
       if (!_googleSignIn.supportsAuthenticate()) {
-        throw Exception("Google Sign-In authenticate not supported on this platform.");
+        throw Exception('Google Sign-In authenticate not supported on this platform.');
       }
 
       // First, try to sign out any existing user to clear state
