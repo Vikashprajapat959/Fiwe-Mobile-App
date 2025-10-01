@@ -111,10 +111,10 @@ class SignUpController extends GetxController {
       return;
     }
 
-    // if (!_isPhoneVerified.value) {
-    //   Get.snackbar(Strings.phoneVerificationRequired, Strings.pleaseVerifyPhone);
-    //   return;
-    // }
+    if (!_isPhoneVerified.value) {
+      Get.snackbar(Strings.phoneVerificationRequired, Strings.pleaseVerifyPhone);
+      return;
+    }
 
     if (!_acceptTerms.value) {
       Get.snackbar(Strings.termsRequiredTitle, Strings.termsRequired);

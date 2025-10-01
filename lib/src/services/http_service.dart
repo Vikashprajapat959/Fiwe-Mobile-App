@@ -13,17 +13,18 @@ import '../utils/exceptions.dart';
 /// HTTP service for making API requests with error handling and logging
 class HttpService extends GetxService {
   HttpService({
-    this.baseUrl = 'http://192.168.29.12:8000/api', // 'http://10.35.236.250:8000/api', // 'https://fiwe.in/api',
-    this.defaultHeaders = const <String, String>{
-      'Content-Type': 'application/json',
-      'accept': 'application/json',
-    },
+    this.baseUrl =
+        'http://192.168.29.15:8000/api', //'http://192.168.29.12:8000/api', // 'http://10.35.236.250:8000/api', // 'https://fiwe.in/api',
+    this.defaultHeaders = const <String, String>{'Content-Type': 'application/json', 'accept': 'application/json'},
     this.enableLogging = kDebugMode,
   });
 
   final String? baseUrl;
   final Map<String, String> defaultHeaders;
   final bool enableLogging;
+
+  // instance
+  static HttpService get instance => Get.find();
 
   /// Performs a DELETE request
   Future<ApiResponse<Map<String, dynamic>>> delete(
@@ -41,11 +42,7 @@ class HttpService extends GetxService {
     final stopwatch = Stopwatch()..start();
 
     try {
-      final response = await http.delete(
-        uri,
-        headers: requestHeaders,
-        body: requestBody,
-      );
+      final response = await http.delete(uri, headers: requestHeaders, body: requestBody);
 
       stopwatch.stop();
 
@@ -119,11 +116,7 @@ class HttpService extends GetxService {
     final stopwatch = Stopwatch()..start();
 
     try {
-      final response = await http.post(
-        uri,
-        headers: requestHeaders,
-        body: requestBody,
-      );
+      final response = await http.post(uri, headers: requestHeaders, body: requestBody);
 
       stopwatch.stop();
 
@@ -158,11 +151,7 @@ class HttpService extends GetxService {
     final stopwatch = Stopwatch()..start();
 
     try {
-      final response = await http.put(
-        uri,
-        headers: requestHeaders,
-        body: requestBody,
-      );
+      final response = await http.put(uri, headers: requestHeaders, body: requestBody);
 
       stopwatch.stop();
 
@@ -182,10 +171,7 @@ class HttpService extends GetxService {
   }
 
   /// Builds headers for the request
-  Future<Map<String, String>> _buildHeaders(
-    Map<String, String>? headers,
-    bool isAuthorized,
-  ) async {
+  Future<Map<String, String>> _buildHeaders(Map<String, String>? headers, bool isAuthorized) async {
     final requestHeaders = <String, String>{...defaultHeaders, ...?headers};
 
     if (isAuthorized) {
@@ -200,9 +186,7 @@ class HttpService extends GetxService {
 
   /// Builds URI from endpoint and query parameters
   Uri _buildUri(String endpoint, [Map<String, dynamic>? queryParams]) {
-    return Uri.parse('$baseUrl$endpoint').replace(
-      queryParameters: queryParams,
-    );
+    return Uri.parse('$baseUrl$endpoint').replace(queryParameters: queryParams);
   }
 
   /// Gets the bearer token from shared preferences
@@ -231,11 +215,7 @@ class HttpService extends GetxService {
       case 500:
         throw ServerException(message, uri: uri);
       default:
-        throw BaseHttpException(
-          message,
-          uri: uri,
-          statusCode: response.statusCode,
-        );
+        throw BaseHttpException(message, uri: uri, statusCode: response.statusCode);
     }
   }
 
@@ -244,34 +224,20 @@ class HttpService extends GetxService {
     if (!enableLogging) return;
 
     final timestamp = DateTime.now().toIso8601String();
-    developer.log(
-      '\n💥 ═══════════════════════════════════════════════════════════════',
-      name: 'HTTP_ERROR',
-    );
+    developer.log('\n💥 ═══════════════════════════════════════════════════════════════', name: 'HTTP_ERROR');
     developer.log('📅 $timestamp', name: 'HTTP_ERROR');
     developer.log('🚨 Error occurred for: $uri', name: 'HTTP_ERROR');
     developer.log('⏱️  Duration: ${duration.inMilliseconds}ms', name: 'HTTP_ERROR');
     developer.log('💢 Error: $error', name: 'HTTP_ERROR');
-    developer.log(
-      '═══════════════════════════════════════════════════════════════\n',
-      name: 'HTTP_ERROR',
-    );
+    developer.log('═══════════════════════════════════════════════════════════════\n', name: 'HTTP_ERROR');
   }
 
   /// Logs request information
-  void _logRequest(
-    String method,
-    Uri uri, {
-    Map<String, String>? headers,
-    String? body,
-  }) {
+  void _logRequest(String method, Uri uri, {Map<String, String>? headers, String? body}) {
     if (!enableLogging) return;
 
     final timestamp = DateTime.now().toIso8601String();
-    developer.log(
-      '\n🚀 ═══════════════════════════════════════════════════════════════',
-      name: 'HTTP_REQUEST',
-    );
+    developer.log('\n🚀 ═══════════════════════════════════════════════════════════════', name: 'HTTP_REQUEST');
     developer.log('📅 $timestamp', name: 'HTTP_REQUEST');
     developer.log('🔥 $method ${uri.toString()}', name: 'HTTP_REQUEST');
 
@@ -294,10 +260,7 @@ class HttpService extends GetxService {
       }
     }
 
-    developer.log(
-      '═══════════════════════════════════════════════════════════════\n',
-      name: 'HTTP_REQUEST',
-    );
+    developer.log('═══════════════════════════════════════════════════════════════\n', name: 'HTTP_REQUEST');
   }
 
   /// Logs response information
@@ -314,18 +277,9 @@ class HttpService extends GetxService {
       name: 'HTTP_RESPONSE',
     );
     developer.log('📅 $timestamp', name: 'HTTP_RESPONSE');
-    developer.log(
-      '⚡ ${response.request?.method} ${response.request?.url}',
-      name: 'HTTP_RESPONSE',
-    );
-    developer.log(
-      '🎯 Status: $statusCode ${response.reasonPhrase ?? ""}',
-      name: 'HTTP_RESPONSE',
-    );
-    developer.log(
-      '⏱️  Duration: ${duration.inMilliseconds}ms',
-      name: 'HTTP_RESPONSE',
-    );
+    developer.log('⚡ ${response.request?.method} ${response.request?.url}', name: 'HTTP_RESPONSE');
+    developer.log('🎯 Status: $statusCode ${response.reasonPhrase ?? ""}', name: 'HTTP_RESPONSE');
+    developer.log('⏱️  Duration: ${duration.inMilliseconds}ms', name: 'HTTP_RESPONSE');
 
     if (response.headers.isNotEmpty) {
       developer.log('📋 Response Headers:', name: 'HTTP_RESPONSE');
@@ -349,10 +303,7 @@ class HttpService extends GetxService {
       }
     }
 
-    developer.log(
-      '═══════════════════════════════════════════════════════════════\n',
-      name: 'HTTP_RESPONSE',
-    );
+    developer.log('═══════════════════════════════════════════════════════════════\n', name: 'HTTP_RESPONSE');
   }
 
   /// Parses API response into standardized format

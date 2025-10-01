@@ -18,6 +18,10 @@ class HomeController extends GetxController {
   late FCMNotificationService _notificationService;
   BuildContext? _context;
 
+  // instance
+  static HomeController get instance => Get.find<HomeController>();
+
+  final RoomRepository roomRepository = RoomRepository.instance;
   // get user
   User? get user => Get.find<AuthController>().userProfile;
 
@@ -155,6 +159,24 @@ class HomeController extends GetxController {
       );
     } else {
       dev.log('No context available to show rejoin room notification for room: ${room.title}', name: 'HomeController');
+    }
+  }
+
+  Future<List<HMSVideoRoom>> getActiveRooms() async {
+    try {
+      final roomRepository = RoomRepository.instance;
+      final response = await roomRepository.getActiveRooms();
+      if (response.success && response.data != null) {
+        dev.log('Active rooms fetched successfully: ${response.data!.length}', name: 'HomeController');
+        return response.data!;
+        // You can store the room details in a variable or state management solution as needed
+      } else {
+        dev.log('No active rooms found or failed to fetch: ${response.message}', name: 'HomeController');
+        throw Exception('No active rooms found or failed to fetch: ${response.message}');
+      }
+    } catch (e) {
+      dev.log('Error fetching active rooms: $e', name: 'HomeController');
+      rethrow;
     }
   }
 }

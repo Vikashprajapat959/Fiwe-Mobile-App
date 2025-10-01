@@ -3,7 +3,10 @@ import 'dart:io';
 import 'package:fiwe/src/utils/assets.dart';
 import 'package:fiwe/src/utils/colors.dart';
 import 'package:fiwe/src/utils/constants.dart';
+import 'package:fiwe/src/widgets/custom_button.dart';
+import 'package:fiwe/src/widgets/custom_text_field.dart';
 import 'package:fiwe/src/widgets/social_login_button.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -30,13 +33,25 @@ class LoginView extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.center,
           mainAxisAlignment: MainAxisAlignment.end,
           mainAxisSize: MainAxisSize.min,
-          children: [
+          children: <Widget>[
             Image.asset(Assets.images.logoTransparent, width: Get.width * 0.4),
             SizedBox(height: Get.height * .1),
             const Text(
               Strings.loginSubtitle,
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.surface),
             ),
+
+            // test login button
+            if (kDebugMode) ...[
+              const SizedBox(height: 16),
+              AppTextField(
+                hintText: 'Enter Email',
+                controller: controller.emailController,
+              ).paddingSymmetric(horizontal: 16),
+              const SizedBox(height: 16),
+              AppButtonElevated(text: 'Test login', onPressed: controller.testLogin).paddingSymmetric(horizontal: 16),
+            ],
+
             const SizedBox(height: 16),
 
             // Google Sign-In Button

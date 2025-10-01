@@ -124,4 +124,27 @@ class RoomRepository extends GetxService {
       );
     }
   }
+
+  Future<ApiResponse<List<HMSVideoRoom>>> getActiveRooms() async {
+    try {
+      final response = await _httpService.get(Endpoints.activeRooms, isAuthorized: true);
+      if (response.success && response.data != null) {
+        final rooms = (response.data?['rooms'] as List).map((e) => HMSVideoRoom.fromJson(e)).toList();
+        return ApiResponse<List<HMSVideoRoom>>(
+          success: true,
+          data: rooms,
+          message: 'Active rooms fetched successfully',
+        );
+      } else {
+        return ApiResponse<List<HMSVideoRoom>>(success: false, data: null, message: response.message);
+      }
+    } catch (e) {
+      dev.log('Error fetching active rooms: $e', name: 'RoomRepository');
+      return ApiResponse<List<HMSVideoRoom>>(
+        success: false,
+        data: null,
+        message: 'An error occurred while fetching active rooms: $e',
+      );
+    }
+  }
 }

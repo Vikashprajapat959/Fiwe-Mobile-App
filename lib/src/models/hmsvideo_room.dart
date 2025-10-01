@@ -1,6 +1,43 @@
 // Model for Video Room
 // ignore_for_file: library_private_types_in_public_api
 
+int? _parseInt(dynamic v) {
+  if (v == null) return null;
+  if (v is int) return v;
+  if (v is String) return int.tryParse(v);
+  return null;
+}
+
+String? _parseString(dynamic v) {
+  if (v == null) return null;
+  return v.toString();
+}
+
+bool? _parseBool(dynamic v) {
+  if (v == null) return null;
+  if (v is bool) return v;
+  if (v is String) {
+    final s = v.toLowerCase();
+    if (s == 'true') return true;
+    if (s == 'false') return false;
+  }
+  if (v is int) return v != 0;
+  return null;
+}
+
+DateTime? _parseDateTime(dynamic v) {
+  if (v == null) return null;
+  if (v is DateTime) return v;
+  if (v is String) {
+    try {
+      return DateTime.parse(v);
+    } catch (_) {
+      return null;
+    }
+  }
+  return null;
+}
+
 class HMSVideoRoom {
   HMSVideoRoom({
     required this.objectId,
@@ -8,45 +45,48 @@ class HMSVideoRoom {
     required this.title,
     required this.description,
     required this.status,
-    required this.capacity,
-    required this.currentOccupancy,
-    required this.availableSlots,
+    this.capacity,
+    this.currentOccupancy,
+    this.availableSlots,
     required this.isPublic,
     this.joinToken,
     this.expiresAt,
     this.createdAt,
-    required this.topic,
-    required this.userRole,
+    this.topic,
+    this.userRole,
     this.joinedAt,
-    required this.roomHostCode,
-    required this.roomGuestCode,
-    required this.creator,
+    this.roomHostCode,
+    this.roomGuestCode,
+    this.creator,
   });
 
   factory HMSVideoRoom.fromJson(Map<String, dynamic> json) {
     return HMSVideoRoom(
-      objectId: json['room_id'] as String,
-      hmsRoomId: json['hms_room_id'] as String,
-      title: json['title'] as String,
-      description: json['description'] as String,
-      status: json['status'] as String,
-      capacity: json['capacity'] as int,
-      currentOccupancy: json['current_occupancy'] != null ? json['current_occupancy'] as int : null,
-      availableSlots: json['available_slots'] != null ? json['available_slots'] as int : null,
-      isPublic: json['is_public'] as bool,
-      joinToken: json['join_token'] != null ? json['join_token'] as String : null,
-      expiresAt: json['expires_at'] != null ? DateTime.parse(json['expires_at'] as String) : null,
-      createdAt: json['created_at'] != null ? DateTime.parse(json['created_at'] as String) : null,
-      // can be null
-      topic: json['topic'] != null ? _Topic.fromJson(json['topic'] as Map<String, dynamic>) : null,
-      userRole: json['user_role'] as String?,
-      joinedAt: json['joined_at'] != null ? DateTime.parse(json['joined_at'] as String) : null,
-      roomHostCode: json['room_host_code'] as String,
-      roomGuestCode: json['room_guest_code'] as String,
-      // can be null
-      creator: json['creator'] != null ? _Creator.fromJson(json['creator'] as Map<String, dynamic>) : null,
+      objectId: _parseString(json['room_id']) ?? '',
+      hmsRoomId: _parseString(json['hms_room_id']) ?? '',
+      title: _parseString(json['title']) ?? '',
+      description: _parseString(json['description']) ?? '',
+      status: _parseString(json['status']) ?? '',
+      capacity: _parseInt(json['capacity']),
+      currentOccupancy: _parseInt(json['current_occupancy']),
+      availableSlots: _parseInt(json['available_slots']),
+      isPublic: _parseBool(json['is_public']) ?? false,
+      joinToken: _parseString(json['join_token']),
+      expiresAt: _parseDateTime(json['expires_at']),
+      createdAt: _parseDateTime(json['created_at']),
+      topic: json['topic'] != null && json['topic'] is Map<String, dynamic>
+          ? _Topic.fromJson(json['topic'] as Map<String, dynamic>)
+          : null,
+      userRole: _parseString(json['user_role']),
+      joinedAt: _parseDateTime(json['joined_at']),
+      roomHostCode: _parseString(json['room_host_code']),
+      roomGuestCode: _parseString(json['room_guest_code']),
+      creator: json['creator'] != null && json['creator'] is Map<String, dynamic>
+          ? _Creator.fromJson(json['creator'] as Map<String, dynamic>)
+          : null,
     );
   }
+
   final String objectId;
   final String hmsRoomId;
   final String title;
@@ -62,8 +102,8 @@ class HMSVideoRoom {
   final _Topic? topic;
   final String? userRole;
   final DateTime? joinedAt;
-  final String roomHostCode;
-  final String roomGuestCode;
+  final String? roomHostCode;
+  final String? roomGuestCode;
   final _Creator? creator;
 
   Map<String, dynamic> toJson() {
@@ -91,27 +131,39 @@ class HMSVideoRoom {
 }
 
 class _Topic {
-  _Topic({required this.id, required this.name, required this.description});
+  _Topic({this.id, required this.name, required this.description, required this.thumbnail});
 
   factory _Topic.fromJson(Map<String, dynamic> json) {
-    return _Topic(id: json['id'] as String, name: json['name'] as String, description: json['description'] as String);
+    return _Topic(
+      id: _parseString(json['id']),
+      thumbnail: _parseString(json['thumbnail']) ?? '',
+      name: _parseString(json['name']) ?? '',
+      description: _parseString(json['description']) ?? '',
+    );
   }
-  final String id;
+  // normalize id to String? (UUID or numeric string)
+  final String? id;
   final String name;
   final String description;
+  final String thumbnail;
 
   Map<String, dynamic> toJson() {
-    return {'id': id, 'name': name, 'description': description};
+    return {'id': id, 'name': name, 'description': description, 'thumbnail': thumbnail};
   }
 }
 
 class _Creator {
-  _Creator({required this.id, required this.name, required this.email});
+  _Creator({this.id, required this.name, required this.email});
 
   factory _Creator.fromJson(Map<String, dynamic> json) {
-    return _Creator(id: json['id'] as String, name: json['name'] as String, email: json['email'] as String);
+    return _Creator(
+      id: _parseString(json['id']), // converts 56 -> "56"
+      name: _parseString(json['name']) ?? '',
+      email: _parseString(json['email']) ?? '',
+    );
   }
-  final String id;
+  // normalize id to String? so both numeric and string ids handled
+  final String? id;
   final String name;
   final String email;
 

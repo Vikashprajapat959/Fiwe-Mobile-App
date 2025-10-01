@@ -2,7 +2,10 @@ import 'dart:developer';
 import 'dart:typed_data';
 
 import 'package:fiwe/src/controllers/home_controller.dart';
+import 'package:fiwe/src/models/hmsvideo_room.dart';
+import 'package:fiwe/src/utils/app_text_styles.dart';
 import 'package:fiwe/src/utils/colors.dart';
+import 'package:fiwe/src/utils/constants.dart';
 import 'package:fiwe/src/utils/helper.dart';
 import 'package:fiwe/src/views/home/user_notification_view.dart';
 import 'package:fiwe/src/views/profile/profile_view.dart';
@@ -134,37 +137,65 @@ class HomeScreen extends StatelessWidget {
   }
 
   Widget _buildActiveRoomSection() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            const Text('Active Room', style: AppTextStyles.sectionTitle),
-            TextButton(
-              onPressed: () {},
-              child: const Text('View All', style: AppTextStyles.viewAll),
-            ),
-          ],
-        ),
-        const SizedBox(height: 16),
-        SizedBox(
-          height: 200,
-          child: ListView.separated(
-            scrollDirection: Axis.horizontal,
-            itemCount: 3,
-            separatorBuilder: (context, index) => const SizedBox(width: 16),
-            itemBuilder: (context, index) {
-              return RoomCard(
-                roomName: 'Room name',
-                createdBy: 'John Smit',
-                joinedUsers: '3/5',
-                imageUrl: 'assets/room_$index.jpg',
-              );
-            },
-          ),
-        ),
-      ],
+    return FutureBuilder<List<HMSVideoRoom>>(
+      future: HomeController.instance.getActiveRooms(),
+      builder: (context, asyncSnapshot) {
+        if (asyncSnapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: LinearProgressIndicator());
+        } else if (asyncSnapshot.connectionState == ConnectionState.done && asyncSnapshot.hasError) {
+          return Center(child: Text('Error: ${asyncSnapshot.error}'));
+        } else {
+          final rooms = asyncSnapshot.data;
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisAlignment: MainAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text('Active Room', style: AppTextStyles.sectionTitle),
+                  TextButton(
+                    onPressed: () {},
+                    child: const Text('View All', style: AppTextStyles.viewAll),
+                  ),
+                ],
+              ),
+
+              // const SizedBox(height: 8),
+              // ListView.separated(
+              //   scrollDirection: Axis.horizontal,
+              //   itemCount: 3,
+              //   shrinkWrap: true, // measure to children in scrollDirection
+              //   primary: false,
+              //   separatorBuilder: (context, index) => const SizedBox(width: 14),
+              //   itemBuilder: (context, index) {
+              //     return RoomCard(
+              //       roomName: 'Room name',
+              //       createdBy: 'John Smit',
+              //       joinedUsers: '3/5',
+              //       imageUrl: 'assets/room_$index.jpg',
+              //     );
+              //   },
+              // ),
+              SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: Row(
+                  spacing: 14,
+                  children: List.generate(3, (index) {
+                    return RoomCard(
+                      roomName: rooms![index].title,
+                      createdBy: rooms[index].creator?.name ?? '',
+                      joinedUsers: '${rooms[index].currentOccupancy}/${rooms[index].capacity ?? 5}',
+                      imageUrl: rooms[index].topic?.thumbnail ?? '',
+                    );
+                  }),
+                ),
+              ),
+            ],
+          );
+        }
+      },
     );
   }
 
@@ -387,25 +418,28 @@ class RoomCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: 200,
+      width: 160,
+      padding: const EdgeInsets.all(4),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.08), blurRadius: 8, offset: const Offset(0, 2))],
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [BoxShadow(color: Colors.black.withAlpha(16), blurRadius: 8, offset: const Offset(0, 2))],
       ),
+      alignment: Alignment.topCenter,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
         children: [
           Stack(
             children: [
               Container(
-                height: 100,
-                width: double.infinity,
+                height: 120,
+                width: 150,
                 decoration: BoxDecoration(
                   color: AppColors.lightGray,
-                  borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+                  borderRadius: const BorderRadius.all(Radius.circular(12)),
                   image: DecorationImage(
-                    image: AssetImage(imageUrl),
+                    image: MemoryImage(Helper.base64ToBytes(imageUrl) ?? Uint8List(255)),
                     fit: BoxFit.cover,
                     onError: (exception, stackTrace) {},
                   ),
@@ -423,16 +457,25 @@ class RoomCard extends StatelessWidget {
             ],
           ),
           Padding(
-            padding: const EdgeInsets.all(12),
+            padding: const EdgeInsets.all(4.0),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
               children: [
-                Text(roomName, style: AppTextStyles.cardTitle),
+                SizedBox(
+                  height: 35,
+                  child: Text(roomName, style: AppTextStyles.cardTitle, overflow: TextOverflow.ellipsis),
+                ),
                 const SizedBox(height: 4),
                 Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const Text('Created by ', style: AppTextStyles.cardSubtitle),
-                    Text(createdBy, style: AppTextStyles.cardSubtitleBold),
+                    const SizedBox(width: 6),
+                    Expanded(
+                      child: Text(createdBy, style: AppTextStyles.cardSubtitleBold, textAlign: TextAlign.end),
+                    ),
                   ],
                 ),
                 const SizedBox(height: 4),
@@ -580,41 +623,13 @@ class GradientButton extends StatelessWidget {
       onTap: onPressed,
       child: Container(
         width: double.infinity,
-        height: 36,
+        height: 35,
         decoration: BoxDecoration(
-          gradient: const LinearGradient(
-            colors: [AppColors.teal, AppColors.orange],
-            begin: Alignment.centerLeft,
-            end: Alignment.centerRight,
-          ),
-          borderRadius: BorderRadius.circular(18),
+          gradient: Constants.gradientDecoration.gradient,
+          borderRadius: BorderRadius.circular(12),
         ),
         child: Center(child: Text(text, style: AppTextStyles.buttonText)),
       ),
     );
   }
-}
-
-class AppTextStyles {
-  static const TextStyle headerTitle = TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: AppColors.darkText);
-
-  static const TextStyle subtitle = TextStyle(fontSize: 14, color: AppColors.teal, fontWeight: FontWeight.w500);
-
-  static const TextStyle sectionTitle = TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.darkText);
-
-  static const TextStyle viewAll = TextStyle(fontSize: 14, color: AppColors.teal, fontWeight: FontWeight.w500);
-
-  static const TextStyle cardName = TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.darkText);
-
-  static const TextStyle cardTitle = TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.darkText);
-
-  static const TextStyle cardSubtitle = TextStyle(fontSize: 12, color: AppColors.mediumText);
-
-  static const TextStyle cardSubtitleBold = TextStyle(fontSize: 12, color: AppColors.teal, fontWeight: FontWeight.w600);
-
-  static const TextStyle rating = TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.darkText);
-
-  static const TextStyle buttonText = TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Colors.white);
-
-  static const TextStyle badge = TextStyle(fontSize: 10, fontWeight: FontWeight.w500, color: Colors.white);
 }
