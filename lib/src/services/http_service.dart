@@ -14,7 +14,7 @@ import '../utils/exceptions.dart';
 class HttpService extends GetxService {
   HttpService({
     this.baseUrl =
-        'http://192.168.29.15:8000/api', //'http://192.168.29.12:8000/api', // 'http://10.35.236.250:8000/api', // 'https://fiwe.in/api',
+        'http://10.146.202.250:8000/api', //'http://192.168.29.12:8000/api', // 'http://10.35.236.250:8000/api', // 'https://fiwe.in/api',
     this.defaultHeaders = const <String, String>{'Content-Type': 'application/json', 'accept': 'application/json'},
     this.enableLogging = kDebugMode,
   });

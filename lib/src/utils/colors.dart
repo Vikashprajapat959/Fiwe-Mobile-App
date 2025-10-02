@@ -45,4 +45,11 @@ class AppColors {
   static const Color lightGray = Color(0xFFE0E0E0);
   static const Color darkText = Color(0xFF212121);
   static const Color mediumText = Color(0xFF757575);
+
+  static const Color accent = Color(0xFFFFC107);
+  static const Color cardBackground = Colors.white;
+  static const Color textPrimary = Color(0xFF212121);
+  static const Color divider = Color(0xFFE0E0E0);
+  static const Color starColor = Color(0xFFFFC107);
+  static const Color badgeOrange = Color(0xFFFF9800);
 }

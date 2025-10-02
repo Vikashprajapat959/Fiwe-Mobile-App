@@ -150,4 +150,6 @@ class Constants {
       ],
     ),
   );
+
+  static String searchUserRoute = '/search-user';
 }

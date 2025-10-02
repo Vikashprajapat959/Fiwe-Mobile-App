@@ -20,6 +20,7 @@ import 'package:fiwe/src/views/login/signup_view.dart';
 import 'package:fiwe/src/views/login/splash_view.dart';
 import 'package:fiwe/src/views/profile/profile_view.dart';
 import 'package:fiwe/src/views/rating/user_rating_screen.dart';
+import 'package:fiwe/src/views/search/search_view.dart';
 import 'package:fiwe/src/views/video_room/video_room_view.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -57,12 +58,9 @@ void main() async {
 
   // Initialize 100ms SDK
   await _initializeHMS();
-  
+
   // Set preferred orientations
-  await SystemChrome.setPreferredOrientations([
-    DeviceOrientation.portraitUp,
-    DeviceOrientation.portraitDown,
-  ]);
+  await SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp, DeviceOrientation.portraitDown]);
 
   runApp(const FiweApp());
 }
@@ -83,12 +81,7 @@ Future<void> _initializeHMS() async {
     // Add your actual HMS initialization code here
     developer.log('100ms SDK initialized successfully', name: 'HMS');
   } catch (e, stackTrace) {
-    developer.log(
-      'Error initializing 100ms SDK: $e',
-      name: 'HMS',
-      error: e,
-      stackTrace: stackTrace,
-    );
+    developer.log('Error initializing 100ms SDK: $e', name: 'HMS', error: e, stackTrace: stackTrace);
     CrashlyticsService.recordError(e, stackTrace);
   }
 }
@@ -97,11 +90,11 @@ Future<void> _initializeHMS() async {
 Future<void> _initializeServices() async {
   try {
     developer.log('Initializing services...', name: 'Main');
-    
+
     // Initialize video room services first (PIP, notifications, monitoring)
     await VideoRoomServiceRegistry.registerServices();
     await VideoRoomServiceRegistry.initializeServices();
-    
+
     // Register other core services with GetX dependency injection
     Get.put(FCMNotificationService(), permanent: true);
     Get.put(HttpService(), permanent: true);
@@ -115,18 +108,13 @@ Future<void> _initializeServices() async {
     Get.put(VideoRoomController(), permanent: true);
     Get.lazyPut(() => UserRatingController());
     Get.put(DeepLinkService(), permanent: true);
-    
+
     // Initialize foreground task permissions
     await _initializeForegroundTask();
-    
+
     developer.log('All services initialized successfully', name: 'Main');
   } catch (e, stackTrace) {
-    developer.log(
-      'Error initializing services: $e',
-      name: 'Main',
-      error: e,
-      stackTrace: stackTrace,
-    );
+    developer.log('Error initializing services: $e', name: 'Main', error: e, stackTrace: stackTrace);
     CrashlyticsService.recordError(e, stackTrace);
     // Don't rethrow - allow app to continue with limited functionality
   }
@@ -137,7 +125,7 @@ Future<void> _initializeForegroundTask() async {
   try {
     // Request notification permissions first
     await FlutterForegroundTask.requestIgnoreBatteryOptimization();
-    
+
     // Initialize with proper configuration for persistent notifications
     FlutterForegroundTask.init(
       androidNotificationOptions: AndroidNotificationOptions(
@@ -150,10 +138,7 @@ Future<void> _initializeForegroundTask() async {
         enableVibration: false,
         playSound: false,
       ),
-      iosNotificationOptions: const IOSNotificationOptions(
-        showNotification: true,
-        playSound: false,
-      ),
+      iosNotificationOptions: const IOSNotificationOptions(showNotification: true, playSound: false),
       foregroundTaskOptions: ForegroundTaskOptions(
         eventAction: ForegroundTaskEventAction.repeat(5000), // Update every 5 seconds
         autoRunOnBoot: false,
@@ -161,18 +146,10 @@ Future<void> _initializeForegroundTask() async {
         allowWifiLock: false,
       ),
     );
-    
-    developer.log(
-      'Foreground task initialized with persistent notification settings',
-      name: 'Main',
-    );
+
+    developer.log('Foreground task initialized with persistent notification settings', name: 'Main');
   } catch (e, stackTrace) {
-    developer.log(
-      'Error initializing foreground task: $e',
-      name: 'Main',
-      error: e,
-      stackTrace: stackTrace,
-    );
+    developer.log('Error initializing foreground task: $e', name: 'Main', error: e, stackTrace: stackTrace);
     CrashlyticsService.recordError(e, stackTrace);
   }
 }
@@ -197,10 +174,7 @@ class FiweApp extends StatelessWidget {
   /// Build light theme with Material 3 design
   ThemeData _buildLightTheme() {
     return ThemeData.from(
-      colorScheme: ColorScheme.fromSeed(
-        seedColor: AppColors.primary,
-        brightness: Brightness.light,
-      ),
+      colorScheme: ColorScheme.fromSeed(seedColor: AppColors.primary, brightness: Brightness.light),
       textTheme: GoogleFonts.interTextTheme(),
     );
   }
@@ -208,10 +182,7 @@ class FiweApp extends StatelessWidget {
   /// Build dark theme with Material 3 design
   ThemeData _buildDarkTheme() {
     return ThemeData.from(
-      colorScheme: ColorScheme.fromSeed(
-        seedColor: AppColors.primary,
-        brightness: Brightness.dark,
-      ),
+      colorScheme: ColorScheme.fromSeed(seedColor: AppColors.primary, brightness: Brightness.dark),
       textTheme: GoogleFonts.interTextTheme(),
     );
   }
@@ -223,26 +194,12 @@ class FiweApp extends StatelessWidget {
       GetPage(name: Constants.homeViewRoute, page: () => const HomeView()),
       GetPage(name: Constants.loginViewRoute, page: () => const LoginView()),
       GetPage(name: Constants.signUpViewRoute, page: () => const SignUpView()),
-      GetPage(
-        name: Constants.interestSelectionViewRoute,
-        page: () => const InterestSelectionView(),
-      ),
-      GetPage(
-        name: Constants.videoRoomRoute,
-        page: () => const VideoRoomView(),
-      ),
-      GetPage(
-        name: Constants.createRoomRoute,
-        page: () => const CreateRoomView(),
-      ),
-      GetPage(
-        name: Constants.userRatingRoute,
-        page: () => const UserRatingScreen(),
-      ),
-      GetPage(
-        name: Constants.profileScreenRoute,
-        page: () => const ProfileScreen(),
-      ),
+      GetPage(name: Constants.interestSelectionViewRoute, page: () => const InterestSelectionView()),
+      GetPage(name: Constants.videoRoomRoute, page: () => const VideoRoomView()),
+      GetPage(name: Constants.createRoomRoute, page: () => const CreateRoomView()),
+      GetPage(name: Constants.userRatingRoute, page: () => const UserRatingScreen()),
+      GetPage(name: Constants.profileScreenRoute, page: () => const ProfileScreen()),
+      GetPage(name: Constants.searchUserRoute, page: () => const SearchView()),
     ];
   }
 

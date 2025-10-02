@@ -146,54 +146,58 @@ class HomeScreen extends StatelessWidget {
           return Center(child: Text('Error: ${asyncSnapshot.error}'));
         } else {
           final rooms = asyncSnapshot.data;
-          return Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisAlignment: MainAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  const Text('Active Room', style: AppTextStyles.sectionTitle),
-                  TextButton(
-                    onPressed: () {},
-                    child: const Text('View All', style: AppTextStyles.viewAll),
-                  ),
-                ],
-              ),
-
-              // const SizedBox(height: 8),
-              // ListView.separated(
-              //   scrollDirection: Axis.horizontal,
-              //   itemCount: 3,
-              //   shrinkWrap: true, // measure to children in scrollDirection
-              //   primary: false,
-              //   separatorBuilder: (context, index) => const SizedBox(width: 14),
-              //   itemBuilder: (context, index) {
-              //     return RoomCard(
-              //       roomName: 'Room name',
-              //       createdBy: 'John Smit',
-              //       joinedUsers: '3/5',
-              //       imageUrl: 'assets/room_$index.jpg',
-              //     );
-              //   },
-              // ),
-              SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                child: Row(
-                  spacing: 14,
-                  children: List.generate(3, (index) {
-                    return RoomCard(
-                      roomName: rooms![index].title,
-                      createdBy: rooms[index].creator?.name ?? '',
-                      joinedUsers: '${rooms[index].currentOccupancy}/${rooms[index].capacity ?? 5}',
-                      imageUrl: rooms[index].topic?.thumbnail ?? '',
-                    );
-                  }),
+          if (rooms != null && rooms.isEmpty) {
+            return const SizedBox.shrink();
+          } else {
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text('Active Room', style: AppTextStyles.sectionTitle),
+                    TextButton(
+                      onPressed: () {},
+                      child: const Text('View All', style: AppTextStyles.viewAll),
+                    ),
+                  ],
                 ),
-              ),
-            ],
-          );
+
+                // const SizedBox(height: 8),
+                // ListView.separated(
+                //   scrollDirection: Axis.horizontal,
+                //   itemCount: 3,
+                //   shrinkWrap: true, // measure to children in scrollDirection
+                //   primary: false,
+                //   separatorBuilder: (context, index) => const SizedBox(width: 14),
+                //   itemBuilder: (context, index) {
+                //     return RoomCard(
+                //       roomName: 'Room name',
+                //       createdBy: 'John Smit',
+                //       joinedUsers: '3/5',
+                //       imageUrl: 'assets/room_$index.jpg',
+                //     );
+                //   },
+                // ),
+                SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Row(
+                    spacing: 14,
+                    children: List.generate(3, (index) {
+                      return RoomCard(
+                        roomName: rooms![index].title,
+                        createdBy: rooms[index].creator?.name ?? '',
+                        joinedUsers: '${rooms[index].currentOccupancy}/${rooms[index].capacity ?? 5}',
+                        imageUrl: rooms[index].topic?.thumbnail ?? '',
+                      );
+                    }),
+                  ),
+                ),
+              ],
+            );
+          }
         }
       },
     );

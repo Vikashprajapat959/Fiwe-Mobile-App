@@ -1,19 +1,11 @@
+import 'package:fiwe/src/utils/colors.dart';
+import 'package:fiwe/src/utils/constants.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:get/get.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 // Color Theme
-class AppColors {
-  static const Color primary = Color(0xFF00BCD4);
-  static const Color secondary = Color(0xFF4CAF50);
-  static const Color accent = Color(0xFFFFC107);
-  static const Color background = Color(0xFFF5F5F5);
-  static const Color cardBackground = Colors.white;
-  static const Color textPrimary = Color(0xFF212121);
-  static const Color textSecondary = Color(0xFF757575);
-  static const Color divider = Color(0xFFE0E0E0);
-  static const Color starColor = Color(0xFFFFC107);
-  static const Color badgeOrange = Color(0xFFFF9800);
-}
 
 // Community Member Model
 class CommunityMember {
@@ -119,69 +111,61 @@ class CommunityMemberTile extends StatelessWidget {
 }
 
 // Main My Communes Screen
-class MyCommunesScreen extends StatefulWidget {
+class MyCommunesScreen extends StatelessWidget {
   const MyCommunesScreen({super.key});
 
   @override
-  State<MyCommunesScreen> createState() => _MyCommunesScreenState();
-}
-
-class _MyCommunesScreenState extends State<MyCommunesScreen> {
-  // Sample data - Replace with actual data from your backend
-  final List<CommunityMember> members = [
-    CommunityMember(
-      name: 'Albert Flores',
-      category: 'Fashion/lifestyle',
-      profileImage: '', // Add actual image path
-      rating: 4.5,
-    ),
-    CommunityMember(name: 'Marvin McKinney', category: 'Fashion/lifestyle', profileImage: '', rating: 4.5),
-    CommunityMember(name: 'Brooklyn Simmons', category: 'Fashion/lifestyle', profileImage: '', rating: 4.5),
-    CommunityMember(name: 'Bessie Cooper', category: 'Fashion/lifestyle', profileImage: '', rating: 4.5),
-    CommunityMember(name: 'Kathryn Murphy', category: 'Fashion/lifestyle', profileImage: '', rating: 4.5),
-    CommunityMember(name: 'Leslie Alexander', category: 'Fashion/lifestyle', profileImage: '', rating: 4.5),
-    CommunityMember(name: 'Devon Lane', category: 'Fashion/lifestyle', profileImage: '', rating: 4.5),
-    CommunityMember(name: 'Cameron Williamson', category: 'Fashion/lifestyle', profileImage: '', rating: 4.5),
-  ];
-
-  @override
   Widget build(BuildContext context) {
+    // Sample data - Replace with actual data from your backend
+    final List<CommunityMember> members = [
+      CommunityMember(
+        name: 'Albert Flores',
+        category: 'Fashion/lifestyle',
+        profileImage: '', // Add actual image path
+        rating: 4.5,
+      ),
+      CommunityMember(name: 'Marvin McKinney', category: 'Fashion/lifestyle', profileImage: '', rating: 4.5),
+      CommunityMember(name: 'Brooklyn Simmons', category: 'Fashion/lifestyle', profileImage: '', rating: 4.5),
+      CommunityMember(name: 'Bessie Cooper', category: 'Fashion/lifestyle', profileImage: '', rating: 4.5),
+      CommunityMember(name: 'Kathryn Murphy', category: 'Fashion/lifestyle', profileImage: '', rating: 4.5),
+      CommunityMember(name: 'Leslie Alexander', category: 'Fashion/lifestyle', profileImage: '', rating: 4.5),
+      CommunityMember(name: 'Devon Lane', category: 'Fashion/lifestyle', profileImage: '', rating: 4.5),
+      CommunityMember(name: 'Cameron Williamson', category: 'Fashion/lifestyle', profileImage: '', rating: 4.5),
+    ];
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
         systemOverlayStyle: SystemUiOverlayStyle.dark,
-        title: const Text(
-          'My Communes',
-          style: TextStyle(color: AppColors.textPrimary, fontSize: 24, fontWeight: FontWeight.w600),
-        ),
+        title: const Text('My Communes'),
         centerTitle: true,
+        actions: [
+          IconButton(
+            icon: const Icon(LucideIcons.search, size: 24, color: AppColors.textPrimary),
+            onPressed: () => Get.toNamed(Constants.searchUserRoute),
+          ),
+        ],
       ),
       body: SafeArea(
-        child: Stack(
-          children: [
-            // Members List
-            ListView.separated(
-              padding: const EdgeInsets.only(top: 8, bottom: 80),
-              itemCount: members.length,
-              separatorBuilder: (context, index) => const Padding(
-                padding: EdgeInsets.symmetric(horizontal: 20),
-                child: Divider(height: 1, color: AppColors.divider),
-              ),
-              itemBuilder: (context, index) {
-                return CommunityMemberTile(
-                  member: members[index],
-                  onTap: () {
-                    // Handle member tap
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('${members[index].name} clicked'), duration: const Duration(seconds: 1)),
-                    );
-                  },
+        child: ListView.separated(
+          padding: const EdgeInsets.only(top: 8, bottom: 80),
+          itemCount: members.length,
+          separatorBuilder: (context, index) => const Padding(
+            padding: EdgeInsets.symmetric(horizontal: 20),
+            child: Divider(height: 1, color: AppColors.divider),
+          ),
+          itemBuilder: (context, index) {
+            return CommunityMemberTile(
+              member: members[index],
+              onTap: () {
+                // Handle member tap
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text('${members[index].name} clicked'), duration: const Duration(seconds: 1)),
                 );
               },
-            ),
-          ],
+            );
+          },
         ),
       ),
     );

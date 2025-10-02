@@ -1,6 +1,7 @@
 import 'package:fiwe/src/controllers/home_controller.dart';
 import 'package:fiwe/src/utils/colors.dart';
 import 'package:fiwe/src/utils/constants.dart';
+import 'package:fiwe/src/views/commune/commune_view.dart';
 import 'package:fiwe/src/views/home/create_room_view.dart';
 import 'package:fiwe/src/views/home/home_screen_view.dart';
 import 'package:flutter/material.dart';
@@ -51,8 +52,9 @@ class HomeView extends StatelessWidget {
           index: controller.pageIndex(),
           children: const [
             HomeScreen(),
+
             Center(child: Text('Rooms Page', style: TextStyle(fontSize: 24))),
-            Center(child: Text('Communes Page', style: TextStyle(fontSize: 24))),
+            MyCommunesScreen(),
             Center(child: Text('Followers Page', style: TextStyle(fontSize: 24))),
           ],
         ),
