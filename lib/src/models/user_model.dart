@@ -19,29 +19,41 @@ class User {
     this.isNew,
     this.isInterestsPending,
     this.topics,
+    this.createdAt,
+    this.updatedAt,
+    this.isActive,
+    this.primaryInterest,
   });
 
   /// Creates a User from JSON data
   factory User.fromJson(Map<String, dynamic> json) {
+    final userJson = json['user'] as Map<String, dynamic>? ?? json;
+
     return User(
-      id: json['id'],
-      email: json['email'] as String?,
-      name: json['name'] as String?,
-      dateOfBirth: json['date_of_birth'] as String?,
-      pincode: json['pincode'] as String?,
-      phoneNumber: json['phone_number'] as String?,
-      profileImageUrl: json['profile_image_url'] as String?,
-      profileBase64: json['profile_image_base64'] as String?,
-      deviceId: json['device_id'] as String?,
-      isTncAccepted: json['is_tnc_accepted'] as bool?,
-      isNew: json['is_new'] as bool?,
-      nickName: json['nickname'] as String?,
-      fiveWords: json['your_five_words'] as String?,
-      bio: json['bio'] as String?,
-      isInterestsPending: json['is_interests_pending'] as bool?,
+      id: userJson['id'],
+      email: userJson['email'] as String?,
+      name: userJson['name'] as String?,
+      dateOfBirth: userJson['date_of_birth'] as String?,
+      pincode: userJson['pincode'] as String?,
+      phoneNumber: userJson['phone_number'] as String?,
+      profileImageUrl: userJson['profile_image_url'] as String?,
+      profileBase64: userJson['profile_image_base64'] as String?,
+      deviceId: userJson['device_id'] as String?,
+      isTncAccepted: userJson['is_tnc_accepted'] as bool?,
+      isNew: userJson['is_new'] as bool?,
+      nickName: userJson['nickname'] as String?,
+      fiveWords: userJson['your_five_word'] as String?,
+      bio: userJson['bio'] as String?,
+      isInterestsPending: userJson['is_interests_pending'] as bool?,
       topics: (json['topics'] as List<dynamic>?)
           ?.map((dynamic topicJson) => Topic.fromJson(topicJson as Map<String, dynamic>))
           .toList(),
+      createdAt: userJson['created_at'] != null ? DateTime.tryParse(userJson['created_at'] as String) : null,
+      updatedAt: userJson['updated_at'] != null ? DateTime.tryParse(userJson['updated_at'] as String) : null,
+      isActive: userJson['is_active'] as bool?,
+      primaryInterest: userJson['primary_interest'] != null
+          ? Topic.fromJson(userJson['primary_interest'] as Map<String, dynamic>)
+          : null,
     );
   }
 
@@ -61,6 +73,10 @@ class User {
   final String? fiveWords;
   final String? bio;
   final List<Topic>? topics;
+  final DateTime? createdAt;
+  final DateTime? updatedAt;
+  final bool? isActive;
+  final Topic? primaryInterest;
 
   /// Converts User to JSON format
   Map<String, dynamic> toJson() {
@@ -76,10 +92,14 @@ class User {
       'is_tnc_accepted': isTncAccepted,
       'is_new': isNew,
       'nickname': nickName,
-      'your_five_words': fiveWords,
+      'your_five_word': fiveWords,
       'bio': bio,
       'is_interests_pending': isInterestsPending,
       'topics': topics?.map((Topic topic) => topic.toJson()).toList(),
+      'created_at': createdAt?.toIso8601String(),
+      'updated_at': updatedAt?.toIso8601String(),
+      'is_active': isActive,
+      'primary_interest': primaryInterest?.toJson(),
     };
   }
 
@@ -101,6 +121,10 @@ class User {
     bool? isNew,
     bool? isInterestsPending,
     List<Topic>? topics,
+    DateTime? createdAt,
+    DateTime? updatedAt,
+    bool? isActive,
+    Topic? primaryInterest,
   }) {
     return User(
       id: id ?? this.id,
@@ -119,6 +143,10 @@ class User {
       isNew: isNew ?? this.isNew,
       isInterestsPending: isInterestsPending ?? this.isInterestsPending,
       topics: topics ?? this.topics,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+      isActive: isActive ?? this.isActive,
+      primaryInterest: primaryInterest ?? this.primaryInterest,
     );
   }
 

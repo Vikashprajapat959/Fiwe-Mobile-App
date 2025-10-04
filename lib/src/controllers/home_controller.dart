@@ -1,6 +1,7 @@
 import 'dart:developer' as dev;
 
 import 'package:fiwe/src/controllers/auth_controller.dart';
+import 'package:fiwe/src/controllers/commune_controller.dart';
 import 'package:fiwe/src/controllers/video_room_controller.dart';
 import 'package:fiwe/src/models/fcm_notification_data.dart';
 import 'package:fiwe/src/models/hmsvideo_room.dart';
@@ -53,6 +54,7 @@ class HomeController extends GetxController {
 
   @override
   void onReady() {
+    Get.put(CommuneController(), permanent: true);
     dev.log('HomeController onReady called', name: 'HomeController');
     _notificationService.roomInviteStream.listen((event) {
       dev.log('Received notification event: ${event.title}', name: 'HomeController');

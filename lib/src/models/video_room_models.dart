@@ -1,3 +1,4 @@
+import 'package:fiwe/src/models/Interacted_participant.dart';
 import 'package:get/get.dart';
 
 /// Room state model for tracking video room information
@@ -307,8 +308,8 @@ class ParticipantRating {
        isAnonymous = RxBool(initialAnonymous),
        hasChanges = RxBool(false);
 
-  factory ParticipantRating.fromParticipant(Participant participant) {
-    return ParticipantRating(userId: participant.userId, displayName: participant.displayName);
+  factory ParticipantRating.fromParticipant(InteractedParticipant participant) {
+    return ParticipantRating(userId: participant.userId, displayName: participant.name);
   }
   final String userId;
   final String displayName;

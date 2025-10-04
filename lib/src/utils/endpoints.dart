@@ -23,4 +23,16 @@ class Endpoints {
   static String submitRatings = '/ratings/submit';
 
   static String activeRooms = '/rooms/active';
+
+  static String search = '/users/search';
+
+  static String users = '/users';
+
+  static String sendCommuneRequest = '/communes/requests/';
+
+  static String communeRequestsSent = '/communes/sent';
+
+  static String communes = '/communes/';
+
+  static var rejectCommune = '/reject/';
 }

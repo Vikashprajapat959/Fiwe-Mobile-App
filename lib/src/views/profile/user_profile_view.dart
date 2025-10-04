@@ -1,33 +1,42 @@
+import 'package:fiwe/src/controllers/commune_controller.dart';
+import 'package:fiwe/src/models/topic.model.dart';
+import 'package:fiwe/src/models/user_model.dart';
+import 'package:fiwe/src/utils/colors.dart';
+import 'package:fiwe/src/utils/helper.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 
 // Main Screen
 class UserProfileScreen extends StatelessWidget {
-  const UserProfileScreen({super.key});
-
+  const UserProfileScreen({super.key, required this.user});
+  final User user;
   @override
   Widget build(BuildContext context) {
-    return const Scaffold(
+    return Scaffold(
       backgroundColor: AppColors.background,
+      persistentFooterDecoration: const BoxDecoration(color: AppColors.background),
+      persistentFooterButtons: [CommuneRequestButton(user: user)],
       body: SafeArea(
         child: Column(
           children: [
-            CustomAppBar(),
+            const CustomAppBar(),
             Expanded(
               child: SingleChildScrollView(
-                padding: EdgeInsets.symmetric(horizontal: 24),
+                padding: const EdgeInsets.symmetric(horizontal: 24),
                 child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    SizedBox(height: 24),
-                    ProfileHeader(),
-                    SizedBox(height: 32),
-                    BadgesSection(),
-                    SizedBox(height: 32),
-                    StatsSection(),
-                    SizedBox(height: 32),
-                    InterestsSection(),
-                    SizedBox(height: 24),
-                    CommuneRequestButton(),
-                    SizedBox(height: 24),
+                    const SizedBox(height: 8),
+                    ProfileHeader(user: user),
+                    const SizedBox(height: 32),
+                    const BadgesSection(),
+                    const SizedBox(height: 32),
+                    const StatsSection(),
+                    const SizedBox(height: 32),
+                    InterestsSection(interests: user.topics ?? []),
+                    const SizedBox(height: 24),
+
+                    const SizedBox(height: 24),
                   ],
                 ),
               ),
@@ -37,21 +46,6 @@ class UserProfileScreen extends StatelessWidget {
       ),
     );
   }
-}
-
-// App Colors
-class AppColors {
-  static const Color background = Color(0xFFF8F9FA);
-  static const Color primary = Color(0xFF007AFF);
-  static const Color secondary = Color(0xFF34C759);
-  static const Color tertiary = Color(0xFFFF9500);
-  static const Color quaternary = Color(0xFFFF6347);
-  static const Color textPrimary = Color(0xFF000000);
-  static const Color textSecondary = Color(0xFF8E8E93);
-  static const Color white = Color(0xFFFFFFFF);
-  static const Color shadow = Color(0x1A000000);
-  static const Color interestActive = Color(0xFF48CAE4);
-  static const Color interestInactive = Color(0xFFE5E5EA);
 }
 
 // Custom App Bar
@@ -97,28 +91,26 @@ class CustomAppBar extends StatelessWidget {
 
 // Profile Header
 class ProfileHeader extends StatelessWidget {
-  const ProfileHeader({super.key});
-
+  const ProfileHeader({super.key, required this.user});
+  final User user;
   @override
   Widget build(BuildContext context) {
-    return const Column(
+    return Column(
       children: [
         CircleAvatar(
           radius: 60,
           backgroundColor: AppColors.white,
           child: CircleAvatar(
             radius: 56,
-            backgroundImage: NetworkImage(
-              'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&h=200&fit=crop&crop=face',
-            ),
+            backgroundImage: MemoryImage(Helper.base64ToBytes(user.profileBase64) ?? Helper.defaultProfileImageBytes),
           ),
         ),
-        SizedBox(height: 16),
-        Text('Josh', style: AppTextStyles.profileName),
-        SizedBox(height: 8),
-        Text('Your voice. Their ears. Let\'s go!', style: AppTextStyles.profileBio),
-        SizedBox(height: 12),
-        Row(
+        const SizedBox(height: 16),
+        Text('${user.name}', style: AppTextStyles.profileName, textAlign: TextAlign.center),
+        const SizedBox(height: 8),
+        Text('${user.bio}', style: AppTextStyles.profileBio, textAlign: TextAlign.center),
+        const SizedBox(height: 12),
+        const Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Text('Rating', style: AppTextStyles.ratingLabel),
@@ -241,18 +233,10 @@ class StatItem {
 
 // Interests Section
 class InterestsSection extends StatelessWidget {
-  const InterestsSection({super.key});
-
+  const InterestsSection({super.key, required this.interests});
+  final List<Topic> interests;
   @override
   Widget build(BuildContext context) {
-    final interests = [
-      Interest(name: 'Fashion/lifestyle', isActive: true),
-      Interest(name: 'Geo politics', isActive: false),
-      Interest(name: 'Humor/satire', isActive: false),
-      Interest(name: 'Critics/reviews', isActive: false),
-      Interest(name: 'Cosmos/out of world', isActive: false),
-    ];
-
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -271,67 +255,62 @@ class InterestsSection extends StatelessWidget {
 // Interest Chip
 class InterestChip extends StatelessWidget {
   const InterestChip({super.key, required this.interest});
-  final Interest interest;
+  final Topic interest;
 
   @override
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
       decoration: BoxDecoration(
-        color: interest.isActive ? AppColors.interestActive : AppColors.interestInactive,
+        color: interest.isPrimary ?? false ? AppColors.interestActive : AppColors.interestInactive,
         borderRadius: BorderRadius.circular(25),
       ),
       child: Text(
-        interest.name,
-        style: interest.isActive ? AppTextStyles.interestActive : AppTextStyles.interestInactive,
+        interest.title,
+        style: interest.isPrimary ?? false ? AppTextStyles.interestActive : AppTextStyles.interestInactive,
       ),
     );
   }
 }
 
-// Interest Model
-class Interest {
-  Interest({required this.name, required this.isActive});
-  final String name;
-  final bool isActive;
-}
-
 // Commune Request Button
 class CommuneRequestButton extends StatelessWidget {
-  const CommuneRequestButton({super.key});
-
+  const CommuneRequestButton({super.key, required this.user});
+  final User user;
   @override
   Widget build(BuildContext context) {
+    final CommuneController communeController = Get.find<CommuneController>();
+
     return Container(
       width: double.infinity,
       height: 56,
       decoration: BoxDecoration(
         gradient: const LinearGradient(
-          colors: [AppColors.interestActive, AppColors.secondary],
+          colors: [AppColors.primary, AppColors.secondaryYellow],
           begin: Alignment.centerLeft,
           end: Alignment.centerRight,
         ),
         borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(color: AppColors.interestActive.withOpacity(0.3), blurRadius: 12, offset: const Offset(0, 4)),
-        ],
       ),
       child: Material(
         color: Colors.transparent,
-        child: InkWell(
-          borderRadius: BorderRadius.circular(16),
-          onTap: () {
-            // Handle button press
-          },
-          child: const Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(Icons.add, color: AppColors.white, size: 24),
-              SizedBox(width: 8),
-              Text('Commune Request', style: AppTextStyles.buttonText),
-            ],
-          ),
-        ),
+        child: Obx(() {
+          final requestSent = communeController.isRequestSent(user.id);
+          return InkWell(
+            borderRadius: BorderRadius.circular(16),
+            onTap: requestSent
+                ? () => communeController.cancelRequest(user.id)
+                : () => communeController.sendCommuneRequest(user.id),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                if (!requestSent) const Icon(Icons.add, color: AppColors.white, size: 24),
+                const SizedBox(width: 8),
+                Text(requestSent ? 'Cancel Commune Request' : 'Commune Request', style: AppTextStyles.buttonText),
+              ],
+            ),
+          );
+        }),
       ),
     );
   }

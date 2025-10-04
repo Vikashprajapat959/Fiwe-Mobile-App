@@ -1,5 +1,6 @@
 import 'dart:developer';
 
+import 'package:fiwe/src/models/Interacted_participant.dart';
 import 'package:fiwe/src/models/hms_reaction.dart';
 import 'package:fiwe/src/models/hmsvideo_room.dart';
 import 'package:fiwe/src/services/crashlytics_service.dart';
@@ -7,6 +8,7 @@ import 'package:fiwe/src/services/pip_manager_service.dart';
 import 'package:fiwe/src/services/room_state_monitor_service.dart';
 import 'package:fiwe/src/services/video_room_notification_service.dart';
 import 'package:fiwe/src/utils/constants.dart';
+import 'package:fiwe/src/views/rating/user_rating_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:hmssdk_flutter/hmssdk_flutter.dart';
@@ -182,13 +184,14 @@ class VideoRoomController extends GetxController with WidgetsBindingObserver {
 
   /// Leave the current video room
   Future<void> leaveRoom() async {
+    Map<String, dynamic>? response;
     try {
       // Track room leave event before cleanup
 
       // 1. Call backend API to leave room
       final apiSuccess = await _roomRepository.leaveRoom(_currentRoom.value!.objectId);
-
-      if (!apiSuccess) {
+      response = apiSuccess.data;
+      if (!apiSuccess.success) {
         Get.snackbar('Warning', 'Room may not have been properly left on server', snackPosition: SnackPosition.BOTTOM);
         return;
       }
@@ -215,18 +218,18 @@ class VideoRoomController extends GetxController with WidgetsBindingObserver {
 
       // Get participants before stopping services
       final participants = _roomStateMonitor.participants;
-      final roomId = _currentRoom.value?.objectId ?? '';
-      final roomTitle = _currentRoom.value?.title ?? '';
+      // final roomId = _currentRoom.value?.objectId ?? '';
+      // final roomTitle = _currentRoom.value?.title ?? '';
 
       // Stop room services first
       await _stopRoomServices();
 
       // Navigate to rating screen if there are participants to rate
-      if (participants.isNotEmpty && roomId.isNotEmpty) {
-        Get.offAndToNamed(
-          Constants.userRatingRoute,
-          arguments: {'participants': participants, 'roomParticipationId': roomId, 'roomTitle': roomTitle},
-        );
+      if (participants.isNotEmpty && response != null) {
+        final participants = List.from(
+          response['interacted_participants'] as List,
+        ).map((e) => InteractedParticipant.fromJson(e)).toList();
+        Get.off(() => UserRatingScreen(interectedParticipants: participants));
       } else {
         // Go directly to home if no participants to rate
         Get.offAndToNamed(Constants.homeViewRoute);

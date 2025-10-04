@@ -72,6 +72,7 @@ class SignUpController extends GetxController {
     required String dateOfBirth,
     required String pinCode,
     required bool isTncAccepted,
+    required String phoneNumber,
   }) async {
     try {
       final body = {
@@ -81,6 +82,7 @@ class SignUpController extends GetxController {
         'pincode': pinCode.trim(),
         'is_tnc_accepted': isTncAccepted,
         'device_id': await _getDeviceId(),
+        'phone_number': phoneNumber.trim(),
         if (_imageToBase64(_selectedProfileImage.value) != null)
           'profile_image': _imageToBase64(_selectedProfileImage.value),
       };
@@ -136,6 +138,7 @@ class SignUpController extends GetxController {
           dateOfBirth: dateOfBirthController.text.trim(),
           pinCode: pinCodeController.text.trim(),
           isTncAccepted: _acceptTerms.value,
+          phoneNumber: phoneController.text.trim(),
         ),
       );
 

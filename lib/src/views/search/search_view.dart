@@ -2,6 +2,7 @@ import 'package:fiwe/src/controllers/search_controller.dart' as search;
 import 'package:fiwe/src/utils/colors.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 class SearchView extends StatelessWidget {
   const SearchView({super.key});
@@ -33,7 +34,21 @@ class SearchView extends StatelessWidget {
                 ),
               ],
             ),
-            // Expanded(child: Container(child: ,))
+            Expanded(
+              child: Obx(
+                () => ListView.builder(
+                  itemCount: controller.searchResult.length,
+                  itemBuilder: (context, index) {
+                    final user = controller.searchResult[index];
+                    return ListTile(
+                      leading: const Icon(LucideIcons.user),
+                      onTap: () => controller.fetchUser(user.id),
+                      title: Text(user.name ?? ''),
+                    );
+                  },
+                ),
+              ),
+            ),
           ],
         ),
       ),

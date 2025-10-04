@@ -90,18 +90,18 @@ class RoomRepository extends GetxService {
   }
 
   /// Leave a video room
-  Future<bool> leaveRoom(String roomId) async {
+  Future<ApiResponse<Map<String, dynamic>>> leaveRoom(String roomId) async {
     try {
       final response = await _httpService.post('/rooms/$roomId/leave', isAuthorized: true);
 
-      if (response.success && response.success == true) {
-        return true;
+      if (response.success) {
+        return ApiResponse.success(message: response.message, data: response.data);
       } else {
-        return false;
+        return ApiResponse.error(message: response.message);
       }
     } catch (e) {
       dev.log('Error leaving room: $e', name: 'RoomRepository');
-      return false;
+      return ApiResponse.error(message: e.toString());
     }
   }
 

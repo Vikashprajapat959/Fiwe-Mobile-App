@@ -1,4 +1,6 @@
 import 'dart:developer';
+
+import 'package:fiwe/src/models/Interacted_participant.dart';
 import 'package:fiwe/src/models/video_room_models.dart';
 import 'package:fiwe/src/repositories/rating_repository.dart';
 import 'package:fiwe/src/utils/constants.dart';
@@ -23,25 +25,24 @@ class UserRatingController extends GetxController {
   bool get hasError => _hasError.value;
   String get errorMessage => _errorMessage.value;
   bool get globalAnonymous => _globalAnonymous.value;
-  
+
   // Observable getters for UI
   RxList<ParticipantRating> get participantRatingsObservable => _participantRatings;
   RxBool get isSubmittingObservable => _isSubmitting;
 
   /// Initialize ratings from participants list
-  void initializeRatings(List<Participant> participants, String roomId) {
+  void initializeRatings(List<InteractedParticipant> participants, String roomId) {
     try {
       _roomParticipationId.value = roomId;
       _participantRatings.clear();
-      
+
       // Filter out local participant (user shouldn't rate themselves)
-      final otherParticipants = participants.where((p) => !p.isLocal).toList();
-      
-      for (final participant in otherParticipants) {
+
+      for (final participant in participants) {
         final rating = ParticipantRating.fromParticipant(participant);
         _participantRatings.add(rating);
       }
-      
+
       _clearError();
       log('Initialized ratings for ${_participantRatings.length} participants', name: 'UserRatingController');
     } catch (e) {
@@ -100,20 +101,21 @@ class UserRatingController extends GetxController {
   /// Validate all ratings before submission
   bool validateAllRatings() {
     final invalidRatings = _participantRatings.where((r) => !r.isValid).toList();
-    
+
     if (invalidRatings.isNotEmpty) {
       _setError('Please provide ratings for all participants');
       return false;
     }
-    
+
     _clearError();
     return true;
   }
 
   /// Submit all ratings to backend
   Future<void> submitAllRatings() async {
+    //TODO:
     if (_isSubmitting.value) return;
-    
+
     try {
       _isSubmitting.value = true;
       _clearError();
@@ -130,16 +132,12 @@ class UserRatingController extends GetxController {
 
       // Submit to backend
       final success = await _ratingRepository.submitRatings(submissions);
-      
+
       if (success) {
         // Navigate back to home with success message
         Get.offAllNamed(Constants.homeViewRoute);
-        Get.snackbar(
-          'Success', 
-          'Thank you for your feedback!',
-          snackPosition: SnackPosition.BOTTOM,
-        );
-        
+        Get.snackbar('Success', 'Thank you for your feedback!', snackPosition: SnackPosition.BOTTOM);
+
         log('Successfully submitted ${submissions.length} ratings', name: 'UserRatingController');
       } else {
         _setError('Failed to submit ratings. Please try again.');

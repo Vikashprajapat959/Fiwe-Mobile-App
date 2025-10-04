@@ -8,6 +8,7 @@ import 'package:image_picker/image_picker.dart';
 class Helper {
   // Private constructor to prevent instantiation
   Helper._();
+  static var defaultProfileImageBytes = Uint8List(255);
 
   /// Converts base64 string to bytes
   static Uint8List? base64ToBytes(String? base64String) {
@@ -32,12 +33,7 @@ class Helper {
   static String generateRandomString(int length) {
     const chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
     final random = math.Random();
-    return String.fromCharCodes(
-      Iterable.generate(
-        length,
-        (_) => chars.codeUnitAt(random.nextInt(chars.length)),
-      ),
-    );
+    return String.fromCharCodes(Iterable.generate(length, (_) => chars.codeUnitAt(random.nextInt(chars.length))));
   }
 
   /// Validates email format
@@ -53,18 +49,15 @@ class Helper {
   /// Formats file size in human-readable format
   static String formatFileSize(int bytes) {
     if (bytes <= 0) return '0 B';
-    
+
     const suffixes = ['B', 'KB', 'MB', 'GB', 'TB'];
     final i = (math.log(bytes) / math.log(1024)).floor();
-    
+
     return '${(bytes / math.pow(1024, i)).toStringAsFixed(1)} ${suffixes[i]}';
   }
 
   /// Debounces a function call
-  static void debounce(
-    void Function() callback, {
-    Duration delay = const Duration(milliseconds: 300),
-  }) {
+  static void debounce(void Function() callback, {Duration delay = const Duration(milliseconds: 300)}) {
     Future.delayed(delay, callback);
   }
 
@@ -86,10 +79,9 @@ class Helper {
   /// Capitalizes the first letter of each word
   static String capitalizeWords(String text) {
     if (text.isEmpty) return text;
-    return text.split(' ')
-        .map((String word) => word.isEmpty 
-            ? word 
-            : word[0].toUpperCase() + word.substring(1).toLowerCase())
+    return text
+        .split(' ')
+        .map((String word) => word.isEmpty ? word : word[0].toUpperCase() + word.substring(1).toLowerCase())
         .join(' ');
   }
 

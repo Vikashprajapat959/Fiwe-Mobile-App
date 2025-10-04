@@ -19,7 +19,6 @@ import 'package:fiwe/src/views/login/login_view.dart';
 import 'package:fiwe/src/views/login/signup_view.dart';
 import 'package:fiwe/src/views/login/splash_view.dart';
 import 'package:fiwe/src/views/profile/profile_view.dart';
-import 'package:fiwe/src/views/rating/user_rating_screen.dart';
 import 'package:fiwe/src/views/search/search_view.dart';
 import 'package:fiwe/src/views/video_room/video_room_view.dart';
 import 'package:flutter/foundation.dart';
@@ -197,7 +196,7 @@ class FiweApp extends StatelessWidget {
       GetPage(name: Constants.interestSelectionViewRoute, page: () => const InterestSelectionView()),
       GetPage(name: Constants.videoRoomRoute, page: () => const VideoRoomView()),
       GetPage(name: Constants.createRoomRoute, page: () => const CreateRoomView()),
-      GetPage(name: Constants.userRatingRoute, page: () => const UserRatingScreen()),
+      // GetPage(name: Constants.userRatingRoute, page: () => const UserRatingScreen()),
       GetPage(name: Constants.profileScreenRoute, page: () => const ProfileScreen()),
       GetPage(name: Constants.searchUserRoute, page: () => const SearchView()),
     ];

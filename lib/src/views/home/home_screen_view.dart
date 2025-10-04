@@ -2,6 +2,7 @@ import 'dart:developer';
 import 'dart:typed_data';
 
 import 'package:fiwe/src/controllers/home_controller.dart';
+import 'package:fiwe/src/models/Interacted_participant.dart';
 import 'package:fiwe/src/models/hmsvideo_room.dart';
 import 'package:fiwe/src/utils/app_text_styles.dart';
 import 'package:fiwe/src/utils/colors.dart';
@@ -9,6 +10,7 @@ import 'package:fiwe/src/utils/constants.dart';
 import 'package:fiwe/src/utils/helper.dart';
 import 'package:fiwe/src/views/home/user_notification_view.dart';
 import 'package:fiwe/src/views/profile/profile_view.dart';
+import 'package:fiwe/src/views/rating/user_rating_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
@@ -96,7 +98,47 @@ class HomeScreen extends StatelessWidget {
         ),
         Row(
           children: [
-            ActionButton(icon: const Icon(Icons.map_outlined), onTap: () {}),
+            ActionButton(
+              icon: const Icon(Icons.map_outlined),
+              onTap: () {
+                final Map<String, dynamic> data = {
+                  'success': true,
+                  'message': 'Successfully left room',
+                  'data': {
+                    'message': 'Successfully left room',
+                    'redis_removed': true,
+                    'room_ended': false,
+                    'redis_cleared': false,
+                    'hms_disabled': true,
+                    'hms_error': null,
+                    'interacted_participants': [
+                      {
+                        'user_id': 'a1b2c3d4-e5f6-7890-g1h2-i3j4k5l6m7n8',
+                        'name': 'Alice Johnson',
+                        'profile_image_base64':
+                            'data:image/jpeg;base64,/9j/4AAQSkZJRgABAQEASABIAAD/2wBDAAMCAgMCAgMDAwMEAwMEBQgFBAQE...truncated...',
+                        'role': 'host',
+                        'joined_at': '2025-10-04T14:30:00Z',
+                        'left_at': '2025-10-04T15:45:30Z',
+                      },
+                      {
+                        'user_id': 'b2c3d4e5-f6g7-8901-h2i3-j4k5l6m7n8o9',
+                        'name': 'Robert Brown',
+                        'profile_image_base64':
+                            'data:image/jpeg;base64,/9j/4AAQSkZJRgABAQEASABIAAD/2wBDAAMCAgMCAgMDAwMEAwMEBQgFBAQE...truncated...',
+                        'role': 'guest',
+                        'joined_at': '2025-10-04T14:35:15Z',
+                        'left_at': '2025-10-04T15:42:45Z',
+                      },
+                    ],
+                  },
+                };
+                final participants = List.from(
+                  data['data']['interacted_participants'],
+                ).map((e) => InteractedParticipant.fromJson(e)).toList();
+                Get.off(() => UserRatingScreen(interectedParticipants: participants));
+              },
+            ),
             const SizedBox(width: 8),
             ActionButton(
               icon: const Icon(LucideIcons.bell, color: AppColors.secondaryYellow),
@@ -149,6 +191,7 @@ class HomeScreen extends StatelessWidget {
           if (rooms != null && rooms.isEmpty) {
             return const SizedBox.shrink();
           } else {
+            final int visibleCount = rooms!.length > 4 ? 4 : rooms.length;
             return Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisAlignment: MainAxisAlignment.start,
@@ -165,29 +208,13 @@ class HomeScreen extends StatelessWidget {
                   ],
                 ),
 
-                // const SizedBox(height: 8),
-                // ListView.separated(
-                //   scrollDirection: Axis.horizontal,
-                //   itemCount: 3,
-                //   shrinkWrap: true, // measure to children in scrollDirection
-                //   primary: false,
-                //   separatorBuilder: (context, index) => const SizedBox(width: 14),
-                //   itemBuilder: (context, index) {
-                //     return RoomCard(
-                //       roomName: 'Room name',
-                //       createdBy: 'John Smit',
-                //       joinedUsers: '3/5',
-                //       imageUrl: 'assets/room_$index.jpg',
-                //     );
-                //   },
-                // ),
                 SingleChildScrollView(
                   scrollDirection: Axis.horizontal,
                   child: Row(
                     spacing: 14,
-                    children: List.generate(3, (index) {
+                    children: List.generate(visibleCount, (index) {
                       return RoomCard(
-                        roomName: rooms![index].title,
+                        roomName: rooms[index].title,
                         createdBy: rooms[index].creator?.name ?? '',
                         joinedUsers: '${rooms[index].currentOccupancy}/${rooms[index].capacity ?? 5}',
                         imageUrl: rooms[index].topic?.thumbnail ?? '',

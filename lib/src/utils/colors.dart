@@ -52,4 +52,11 @@ class AppColors {
   static const Color divider = Color(0xFFE0E0E0);
   static const Color starColor = Color(0xFFFFC107);
   static const Color badgeOrange = Color(0xFFFF9800);
+
+  static const Color tertiary = Color(0xFFFF9500);
+  static const Color quaternary = Color(0xFFFF6347);
+  static const Color white = Color(0xFFFFFFFF);
+  static const Color shadow = Color(0x1A000000);
+  static const Color interestActive = Color(0xFF48CAE4);
+  static const Color interestInactive = Color(0xFFE5E5EA);
 }

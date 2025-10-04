@@ -1,37 +1,22 @@
 import 'package:fiwe/src/controllers/user_rating_controller.dart';
+import 'package:fiwe/src/models/Interacted_participant.dart';
 import 'package:fiwe/src/models/video_room_models.dart';
 import 'package:fiwe/src/utils/colors.dart';
 import 'package:fiwe/src/utils/constants.dart';
+import 'package:fiwe/src/utils/helper.dart';
+import 'package:fiwe/src/widgets/custom_button.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
-class UserRatingScreen extends StatefulWidget {
-  const UserRatingScreen({super.key});
-
-  @override
-  State<UserRatingScreen> createState() => _UserRatingScreenState();
-}
-
-class _UserRatingScreenState extends State<UserRatingScreen> {
-  late UserRatingController controller;
-
-  @override
-  void initState() {
-    super.initState();
-    controller = Get.put(UserRatingController());
-
-    // Get arguments from navigation
-    final args = Get.arguments as Map<String, dynamic>?;
-    if (args != null) {
-      final participants = args['participants'] as List<Participant>? ?? [];
-      final roomId = args['roomParticipationId'] as String? ?? '';
-      controller.initializeRatings(participants, roomId);
-    }
-  }
+class UserRatingScreen extends StatelessWidget {
+  const UserRatingScreen({super.key, required this.interectedParticipants});
+  final List<InteractedParticipant> interectedParticipants;
 
   @override
   Widget build(BuildContext context) {
+    final controller = Get.put(UserRatingController());
+    controller.initializeRatings(interectedParticipants, '');
     return WillPopScope(
       onWillPop: () async {
         // Show confirmation dialog before leaving
@@ -52,26 +37,13 @@ class _UserRatingScreenState extends State<UserRatingScreen> {
           ),
         ),
         body: Obx(() {
-          if (controller.participantRatings.isEmpty) {
-            return const Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(LucideIcons.users, size: 64, color: Colors.grey),
-                  SizedBox(height: 16),
-                  Text('No participants to rate', style: TextStyle(fontSize: 16, color: Colors.grey)),
-                ],
-              ),
-            );
-          }
-
           return Column(
             children: [
               // Progress indicator
               _buildProgressIndicator(),
 
-              // Global anonymous toggle
-              _buildGlobalAnonymousToggle(),
+              // Global anonymous toggle TODO:
+              // _buildGlobalAnonymousToggle(),
 
               // Participant list
               Expanded(
@@ -127,6 +99,7 @@ class _UserRatingScreenState extends State<UserRatingScreen> {
   }
 
   Widget _buildProgressIndicator() {
+    final controller = Get.find<UserRatingController>();
     return Obx(() {
       final completed = controller.completedRatingsCount;
       final total = controller.totalRatingsCount;
@@ -150,6 +123,7 @@ class _UserRatingScreenState extends State<UserRatingScreen> {
   }
 
   Widget _buildGlobalAnonymousToggle() {
+    final controller = Get.find<UserRatingController>();
     return Obx(() {
       return Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -171,36 +145,27 @@ class _UserRatingScreenState extends State<UserRatingScreen> {
   }
 
   Widget _buildSubmitButton() {
-    return Obx(() {
-      final canSubmit = controller.allRatingsCompleted && !controller.isSubmitting;
-
-      return Container(
-        padding: const EdgeInsets.all(16),
-        width: double.infinity,
-        child: ElevatedButton(
+    final controller = Get.find<UserRatingController>();
+    return Padding(
+      padding: const EdgeInsets.all(12.0),
+      child: Obx(() {
+        final canSubmit = controller.allRatingsCompleted && !controller.isSubmitting;
+        return AppButtonElevated(
+          text: controller.isSubmitting
+              ? 'Submitting...'
+              : canSubmit
+              ? 'Submit Ratings'
+              : 'Complete all ratings to submit',
           onPressed: canSubmit ? controller.submitAllRatings : null,
-          style: ElevatedButton.styleFrom(
-            backgroundColor: AppColors.primary,
-            foregroundColor: Colors.white,
-            padding: const EdgeInsets.symmetric(vertical: 16),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-          ),
-          child: Text(
-            controller.isSubmitting
-                ? 'Submitting...'
-                : canSubmit
-                ? 'Submit Ratings'
-                : 'Complete all ratings to submit',
-            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-          ),
-        ),
-      );
-    });
+        );
+      }),
+    );
   }
 
   Future<bool?> _showExitConfirmation() {
+    final controller = Get.find<UserRatingController>();
     return showDialog<bool>(
-      context: context,
+      context: Get.context!,
       builder: (context) => AlertDialog(
         title: const Text('Leave Rating Screen?'),
         content: const Text('Your ratings will be lost if you leave now.'),
@@ -276,8 +241,8 @@ class _ParticipantRatingCardState extends State<ParticipantRatingCard> {
                     backgroundColor: AppColors.primary.withOpacity(0.1),
                     child: widget.participantRating.avatarUrl != null
                         ? ClipOval(
-                            child: Image.network(
-                              widget.participantRating.avatarUrl!,
+                            child: Image.memory(
+                              Helper.base64ToBytes(widget.participantRating.avatarUrl!)!,
                               width: 48,
                               height: 48,
                               fit: BoxFit.cover,
@@ -312,27 +277,26 @@ class _ParticipantRatingCardState extends State<ParticipantRatingCard> {
                   if (widget.participantRating.isValid) const Icon(Icons.check_circle, color: Colors.green, size: 20),
                 ],
               ),
+              //TODO:
+              // const SizedBox(height: 16),
 
-              const SizedBox(height: 16),
-
-              // Feedback section
-              GestureDetector(
-                onTap: () => setState(() => isExpanded = !isExpanded),
-                child: Row(
-                  children: [
-                    const Icon(Icons.message, size: 16),
-                    const SizedBox(width: 8),
-                    const Text('Add feedback (optional)', style: TextStyle(fontSize: 14, color: Colors.grey)),
-                    const Spacer(),
-                    Icon(
-                      isExpanded ? Icons.keyboard_arrow_up : Icons.keyboard_arrow_down,
-                      size: 16,
-                      color: Colors.grey,
-                    ),
-                  ],
-                ),
-              ),
-
+              // Feedback section TODO:
+              // GestureDetector(
+              //   onTap: () => setState(() => isExpanded = !isExpanded),
+              //   child: Row(
+              //     children: [
+              //       const Icon(Icons.message, size: 16),
+              //       const SizedBox(width: 8),
+              //       const Text('Add feedback (optional)', style: TextStyle(fontSize: 14, color: Colors.grey)),
+              //       const Spacer(),
+              //       Icon(
+              //         isExpanded ? Icons.keyboard_arrow_up : Icons.keyboard_arrow_down,
+              //         size: 16,
+              //         color: Colors.grey,
+              //       ),
+              //     ],
+              //   ),
+              // ),
               if (isExpanded) ...[
                 const SizedBox(height: 12),
                 TextField(
@@ -351,21 +315,21 @@ class _ParticipantRatingCardState extends State<ParticipantRatingCard> {
 
               const SizedBox(height: 12),
 
-              // Anonymous toggle
-              Row(
-                children: [
-                  const Icon(LucideIcons.eyeOff, size: 16, color: Colors.grey),
-                  const SizedBox(width: 8),
-                  const Text('Anonymous rating', style: TextStyle(fontSize: 14, color: Colors.grey)),
-                  const Spacer(),
-                  Switch(
-                    value: widget.participantRating.isAnonymous.value,
-                    onChanged: (_) => widget.onAnonymousToggle(),
-                    activeThumbColor: AppColors.primary,
-                    materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                  ),
-                ],
-              ),
+              // Anonymous toggle TODO:
+              // Row(
+              //   children: [
+              //     const Icon(LucideIcons.eyeOff, size: 16, color: Colors.grey),
+              //     const SizedBox(width: 8),
+              //     const Text('Anonymous rating', style: TextStyle(fontSize: 14, color: Colors.grey)),
+              //     const Spacer(),
+              //     Switch(
+              //       value: widget.participantRating.isAnonymous.value,
+              //       onChanged: (_) => widget.onAnonymousToggle(),
+              //       activeThumbColor: AppColors.primary,
+              //       materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              //     ),
+              //   ],
+              // ),
             ],
           ),
         ),

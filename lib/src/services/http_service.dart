@@ -13,8 +13,8 @@ import '../utils/exceptions.dart';
 /// HTTP service for making API requests with error handling and logging
 class HttpService extends GetxService {
   HttpService({
-    this.baseUrl =
-        'http://10.146.202.250:8000/api', //'http://192.168.29.12:8000/api', // 'http://10.35.236.250:8000/api', // 'https://fiwe.in/api',
+    this.baseUrl = 'https://fiwe.in/api',
+    //this.baseUrl = 'http://192.168.29.12:8000/api', // 'http://10.35.236.250:8000/api', // 'https://fiwe.in/api',
     this.defaultHeaders = const <String, String>{'Content-Type': 'application/json', 'accept': 'application/json'},
     this.enableLogging = kDebugMode,
   });
@@ -310,7 +310,15 @@ class HttpService extends GetxService {
   ApiResponse<Map<String, dynamic>> _parseApiResponse(http.Response response) {
     try {
       final responseBody = jsonDecode(response.body) as Map<String, dynamic>;
+
       if (responseBody.containsKey('success') && responseBody['success'] == true) {
+        if (responseBody['data'] is List) {
+          return ApiResponse.success(
+            message: responseBody['message'] as String? ?? 'Request successful',
+            data: {'items': responseBody['data']},
+            statusCode: response.statusCode,
+          );
+        }
         return ApiResponse.success(
           message: responseBody['message'] as String? ?? 'Request successful',
           data: responseBody['data'] as Map<String, dynamic>?,
