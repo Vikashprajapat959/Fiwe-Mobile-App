@@ -18,7 +18,7 @@ class CreateRoomView extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(title: const Text(Strings.createRoom)),
-      persistentFooterDecoration: BoxDecoration(),
+      persistentFooterDecoration: const BoxDecoration(),
       persistentFooterButtons: [
         AppButtonElevated(
           text: 'Create Room',
@@ -57,7 +57,7 @@ class CreateRoomView extends StatelessWidget {
               hintText: 'Enter room name',
               onChanged: controller.setRoomName,
               textCapitalization: TextCapitalization.words,
-              borderSide: BorderSide(color: AppColors.borderLight),
+              borderSide: const BorderSide(color: AppColors.borderLight),
             ),
             const SizedBox(height: 24),
 
@@ -84,12 +84,12 @@ class CreateRoomView extends StatelessWidget {
                 child: Card(
                   child: Padding(
                     padding: const EdgeInsets.all(8.0),
-                    child: SizedBox(width: Get.width, child: Text("Some random topic from AI")),
+                    child: SizedBox(width: Get.width, child: Text(controller.randomText.value)),
                   ),
                 ),
               ),
             ),
-            SizedBox(height: 32),
+            const SizedBox(height: 32),
           ],
         ),
       ),
@@ -104,7 +104,7 @@ class CreateRoomView extends StatelessWidget {
     return GestureDetector(
       onTap: controller.toggleShowAllTopics,
       child: Container(
-        padding: EdgeInsets.all(1),
+        padding: const EdgeInsets.all(1),
         decoration: Constants.gradientDecoration.copyWith(borderRadius: BorderRadius.circular(20)),
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),

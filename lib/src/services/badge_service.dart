@@ -1,22 +1,23 @@
 import 'dart:developer' as dev;
+
 import 'package:app_badge_plus/app_badge_plus.dart';
 import 'package:get/get.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// Service for managing app icon badge counts
-/// 
+///
 /// This service ONLY persists the badge count (integer) in SharedPreferences.
 /// It does NOT store any notification data or content.
 /// Notification data is handled in-memory only by NotificationController.
-/// 
-/// Follows SharedPreferences Architecture: Only authentication tokens and 
+///
+/// Follows SharedPreferences Architecture: Only authentication tokens and
 /// essential counters (like badge count) are persisted locally.
 class BadgeService extends GetxService {
   static BadgeService get instance => Get.find<BadgeService>();
 
   // Badge count observable
   final RxInt _badgeCount = 0.obs;
-  
+
   // SharedPreferences key for badge count persistence
   static const String _badgeCountKey = 'notification_badge_count';
 
@@ -36,7 +37,7 @@ class BadgeService extends GetxService {
   Future<void> _initializeBadgeService() async {
     try {
       // Check if badges are supported on this platform
-      bool isSupported = await AppBadgePlus.isSupported();
+      final bool isSupported = await AppBadgePlus.isSupported();
       if (!isSupported) {
         dev.log('App badges not supported on this platform', name: 'BadgeService');
         return;
@@ -44,12 +45,11 @@ class BadgeService extends GetxService {
 
       // Load persisted badge count
       await _loadBadgeCount();
-      
+
       // Apply the loaded badge count
       await _applyBadgeCount();
-      
-      dev.log('Badge service initialized successfully. Current count: ${_badgeCount.value}', 
-              name: 'BadgeService');
+
+      dev.log('Badge service initialized successfully. Current count: ${_badgeCount.value}', name: 'BadgeService');
     } catch (e) {
       dev.log('Error initializing badge service: $e', name: 'BadgeService');
     }
@@ -105,7 +105,7 @@ class BadgeService extends GetxService {
       _badgeCount.value = count;
       await _saveBadgeCount();
       await _applyBadgeCount();
-      
+
       dev.log('Badge count updated to: $count', name: 'BadgeService');
     } catch (e) {
       dev.log('Error updating badge: $e', name: 'BadgeService');
@@ -167,11 +167,7 @@ class BadgeService extends GetxService {
 
   /// Get badge status info for debugging
   Map<String, dynamic> getDebugInfo() {
-    return {
-      'badgeCount': _badgeCount.value,
-      'isServiceInitialized': true,
-      'storageKey': _badgeCountKey,
-    };
+    return {'badgeCount': _badgeCount.value, 'isServiceInitialized': true, 'storageKey': _badgeCountKey};
   }
 
   @override

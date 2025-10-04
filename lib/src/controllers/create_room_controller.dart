@@ -1,3 +1,4 @@
+import 'package:fiwe/src/controllers/auth_controller.dart';
 import 'package:fiwe/src/controllers/video_room_controller.dart';
 import 'package:fiwe/src/models/topic.model.dart';
 import 'package:fiwe/src/services/topic_service.dart';
@@ -6,6 +7,7 @@ import 'package:get/get.dart';
 class CreateRoomController extends GetxController {
   final topicService = Get.find<TopicService>();
   final videoRoomController = Get.find<VideoRoomController>();
+  final authController = Get.find<AuthController>();
 
   // Section 1: Topics/Interests
   var topics = <Topic>[].obs;
@@ -54,6 +56,11 @@ class CreateRoomController extends GetxController {
     super.onInit();
     // Sample topics for demonstration
     _loadTopics();
+    currentTab.listen((index) {
+      if (index == 1) {
+        getRandomTopic();
+      }
+    });
   }
 
   Future<void> _loadTopics() async {
@@ -61,6 +68,15 @@ class CreateRoomController extends GetxController {
       final response = await topicService.getAllTopics();
       if (response.success) {
         topics.value = response.data ?? <Topic>[];
+        //  sort topics based on user topics followed
+        final userTopicIds = authController.userProfile?.topics?.map((t) => t.id).toSet() ?? <dynamic>{};
+        topics.sort((a, b) {
+          final aFollowed = userTopicIds.contains(a.id);
+          final bFollowed = userTopicIds.contains(b.id);
+          if (aFollowed && !bFollowed) return -1;
+          if (!aFollowed && bFollowed) return 1;
+          return 0;
+        });
       } else {
         Get.snackbar('Error', response.message, snackPosition: SnackPosition.BOTTOM);
       }
@@ -95,6 +111,19 @@ class CreateRoomController extends GetxController {
       selectedTopicId.value = "";
     } else {
       selectedTopicId.value = topicId;
+    }
+  }
+
+  Future<void> getRandomTopic() async {
+    try {
+      final response = await topicService.getRandomTopic();
+      if (response.success) {
+        randomText.value = response.data ?? "Discuss anything!";
+      } else {
+        Get.snackbar('Error', response.message, snackPosition: SnackPosition.BOTTOM);
+      }
+    } catch (e) {
+      Get.snackbar('Error', 'Failed to fetch random topic: $e', snackPosition: SnackPosition.BOTTOM);
     }
   }
 }

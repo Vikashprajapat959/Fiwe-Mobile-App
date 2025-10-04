@@ -23,7 +23,7 @@ class SignUpView extends StatelessWidget {
       backgroundColor: AppColors.surface,
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: EdgeInsets.symmetric(horizontal: 14),
+          padding: const EdgeInsets.symmetric(horizontal: 14),
           child: Form(
             key: controller.formKey,
             child: Column(
@@ -40,7 +40,7 @@ class SignUpView extends StatelessWidget {
                 const SizedBox(height: 20),
 
                 // Title
-                Text(
+                const Text(
                   Strings.signUpTitle,
                   style: TextStyle(
                     fontSize: 24,
@@ -52,7 +52,7 @@ class SignUpView extends StatelessWidget {
                 const SizedBox(height: 12),
 
                 // Subtitle
-                Text(
+                const Text(
                   Strings.signUpSubtitle,
                   textAlign: TextAlign.center,
                   style: TextStyle(
@@ -98,8 +98,8 @@ class SignUpView extends StatelessWidget {
                         readOnly: controller.isPhoneVerified,
                       ),
                       if (controller.isPhoneVerified)
-                        Padding(
-                          padding: const EdgeInsets.only(top: 4, left: 16),
+                        const Padding(
+                          padding: EdgeInsets.only(top: 4, left: 16),
                           child: Row(
                             children: [
                               Icon(Icons.check_circle, color: Colors.green, size: 16),
@@ -156,7 +156,7 @@ class SignUpView extends StatelessWidget {
     return Stack(
       children: [
         Container(
-          padding: EdgeInsets.all(2),
+          padding: const EdgeInsets.all(2),
           width: Constants.profileImageSize,
           height: Constants.profileImageSize,
           decoration: BoxDecoration(
@@ -178,7 +178,7 @@ class SignUpView extends StatelessWidget {
                   ),
                 ),
         ),
-        Positioned(bottom: 0, right: 0, child: const _CameraIconButton()),
+        const Positioned(bottom: 0, right: 0, child: _CameraIconButton()),
       ],
     );
   }
@@ -204,7 +204,7 @@ class SignUpView extends StatelessWidget {
           Expanded(
             child: Wrap(
               children: [
-                Text(
+                const Text(
                   Strings.privacyPolicyText,
                   style: TextStyle(
                     fontSize: 14,
@@ -213,12 +213,12 @@ class SignUpView extends StatelessWidget {
                 ),
                 GestureDetector(
                   onTap: controller.openPrivacyPolicy,
-                  child: Text(
+                  child: const Text(
                     Strings.privacyPolicy,
                     style: TextStyle(fontSize: 14, color: AppColors.primary, decoration: TextDecoration.underline),
                   ),
                 ),
-                Text(
+                const Text(
                   Strings.andText,
                   style: TextStyle(
                     fontSize: 14,
@@ -227,7 +227,7 @@ class SignUpView extends StatelessWidget {
                 ),
                 GestureDetector(
                   onTap: controller.openTermsAndConditions,
-                  child: Text(
+                  child: const Text(
                     Strings.termsConditions,
                     style: TextStyle(fontSize: 14, color: AppColors.primary, decoration: TextDecoration.underline),
                   ),
@@ -251,7 +251,7 @@ class _CameraIconButton extends StatelessWidget {
       width: 36,
       height: 36,
       decoration: const BoxDecoration(shape: BoxShape.circle, color: AppColors.primary),
-      child: Icon(LucideIcons.camera, color: Colors.white),
+      child: const Icon(LucideIcons.camera, color: Colors.white),
     );
   }
 }

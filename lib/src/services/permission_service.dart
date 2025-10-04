@@ -1,7 +1,8 @@
 import 'dart:developer' as dev;
+
 import 'package:flutter/material.dart';
-import 'package:permission_handler/permission_handler.dart';
 import 'package:get/get.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 import '../utils/video_room_exceptions.dart';
 
@@ -12,29 +13,27 @@ class PermissionService extends GetxService {
   Future<bool> requestVideoRoomPermissions() async {
     try {
       dev.log('Requesting video room permissions', name: 'PermissionService');
-      
+
       // Request camera permission
       final cameraStatus = await Permission.camera.request();
       dev.log('Camera permission status: $cameraStatus', name: 'PermissionService');
-      
       // Request microphone permission
       final micStatus = await Permission.microphone.request();
       dev.log('Microphone permission status: $micStatus', name: 'PermissionService');
-      
+      final phoneState = await Permission.phone.request();
+      dev.log('Phone State permission status: $phoneState', name: 'PermissionService');
       // Check if notification permissions are granted
       final notificationPermission = await _requestNotificationPermissions();
       dev.log('Notification permission status: $notificationPermission', name: 'PermissionService');
-      
-      final allGranted = cameraStatus.isGranted && 
-                        micStatus.isGranted && 
-                        notificationPermission;
-      
+
+      final allGranted = cameraStatus.isGranted && micStatus.isGranted && notificationPermission;
+
       // If permissions are denied, throw a specific exception
       if (!allGranted) {
         final deniedPermissions = <String>[];
         if (!cameraStatus.isGranted) deniedPermissions.add('camera');
         if (!micStatus.isGranted) deniedPermissions.add('microphone');
-        
+
         if (deniedPermissions.isNotEmpty) {
           throw MediaPermissionDeniedException(
             'Required permissions were denied. Please enable ${deniedPermissions.join(' and ')} permissions in your device settings.',
@@ -42,7 +41,7 @@ class PermissionService extends GetxService {
           );
         }
       }
-      
+
       dev.log('All video room permissions granted: $allGranted', name: 'PermissionService');
       return allGranted;
     } on MediaPermissionDeniedException {
@@ -59,10 +58,8 @@ class PermissionService extends GetxService {
       final cameraStatus = await Permission.camera.status;
       final micStatus = await Permission.microphone.status;
       final notificationStatus = await _checkNotificationPermissions();
-      
-      return cameraStatus.isGranted && 
-             micStatus.isGranted && 
-             notificationStatus;
+
+      return cameraStatus.isGranted && micStatus.isGranted && notificationStatus;
     } catch (e) {
       dev.log('Error checking video room permissions: $e', name: 'PermissionService');
       return false;
@@ -78,7 +75,7 @@ class PermissionService extends GetxService {
         // implement a more detailed notification permission request
         return true;
       }
-      
+
       // For Android, notification permissions are generally granted by default
       return true;
     } catch (e) {
@@ -95,7 +92,7 @@ class PermissionService extends GetxService {
         final status = await Permission.notification.status;
         return status.isGranted;
       }
-      
+
       // For Android, notification permissions are generally granted by default
       return true;
     } catch (e) {

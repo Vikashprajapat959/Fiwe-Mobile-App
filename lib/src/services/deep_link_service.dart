@@ -4,8 +4,6 @@ import 'dart:developer' as dev;
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-import '../controllers/video_room_controller.dart';
-
 class DeepLinkService extends GetxService {
   static DeepLinkService get instance => Get.find<DeepLinkService>();
 
@@ -20,7 +18,7 @@ class DeepLinkService extends GetxService {
       final uri = Uri.parse(link);
 
       // Check if this is our custom scheme
-      if (uri.scheme.contains("fiwe") && uri.host == 'room') {
+      if (uri.scheme.contains('fiwe') && uri.host == 'room') {
         // Extract room ID from path
         final pathSegments = uri.pathSegments;
         if (pathSegments.isNotEmpty) {
@@ -38,8 +36,8 @@ class DeepLinkService extends GetxService {
     try {
       dev.log('Handling room invite link for room: $roomId', name: 'DeepLinkService');
 
-      // Join the room using VideoRoomController
-      VideoRoomController.instance.joinRoom(roomId, 'User');
+      // Join the room using VideoRoomController TODO::
+      // VideoRoomController.instance.joinRoom(roomId, 'User', "", "");
 
       // Navigate to the room view
       navigatorKey.currentState?.pushNamed('/room/$roomId');
@@ -69,8 +67,8 @@ class DeepLinkService extends GetxService {
       // Navigate using go_router
       navigatorKey.currentState?.pushNamed('/room/$roomId');
 
-      // Also join the room using VideoRoomController
-      VideoRoomController.instance.joinRoom(roomId, 'User');
+      // Also join the room using VideoRoomController TODO:
+      // VideoRoomController.instance.joinRoom(roomId, 'User', null, "");
     } catch (e) {
       dev.log('Error handling video room link: $e', name: 'DeepLinkService');
       Get.snackbar('Error', 'Failed to join video room: $e', snackPosition: SnackPosition.BOTTOM);

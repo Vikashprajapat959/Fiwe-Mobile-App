@@ -2,7 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:fiwe/src/services/fcm_notification_service.dart';
 import 'package:fiwe/src/utils/colors.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -72,6 +72,7 @@ class SignUpController extends GetxController {
     required String dateOfBirth,
     required String pinCode,
     required bool isTncAccepted,
+    required String phoneNumber,
   }) async {
     try {
       final body = {
@@ -81,24 +82,25 @@ class SignUpController extends GetxController {
         'pincode': pinCode.trim(),
         'is_tnc_accepted': isTncAccepted,
         'device_id': await _getDeviceId(),
+        'phone_number': phoneNumber.trim(),
         if (_imageToBase64(_selectedProfileImage.value) != null)
           'profile_image': _imageToBase64(_selectedProfileImage.value),
       };
 
       final response = await _httpService.post(Endpoints.signup, body: body);
 
-      if (response.body.isNotEmpty) {
-        final data = Map<String, dynamic>.from(json.decode(response.body));
-        return data.containsKey('success') || data.containsKey('message') ? data : {...data, 'success': true};
+      if (response.success) {
+        final data = response.data as Map<String, dynamic>;
+        return data;
+      } else {
+        throw Exception('Failed to signup: ${response.message}');
       }
-
-      return {Constants.responseSuccessKey: true, Constants.responseMessageKey: Strings.signupSuccessful};
     } catch (e) {
       if (kDebugMode) print(Strings.formatErrorMessage('Signup API Error', e));
       Get.snackbar(
         Strings.apiError,
         Strings.formatErrorMessage(Strings.failedToCompleteSignup, e),
-        duration: Duration(seconds: Constants.snackbarDurationSeconds),
+        duration: const Duration(seconds: Constants.snackbarDurationSeconds),
       );
       return null;
     }
@@ -111,10 +113,10 @@ class SignUpController extends GetxController {
       return;
     }
 
-    // if (!_isPhoneVerified.value) {
-    //   Get.snackbar(Strings.phoneVerificationRequired, Strings.pleaseVerifyPhone);
-    //   return;
-    // }
+    if (!_isPhoneVerified.value) {
+      Get.snackbar(Strings.phoneVerificationRequired, Strings.pleaseVerifyPhone);
+      return;
+    }
 
     if (!_acceptTerms.value) {
       Get.snackbar(Strings.termsRequiredTitle, Strings.termsRequired);
@@ -136,13 +138,14 @@ class SignUpController extends GetxController {
           dateOfBirth: dateOfBirthController.text.trim(),
           pinCode: pinCodeController.text.trim(),
           isTncAccepted: _acceptTerms.value,
+          phoneNumber: phoneController.text.trim(),
         ),
       );
 
       if (apiResponse != null) {
         // Save tokens if available
-        final access = apiResponse[Constants.responseAccessTokenKey] ?? apiResponse[Constants.responseAccessKey];
-        final refresh = apiResponse[Constants.responseRefreshTokenKey] ?? apiResponse[Constants.responseRefreshKey];
+        final access = apiResponse[Constants.responseAccessKey];
+        final refresh = apiResponse[Constants.responseRefreshKey];
 
         if (access != null && refresh != null) {
           await SharedPrefService.setString(Constants.storageBearerTokenKey, access);
@@ -151,13 +154,7 @@ class SignUpController extends GetxController {
 
         // Complete signup in auth controller
         final authController = Get.find<AuthController>();
-        await authController.completeSignUp(
-          name: nameController.text.trim(),
-          email: emailController.text.trim(),
-          dateOfBirth: dateOfBirthController.text.trim(),
-          pinCode: pinCodeController.text.trim(),
-          profileImage: _selectedProfileImage.value,
-        );
+        await authController.completeSignUp(apiResponse);
       } else {
         Get.snackbar(Strings.signupFailed, Strings.pleaseTryAgain);
       }
@@ -224,7 +221,7 @@ class SignUpController extends GetxController {
   Future<void> selectDateOfBirth() async {
     final picked = await Get.dialog<DateTime>(
       DatePickerDialog(
-        initialDate: DateTime.now().subtract(Duration(days: 365 * Constants.minAgeYears)),
+        initialDate: DateTime.now().subtract(const Duration(days: 365 * Constants.minAgeYears)),
         firstDate: DateTime(Constants.minYear),
         lastDate: DateTime.now(),
       ),
@@ -357,10 +354,10 @@ class SignUpController extends GetxController {
   /// Build OTP bottom sheet widget
   Widget _buildOtpBottomSheet() {
     return Container(
-      padding: EdgeInsets.all(24),
+      padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
         color: Get.theme.scaffoldBackgroundColor,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -369,18 +366,18 @@ class SignUpController extends GetxController {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(Strings.verifyPhoneTitle, style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600)),
+              const Text(Strings.verifyPhoneTitle, style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600)),
               IconButton(
                 onPressed: () {
                   _stopCountdown();
                   Get.back();
                 },
-                icon: Icon(Icons.close),
+                icon: const Icon(Icons.close),
               ),
             ],
           ),
 
-          SizedBox(height: 8),
+          const SizedBox(height: 8),
 
           // Phone number display
           Text(
@@ -388,7 +385,7 @@ class SignUpController extends GetxController {
             style: TextStyle(fontSize: 14, color: Colors.grey[600]),
           ),
 
-          SizedBox(height: 24),
+          const SizedBox(height: 24),
 
           // OTP input field
           // AppTextField(
@@ -411,7 +408,7 @@ class SignUpController extends GetxController {
             defaultPinTheme: PinTheme(
               width: 56,
               height: 56,
-              textStyle: TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
+              textStyle: const TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
               decoration: BoxDecoration(
                 border: Border.all(color: Colors.grey),
                 borderRadius: BorderRadius.circular(8),
@@ -420,7 +417,7 @@ class SignUpController extends GetxController {
             focusedPinTheme: PinTheme(
               width: 56,
               height: 56,
-              textStyle: TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
+              textStyle: const TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
               decoration: BoxDecoration(
                 border: Border.all(color: AppColors.primary),
                 borderRadius: BorderRadius.circular(8),
@@ -429,7 +426,7 @@ class SignUpController extends GetxController {
             submittedPinTheme: PinTheme(
               width: 56,
               height: 56,
-              textStyle: TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
+              textStyle: const TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
               decoration: BoxDecoration(
                 border: Border.all(color: Get.theme.primaryColor),
                 borderRadius: BorderRadius.circular(8),
@@ -439,21 +436,21 @@ class SignUpController extends GetxController {
             pinputAutovalidateMode: PinputAutovalidateMode.onSubmit,
             showCursor: true,
           ),
-          SizedBox(height: 24),
+          const SizedBox(height: 24),
 
           // Verify button
           Obx(() => AppButtonElevated(text: Strings.verifyOtp, onPressed: isPhoneVerifying ? null : verifyOtp)),
 
-          SizedBox(height: 16),
+          const SizedBox(height: 16),
 
           // Resend OTP
           Obx(
             () => otpResendEnabled
-                ? TextButton(onPressed: resendOtp, child: Text(Strings.resendOtp))
+                ? TextButton(onPressed: resendOtp, child: const Text(Strings.resendOtp))
                 : Text('${Strings.resendOtpIn} ${countdown}s', style: TextStyle(color: Colors.grey[600])),
           ),
 
-          SizedBox(height: 16),
+          const SizedBox(height: 16),
         ],
       ),
     );
@@ -461,11 +458,7 @@ class SignUpController extends GetxController {
 
   /// Helper methods
   Future<String> _getDeviceId() async {
-    try {
-      return await FirebaseMessaging.instance.getToken() ?? Constants.unknownDevice;
-    } catch (e) {
-      return Constants.unknownDevice;
-    }
+    return FCMNotificationService.instance.deviceToken ?? 'Unknown';
   }
 
   String? _imageToBase64(File? imageFile) {
@@ -517,7 +510,7 @@ class SignUpController extends GetxController {
     _otpResendEnabled.value = false;
     _countdown.value = Constants.otpResendTimeoutSeconds;
 
-    _countdownTimer = Timer.periodic(Duration(seconds: 1), (timer) {
+    _countdownTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
       if (_countdown.value > 0) {
         _countdown.value--;
       } else {

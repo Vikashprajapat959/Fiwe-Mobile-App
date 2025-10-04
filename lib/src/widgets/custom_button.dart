@@ -2,17 +2,6 @@ import 'package:fiwe/src/utils/constants.dart';
 import 'package:flutter/material.dart';
 
 class AppButtonElevated extends StatelessWidget {
-  final String text;
-  final VoidCallback? onPressed;
-  final Color? backgroundColor;
-  final Color? textColor;
-  final double? width;
-  final double height;
-  final double borderRadius;
-  final EdgeInsets margin;
-  final double fontSize;
-  final FontWeight fontWeight;
-
   const AppButtonElevated({
     super.key,
     required this.text,
@@ -26,6 +15,16 @@ class AppButtonElevated extends StatelessWidget {
     this.fontSize = 16,
     this.fontWeight = FontWeight.w500,
   });
+  final String text;
+  final VoidCallback? onPressed;
+  final Color? backgroundColor;
+  final Color? textColor;
+  final double? width;
+  final double height;
+  final double borderRadius;
+  final EdgeInsets margin;
+  final double fontSize;
+  final FontWeight fontWeight;
 
   @override
   Widget build(BuildContext context) {
@@ -62,13 +61,6 @@ class AppButtonElevated extends StatelessWidget {
 }
 
 class CustomTextButton extends StatelessWidget {
-  final String text;
-  final VoidCallback? onPressed;
-  final Color? textColor;
-  final double fontSize;
-  final FontWeight fontWeight;
-  final EdgeInsets padding;
-
   const CustomTextButton({
     super.key,
     required this.text,
@@ -78,6 +70,12 @@ class CustomTextButton extends StatelessWidget {
     this.fontWeight = FontWeight.w500,
     this.padding = const EdgeInsets.all(8),
   });
+  final String text;
+  final VoidCallback? onPressed;
+  final Color? textColor;
+  final double fontSize;
+  final FontWeight fontWeight;
+  final EdgeInsets padding;
 
   @override
   Widget build(BuildContext context) {

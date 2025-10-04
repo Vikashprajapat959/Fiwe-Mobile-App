@@ -75,9 +75,9 @@ class PhoneAuthService {
 
       final response = await _httpService.post(Endpoints.sendOtp, body: {'phone': formattedPhone}, isAuthorized: true);
 
-      final data = jsonDecode(response.body);
+      final data = response.data!;
 
-      if (data['success'] == true) {
+      if (response.success == true) {
         final verificationId = data['session_id'] as String;
         if (kDebugMode) print('OTP sent successfully, verification ID: $verificationId');
         return verificationId;
@@ -140,15 +140,15 @@ class PhoneAuthService {
         isAuthorized: true,
       );
 
-      final data = jsonDecode(response.body);
+      final data = response.data ;
 
-      if (data['success'] == true) {
+      if (response.success == true) {
         // final verified = data['verified'] ?? false;
         // if (verified && kDebugMode) print('Phone verification successful');
         // return verified;
         return true;
       } else {
-        throw _handleApiException(data);
+        throw _handleApiException(data!);
       }
     } on SocketException {
       throw Exception(Strings.noInternetConnection);
