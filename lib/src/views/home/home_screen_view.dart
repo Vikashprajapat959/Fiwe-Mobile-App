@@ -2,15 +2,14 @@ import 'dart:developer';
 import 'dart:typed_data';
 
 import 'package:fiwe/src/controllers/home_controller.dart';
-import 'package:fiwe/src/models/Interacted_participant.dart';
 import 'package:fiwe/src/models/hmsvideo_room.dart';
 import 'package:fiwe/src/utils/app_text_styles.dart';
+import 'package:fiwe/src/utils/assets.dart';
 import 'package:fiwe/src/utils/colors.dart';
 import 'package:fiwe/src/utils/constants.dart';
 import 'package:fiwe/src/utils/helper.dart';
 import 'package:fiwe/src/views/home/user_notification_view.dart';
 import 'package:fiwe/src/views/profile/profile_view.dart';
-import 'package:fiwe/src/views/rating/user_rating_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
@@ -23,7 +22,6 @@ class HomeScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final HomeController controller = Get.find();
     return Scaffold(
       body: SafeArea(
         child: Container(
@@ -46,7 +44,7 @@ class HomeScreen extends StatelessWidget {
 
                 // Face of Week Section
                 _buildFaceOfWeekSection(),
-                const SizedBox(height: 32),
+                // const SizedBox(height: 16),
 
                 // Active Room Section
                 _buildActiveRoomSection(),
@@ -70,7 +68,7 @@ class HomeScreen extends StatelessWidget {
     final HomeController controller = Get.find();
     return Row(
       children: [
-        ProfileAvatar(imageUrl: controller.user?.profileBase64 ?? '', size: 48),
+        Obx(() => ProfileAvatar(imageUrl: controller.user?.profileBase64 ?? '', size: 48)),
         const SizedBox(width: 12),
         Expanded(
           child: Column(
@@ -78,18 +76,20 @@ class HomeScreen extends StatelessWidget {
             children: [
               Row(
                 children: [
-                  Text('${controller.user?.name}', style: AppTextStyles.headerTitle),
+                  Obx(() => Text('${controller.user?.name}', style: AppTextStyles.headerTitle)),
                   const SizedBox(width: 4),
-                  const Icon(Icons.star, color: AppColors.orange, size: 16),
+                  const Icon(LucideIcons.star, color: AppColors.orange, size: 16),
                 ],
               ),
               Row(
                 children: [
-                  Text(
-                    controller.user?.topics?.firstWhereOrNull((t) => t.isPrimary ?? false)?.title ?? 'No Interest',
-                    style: AppTextStyles.subtitle,
+                  Obx(
+                    () => Text(
+                      controller.userTopics.firstWhereOrNull((t) => t.isPrimary ?? false)?.title ?? '',
+                      style: AppTextStyles.subtitle,
+                    ),
                   ),
-                  const Icon(Icons.star, color: AppColors.orange, size: 12),
+                  const Icon(LucideIcons.star, color: AppColors.orange, size: 12),
                   const Text('4.5', style: AppTextStyles.subtitle),
                 ],
               ),
@@ -99,45 +99,8 @@ class HomeScreen extends StatelessWidget {
         Row(
           children: [
             ActionButton(
-              icon: const Icon(Icons.map_outlined),
-              onTap: () {
-                final Map<String, dynamic> data = {
-                  'success': true,
-                  'message': 'Successfully left room',
-                  'data': {
-                    'message': 'Successfully left room',
-                    'redis_removed': true,
-                    'room_ended': false,
-                    'redis_cleared': false,
-                    'hms_disabled': true,
-                    'hms_error': null,
-                    'interacted_participants': [
-                      {
-                        'user_id': 'a1b2c3d4-e5f6-7890-g1h2-i3j4k5l6m7n8',
-                        'name': 'Alice Johnson',
-                        'profile_image_base64':
-                            'data:image/jpeg;base64,/9j/4AAQSkZJRgABAQEASABIAAD/2wBDAAMCAgMCAgMDAwMEAwMEBQgFBAQE...truncated...',
-                        'role': 'host',
-                        'joined_at': '2025-10-04T14:30:00Z',
-                        'left_at': '2025-10-04T15:45:30Z',
-                      },
-                      {
-                        'user_id': 'b2c3d4e5-f6g7-8901-h2i3-j4k5l6m7n8o9',
-                        'name': 'Robert Brown',
-                        'profile_image_base64':
-                            'data:image/jpeg;base64,/9j/4AAQSkZJRgABAQEASABIAAD/2wBDAAMCAgMCAgMDAwMEAwMEBQgFBAQE...truncated...',
-                        'role': 'guest',
-                        'joined_at': '2025-10-04T14:35:15Z',
-                        'left_at': '2025-10-04T15:42:45Z',
-                      },
-                    ],
-                  },
-                };
-                final participants = List.from(
-                  data['data']['interacted_participants'],
-                ).map((e) => InteractedParticipant.fromJson(e)).toList();
-                Get.off(() => UserRatingScreen(interectedParticipants: participants));
-              },
+              icon: const Icon(LucideIcons.medal, color: AppColors.secondaryYellow),
+              onTap: () {},
             ),
             const SizedBox(width: 8),
             ActionButton(
@@ -156,9 +119,10 @@ class HomeScreen extends StatelessWidget {
   Widget _buildFaceOfWeekSection() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
       children: [
         const Text('Face of Week', style: AppTextStyles.sectionTitle),
-        const SizedBox(height: 16),
+        const SizedBox(height: 8),
         SizedBox(
           height: 120,
           child: ListView.separated(
@@ -213,6 +177,7 @@ class HomeScreen extends StatelessWidget {
                   child: Row(
                     spacing: 14,
                     children: List.generate(visibleCount, (index) {
+                      log(rooms[index].objectId.toString());
                       return RoomCard(
                         roomName: rooms[index].title,
                         createdBy: rooms[index].creator?.name ?? '',
@@ -274,18 +239,21 @@ class HomeScreen extends StatelessWidget {
         const SizedBox(height: 16),
         SizedBox(
           height: 160,
-          child: ListView.separated(
-            scrollDirection: Axis.horizontal,
-            itemCount: 3,
-            separatorBuilder: (context, index) => const SizedBox(width: 16),
-            itemBuilder: (context, index) {
-              return InterestCard(
-                title: ['Fashion/lifestyle', 'Makeup/cosmetics', 'Sports'][index],
-                rating: 4.5,
-                imageUrl: 'assets/interest_$index.jpg',
-              );
-            },
-          ),
+          child: Obx(() {
+            final topics = Get.find<HomeController>().userTopics();
+            return ListView.separated(
+              scrollDirection: Axis.horizontal,
+              itemCount: topics.length,
+              separatorBuilder: (context, index) => const SizedBox(width: 16),
+              itemBuilder: (context, index) {
+                return InterestCard(
+                  title: topics[index].title,
+                  rating: 4.5,
+                  imageUrl: topics[index].avatar ?? 'data:image/jpeg;base64',
+                );
+              },
+            );
+          }),
         ),
       ],
     );
@@ -301,7 +269,6 @@ class ProfileAvatar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    log(imageUrl);
     return GestureDetector(
       onTap: () {
         Get.to(() => const ProfileScreen());
@@ -392,6 +359,7 @@ class FaceOfWeekCard extends StatelessWidget {
     return Column(
       children: [
         Stack(
+          alignment: Alignment.center,
           children: [
             Container(
               width: 72,
@@ -407,27 +375,32 @@ class FaceOfWeekCard extends StatelessWidget {
               ),
             ),
             Positioned(
-              top: 4,
-              right: 4,
+              bottom: 0,
               child: Container(
-                padding: const EdgeInsets.all(2),
-                decoration: const BoxDecoration(color: AppColors.orange, shape: BoxShape.circle),
-                child: const Icon(Icons.star, color: Colors.white, size: 12),
+                padding: const EdgeInsets.symmetric(horizontal: 4),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(6),
+                  boxShadow: [BoxShadow(color: Colors.black.withAlpha(16), blurRadius: 4, offset: const Offset(0, 2))],
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Icon(LucideIcons.star, color: AppColors.orange, size: 12),
+                    const SizedBox(width: 2),
+                    Text(rating.toString(), style: AppTextStyles.rating),
+                  ],
+                ),
               ),
             ),
+            Positioned(top: 4, right: 4, child: Image.asset(Assets.icons.starBadge, width: 15, height: 15)),
           ],
         ),
         const SizedBox(height: 8),
-        Text(name, style: AppTextStyles.cardName),
+        Text(name, style: AppTextStyles.cardName, overflow: TextOverflow.ellipsis),
         const SizedBox(height: 4),
-        Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Icon(Icons.star, color: AppColors.orange, size: 12),
-            const SizedBox(width: 2),
-            Text(rating.toString(), style: AppTextStyles.rating),
-          ],
-        ),
       ],
     );
   }
@@ -503,9 +476,14 @@ class RoomCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const Text('Created by ', style: AppTextStyles.cardSubtitle),
-                    const SizedBox(width: 6),
+                    const SizedBox(width: 2),
                     Expanded(
-                      child: Text(createdBy, style: AppTextStyles.cardSubtitleBold, textAlign: TextAlign.end),
+                      child: Text(
+                        createdBy,
+                        maxLines: 1,
+                        style: AppTextStyles.cardSubtitleBold,
+                        textAlign: TextAlign.end,
+                      ),
                     ),
                   ],
                 ),
@@ -594,21 +572,26 @@ class InterestCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      width: 140,
+    return Container(
+      height: 160,
+      width: 165,
+      padding: const EdgeInsets.all(4),
+      decoration: BoxDecoration(
+        borderRadius: const BorderRadius.all(Radius.circular(12)),
+        color: AppColors.primary.withAlpha(20),
+      ),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           Stack(
             children: [
               Container(
-                height: 100,
+                height: 120,
                 width: double.infinity,
                 decoration: BoxDecoration(
-                  color: AppColors.lightGray,
                   borderRadius: BorderRadius.circular(12),
                   image: DecorationImage(
-                    image: AssetImage(imageUrl),
+                    image: MemoryImage(Helper.base64ToBytes(imageUrl) ?? Uint8List(255)),
                     fit: BoxFit.cover,
                     onError: (exception, stackTrace) {},
                   ),
@@ -618,16 +601,20 @@ class InterestCard extends StatelessWidget {
                 top: 8,
                 right: 8,
                 child: Container(
-                  padding: const EdgeInsets.all(4),
-                  decoration: const BoxDecoration(color: AppColors.orange, shape: BoxShape.circle),
+                  padding: const EdgeInsets.all(2),
+                  decoration: BoxDecoration(
+                    color: AppColors.primary,
+                    border: Border.all(color: AppColors.primaryDark),
+                    borderRadius: const BorderRadius.all(Radius.circular(4)),
+                  ),
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      const Icon(Icons.star, color: Colors.white, size: 12),
+                      const Icon(LucideIcons.star, color: AppColors.secondaryYellow, size: 12),
                       const SizedBox(width: 2),
                       Text(
                         rating.toString(),
-                        style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
+                        style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w500),
                       ),
                     ],
                   ),
@@ -636,7 +623,7 @@ class InterestCard extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 8),
-          Text(title, style: AppTextStyles.cardTitle, maxLines: 2, overflow: TextOverflow.ellipsis),
+          Text(title, overflow: TextOverflow.ellipsis, style: AppTextStyles.cardTitle, textAlign: TextAlign.center),
         ],
       ),
     );

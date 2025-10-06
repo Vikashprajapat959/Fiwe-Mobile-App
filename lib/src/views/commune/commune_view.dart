@@ -70,7 +70,7 @@ class CommunityMemberTile extends StatelessWidget {
                         shape: BoxShape.circle,
                         border: Border.all(color: Colors.white, width: 2),
                       ),
-                      child: const Icon(Icons.star, size: 12, color: Colors.white),
+                      child: const Icon(LucideIcons.star, size: 12, color: Colors.white),
                     ),
                   ),
               ],
@@ -95,7 +95,7 @@ class CommunityMemberTile extends StatelessWidget {
             // Rating
             Row(
               children: [
-                const Icon(Icons.star, size: 18, color: AppColors.starColor),
+                const Icon(LucideIcons.star, size: 18, color: AppColors.starColor),
                 const SizedBox(width: 4),
                 Text(
                   member.rating.toString(),

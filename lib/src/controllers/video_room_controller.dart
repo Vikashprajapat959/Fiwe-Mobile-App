@@ -229,7 +229,9 @@ class VideoRoomController extends GetxController with WidgetsBindingObserver {
         final participants = List.from(
           response['interacted_participants'] as List,
         ).map((e) => InteractedParticipant.fromJson(e)).toList();
-        Get.off(() => UserRatingScreen(interectedParticipants: participants));
+        Get.off(
+          () => UserRatingScreen(interectedParticipants: participants, roomParticipationId: response?['room_id']),
+        );
       } else {
         // Go directly to home if no participants to rate
         Get.offAndToNamed(Constants.homeViewRoute);

@@ -10,7 +10,7 @@ class AppTextStyles {
 
   static const TextStyle viewAll = TextStyle(fontSize: 14, color: AppColors.teal, fontWeight: FontWeight.w500);
 
-  static const TextStyle cardName = TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.darkText);
+  static const TextStyle cardName = TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: AppColors.darkText);
 
   static const TextStyle cardTitle = TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.darkText);
 
@@ -18,7 +18,7 @@ class AppTextStyles {
 
   static const TextStyle cardSubtitleBold = TextStyle(fontSize: 12, color: AppColors.teal, fontWeight: FontWeight.w600);
 
-  static const TextStyle rating = TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.darkText);
+  static const TextStyle rating = TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: AppColors.darkText);
 
   static const TextStyle buttonText = TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: Colors.white);
 

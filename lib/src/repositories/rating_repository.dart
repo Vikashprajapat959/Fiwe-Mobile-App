@@ -1,5 +1,5 @@
 import 'dart:developer' as dev;
-import 'package:fiwe/src/models/standard_api_response.dart';
+
 import 'package:fiwe/src/services/http_service.dart';
 import 'package:fiwe/src/utils/endpoints.dart';
 import 'package:get/get.dart';
@@ -18,6 +18,7 @@ class RatingRepository extends GetxService {
         Endpoints.submitRatings,
         body: {'ratings': ratings},
         isAuthorized: true,
+        log: true,
       );
 
       if (response.success) {
@@ -36,10 +37,10 @@ class RatingRepository extends GetxService {
   /// Validate rating data before submission
   bool validateRatingData(Map<String, dynamic> rating) {
     return rating.containsKey('rated_user_id') &&
-           rating.containsKey('room_participation_id') &&
-           rating.containsKey('rating_score') &&
-           rating['rating_score'] is int &&
-           rating['rating_score'] >= 1 &&
-           rating['rating_score'] <= 5;
+        rating.containsKey('room_participation_id') &&
+        rating.containsKey('rating_score') &&
+        rating['rating_score'] is int &&
+        rating['rating_score'] >= 1 &&
+        rating['rating_score'] <= 5;
   }
 }

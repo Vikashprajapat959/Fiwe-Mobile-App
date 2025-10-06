@@ -19,7 +19,7 @@ class BadgeSection extends StatelessWidget {
           const Spacer(),
           _buildBadge(Icons.hexagon, CustomColors.textSecondary),
           const SizedBox(width: Constants.paddingSmall),
-          _buildBadge(Icons.star, CustomColors.warning),
+          _buildBadge(LucideIcons.star, CustomColors.warning),
           const SizedBox(width: Constants.paddingSmall),
           _buildBadge(Icons.workspace_premium, CustomColors.error),
         ],
@@ -133,7 +133,7 @@ class ProfileHeader extends StatelessWidget {
                     )
                   : const Icon(LucideIcons.user, size: 30, color: CustomColors.textSecondary),
             ),
-            const Positioned(top: 0, right: 0, child: Icon(Icons.star, color: Colors.yellow)),
+            const Positioned(top: 0, right: 0, child: Icon(LucideIcons.star, color: Colors.yellow)),
           ],
         ),
         const SizedBox(width: Constants.paddingMedium),
@@ -147,7 +147,7 @@ class ProfileHeader extends StatelessWidget {
               Row(
                 children: [
                   const Text('Rating', style: AppTextStyles.caption),
-                  const Icon(Icons.star, color: CustomColors.warning, size: 16),
+                  const Icon(LucideIcons.star, color: CustomColors.warning, size: 16),
                   const SizedBox(width: 4),
                   Text('$rating', style: AppTextStyles.body),
                   const SizedBox(width: 4),

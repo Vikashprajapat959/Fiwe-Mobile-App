@@ -10,13 +10,14 @@ import 'package:get/get.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 class UserRatingScreen extends StatelessWidget {
-  const UserRatingScreen({super.key, required this.interectedParticipants});
+  const UserRatingScreen({super.key, required this.interectedParticipants, required this.roomParticipationId});
   final List<InteractedParticipant> interectedParticipants;
+  final String roomParticipationId; // TODO: Pass actual ID
 
   @override
   Widget build(BuildContext context) {
     final controller = Get.put(UserRatingController());
-    controller.initializeRatings(interectedParticipants, '');
+    controller.initializeRatings(interectedParticipants, roomParticipationId);
     return WillPopScope(
       onWillPop: () async {
         // Show confirmation dialog before leaving
@@ -163,7 +164,6 @@ class UserRatingScreen extends StatelessWidget {
   }
 
   Future<bool?> _showExitConfirmation() {
-    final controller = Get.find<UserRatingController>();
     return showDialog<bool>(
       context: Get.context!,
       builder: (context) => AlertDialog(
@@ -357,7 +357,7 @@ class StarRatingWidget extends StatelessWidget {
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 2),
             child: Icon(
-              isFilled ? Icons.star : Icons.star_border,
+              isFilled ? LucideIcons.star : Icons.star_border,
               color: isFilled ? Colors.amber : Colors.grey[300],
               size: 32,
             ),

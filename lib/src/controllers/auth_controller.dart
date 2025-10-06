@@ -1,3 +1,4 @@
+import 'package:fiwe/src/models/topic.model.dart';
 import 'package:fiwe/src/services/crashlytics_service.dart';
 import 'package:fiwe/src/services/fcm_notification_service.dart';
 import 'package:fiwe/src/utils/logger.dart';
@@ -34,9 +35,16 @@ class AuthController extends GetxController {
   final RxBool _isSigningUp = RxBool(false);
   final RxBool _isSplashComplete = RxBool(false);
   final RxBool _isHandlingAuthentication = RxBool(false);
+  // setter for user profile topics
+  set userTopics(List<Topic>? topics) {
+    if (_userProfile.value != null) {
+      _userProfile.update((user) => user?.copyWith(topics: topics));
+    }
+  }
 
   AuthorizationCredentialAppleID? get appleUser => _appleUser.value;
   LoginProvider? get currentProvider => _currentProvider.value;
+
   /// Gets current user info based on active provider
   Map<String, String?> get currentUserInfo {
     if (_googleUser.value != null) {
@@ -93,10 +101,7 @@ class AuthController extends GetxController {
     } catch (e, s) {
       Logger.error('Error completing sign up', error: e, stackTrace: s);
       CrashlyticsService.recordError(e, s, reason: 'Sign up completion failed');
-      Get.snackbar(
-        Strings.error,
-        Strings.formatErrorMessage(Strings.signUpError, e),
-      );
+      Get.snackbar(Strings.error, Strings.formatErrorMessage(Strings.signUpError, e));
     } finally {
       _isSigningUp(false);
     }
@@ -106,9 +111,9 @@ class AuthController extends GetxController {
 
   /// Checks if stored authentication data exists
   Future<bool> hasStoredAuthData() async => (await Future.wait([
-        _googleAuthService.hasStoredAuthData(),
-        AppleAuthService.hasStoredAuthData(),
-      ])).any((bool hasData) => hasData);
+    _googleAuthService.hasStoredAuthData(),
+    AppleAuthService.hasStoredAuthData(),
+  ])).any((bool hasData) => hasData);
 
   @override
   void onClose() {
@@ -129,12 +134,8 @@ class AuthController extends GetxController {
       final google = _googleUser.value;
       final apple = _appleUser.value;
 
-      final idToken = google != null 
-          ? (google.authentication).idToken 
-          : apple?.identityToken;
-      final provider = google != null 
-          ? Constants.googleProvider 
-          : Constants.appleProvider;
+      final idToken = google != null ? (google.authentication).idToken : apple?.identityToken;
+      final provider = google != null ? Constants.googleProvider : Constants.appleProvider;
 
       if (idToken == null) {
         throw Exception(Strings.unableToGetIdToken);
@@ -166,25 +167,17 @@ class AuthController extends GetxController {
           );
         }
         if (response.data!.containsKey('user')) {
-          _userProfile(User.fromJson(
-            response.data?['user'] as Map<String, dynamic>,
-          ));
+          _userProfile(User.fromJson(response.data?['user'] as Map<String, dynamic>));
         }
 
         return data;
       }
-      return <String, dynamic>{
-        Constants.responseSuccessKey: true,
-        Constants.responseMessageKey: Strings.tokenSentSuccessfully,
-      };
+      return null;
     } catch (e) {
       if (kDebugMode) {
         print(Strings.formatErrorMessage(Strings.errorSendingIdToken, e));
       }
-      Get.snackbar(
-        Strings.apiError,
-        Strings.formatErrorMessage(Strings.failedToSendAuthToken, e),
-      );
+      Get.snackbar(Strings.apiError, Strings.formatErrorMessage(Strings.failedToSendAuthToken, e));
       return null;
     }
   }
@@ -248,29 +241,17 @@ class AuthController extends GetxController {
     } on GoogleSignInException catch (e) {
       final message = e.code == GoogleSignInExceptionCode.canceled
           ? Strings.signInProcessCancelled
-          : Strings.formatErrorMessage(
-              Strings.authenticationFailedError,
-              e.description ?? e.code,
-            );
-      Logger.error(
-        'Google sign in exception: ${e.code}',
-        error: e,
-        stackTrace: e.details as StackTrace?,
-      );
+          : Strings.formatErrorMessage(Strings.authenticationFailedError, e.description ?? e.code);
+      Logger.error('Google sign in exception: ${e.code}', error: e, stackTrace: e.details as StackTrace?);
       Get.snackbar(
-        e.code == GoogleSignInExceptionCode.canceled
-            ? Strings.signInCancelled
-            : Strings.googleSignInError,
+        e.code == GoogleSignInExceptionCode.canceled ? Strings.signInCancelled : Strings.googleSignInError,
         message,
         duration: const Duration(seconds: Constants.snackbarDurationSeconds),
       );
     } catch (e, s) {
       Logger.error('Unexpected error during Google sign in', error: e, stackTrace: s);
       CrashlyticsService.recordError(e, s, reason: 'Google sign in failed');
-      Get.snackbar(
-        Strings.signInFailed,
-        Strings.formatErrorMessage(Strings.unexpectedError, e),
-      );
+      Get.snackbar(Strings.signInFailed, Strings.formatErrorMessage(Strings.unexpectedError, e));
     }
   }
 
@@ -291,10 +272,7 @@ class AuthController extends GetxController {
       _currentProvider(null);
       _navigateToLogin();
     } catch (e) {
-      Get.snackbar(
-        Strings.error,
-        Strings.formatErrorMessage(Strings.failedToSignOut, e),
-      );
+      Get.snackbar(Strings.error, Strings.formatErrorMessage(Strings.failedToSignOut, e));
     }
   }
 
@@ -358,9 +336,10 @@ class AuthController extends GetxController {
         } else if (backendResponse['is_interests_pending'] as bool? ?? false) {
           _navigateToInterestSelection();
         } else {
-          _navigateToHome();
+          navigateToHome();
         }
       } else {
+        Get.snackbar(Strings.error, Strings.unableToAuthenticateUser);
         _navigateToLogin();
       }
     } catch (e) {
@@ -428,7 +407,7 @@ class AuthController extends GetxController {
     }
   }
 
-  void _navigateToHome() {
+  void navigateToHome() {
     if (Get.currentRoute != Constants.homeViewRoute) {
       Future.delayed(const Duration(milliseconds: Constants.navigationDelayMilliseconds), () {
         if (!Get.isDialogOpen! && !Get.isBottomSheetOpen!) Get.offAll(() => const HomeView());

@@ -343,7 +343,7 @@ class ParticipantRating {
       'rated_user_id': userId,
       'room_participation_id': roomParticipationId,
       'rating_score': ratingScore.value,
-      'feedback_text': feedbackText.value.isEmpty ? null : feedbackText.value,
+      'feedback_text': feedbackText.value.isEmpty ? '' : feedbackText.value,
       'is_anonymous': isAnonymous.value,
     };
   }

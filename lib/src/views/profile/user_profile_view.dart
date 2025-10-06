@@ -5,6 +5,7 @@ import 'package:fiwe/src/utils/colors.dart';
 import 'package:fiwe/src/utils/helper.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 // Main Screen
 class UserProfileScreen extends StatelessWidget {
@@ -115,7 +116,7 @@ class ProfileHeader extends StatelessWidget {
           children: [
             Text('Rating', style: AppTextStyles.ratingLabel),
             SizedBox(width: 8),
-            Icon(Icons.star, color: AppColors.tertiary, size: 16),
+            Icon(LucideIcons.star, color: AppColors.tertiary, size: 16),
             SizedBox(width: 4),
             Text('4.5 (10)', style: AppTextStyles.ratingValue),
           ],
@@ -141,7 +142,7 @@ class BadgesSection extends StatelessWidget {
           children: [
             BadgeIcon(icon: Icons.star_border, color: AppColors.interestInactive),
             SizedBox(width: 12),
-            BadgeIcon(icon: Icons.star, color: AppColors.tertiary),
+            BadgeIcon(icon: LucideIcons.star, color: AppColors.tertiary),
             SizedBox(width: 12),
             BadgeIcon(icon: Icons.star_half, color: AppColors.quaternary),
           ],

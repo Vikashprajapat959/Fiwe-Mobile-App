@@ -36,20 +36,12 @@ class Topic {
       isEnabled: json['is_enabled'] as bool?,
       isFeatured: json['is_featured'] as bool?,
       category: json['category'] as String?,
-      tags: (json['tags'] as List<dynamic>?)
-          ?.map((dynamic e) => e as String)
-          .toList(),
+      tags: (json['tags'] as List<dynamic>?)?.map((dynamic e) => e as String).toList(),
       activityLevel: json['activity_level'] as String?,
       isPopular: json['is_popular'] as bool?,
-      createdAt: json['created_at'] != null
-          ? DateTime.tryParse(json['created_at'] as String)
-          : null,
-      updatedAt: json['updated_at'] != null
-          ? DateTime.tryParse(json['updated_at'] as String)
-          : null,
-      lastActivityAt: json['last_activity_at'] != null
-          ? DateTime.tryParse(json['last_activity_at'] as String)
-          : null,
+      createdAt: json['created_at'] != null ? DateTime.tryParse(json['created_at'] as String) : null,
+      updatedAt: json['updated_at'] != null ? DateTime.tryParse(json['updated_at'] as String) : null,
+      lastActivityAt: json['last_activity_at'] != null ? DateTime.tryParse(json['last_activity_at'] as String) : null,
     );
   }
 

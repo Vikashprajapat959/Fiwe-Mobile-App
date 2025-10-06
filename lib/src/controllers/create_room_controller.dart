@@ -11,7 +11,7 @@ class CreateRoomController extends GetxController {
 
   // Section 1: Topics/Interests
   var topics = <Topic>[].obs;
-  var selectedTopicId = "".obs;
+  var selectedTopicId = ''.obs;
   var showAllTopics = false.obs;
   final int maxChipsToShow = 5;
 
@@ -108,7 +108,7 @@ class CreateRoomController extends GetxController {
   // Methods
   void toggleTopicSelection(String topicId) {
     if (selectedTopicId.value == topicId) {
-      selectedTopicId.value = "";
+      selectedTopicId.value = '';
     } else {
       selectedTopicId.value = topicId;
     }
@@ -116,9 +116,11 @@ class CreateRoomController extends GetxController {
 
   Future<void> getRandomTopic() async {
     try {
-      final response = await topicService.getRandomTopic();
+      final response = await topicService.getRandomTopic(
+        topics.firstWhereOrNull((t) => t.id == selectedTopicId())?.title ?? '',
+      );
       if (response.success) {
-        randomText.value = response.data ?? "Discuss anything!";
+        randomText.value = response.data ?? 'Discuss anything!';
       } else {
         Get.snackbar('Error', response.message, snackPosition: SnackPosition.BOTTOM);
       }

@@ -5,9 +5,12 @@ import 'package:fiwe/src/controllers/commune_controller.dart';
 import 'package:fiwe/src/controllers/video_room_controller.dart';
 import 'package:fiwe/src/models/fcm_notification_data.dart';
 import 'package:fiwe/src/models/hmsvideo_room.dart';
+import 'package:fiwe/src/models/standard_api_response.dart';
+import 'package:fiwe/src/models/topic.model.dart';
 import 'package:fiwe/src/models/user_model.dart';
 import 'package:fiwe/src/repositories/room_repository.dart';
 import 'package:fiwe/src/services/fcm_notification_service.dart';
+import 'package:fiwe/src/services/topic_service.dart';
 import 'package:fiwe/src/utils/constants.dart';
 import 'package:fiwe_notification/fiwe_notification.dart';
 import 'package:flutter/widgets.dart';
@@ -22,9 +25,15 @@ class HomeController extends GetxController {
   // instance
   static HomeController get instance => Get.find<HomeController>();
 
+  // topic service
+  final TopicService _topicService = Get.find<TopicService>();
+
   final RoomRepository roomRepository = RoomRepository.instance;
   // get user
   User? get user => Get.find<AuthController>().userProfile;
+
+  // user topics followed
+  var userTopics = <Topic>[].obs;
 
   // Method to set context from the view
   void setContext(BuildContext context) {
@@ -48,12 +57,12 @@ class HomeController extends GetxController {
   void onInit() {
     // Get.put(NotificationService(), permanent: true);
     _notificationService = FCMNotificationService.instance;
-    fetchActiveRoomDetails();
     super.onInit();
   }
 
   @override
   void onReady() {
+    fetchActiveRoomDetails();
     Get.put(CommuneController(), permanent: true);
     dev.log('HomeController onReady called', name: 'HomeController');
     _notificationService.roomInviteStream.listen((event) {
@@ -64,6 +73,10 @@ class HomeController extends GetxController {
       dev.log('Context available: ${context != null}', name: 'HomeController');
 
       _showRoomInviteNotification(event);
+    });
+    // Add error handling and timeout to getAllUserTopics
+    getAllUserTopics().catchError((error) {
+      dev.log('Error fetching user topics: $error', name: 'HomeController');
     });
     super.onReady();
   }
@@ -179,6 +192,23 @@ class HomeController extends GetxController {
     } catch (e) {
       dev.log('Error fetching active rooms: $e', name: 'HomeController');
       rethrow;
+    }
+  }
+
+  Future<void> getAllUserTopics() async {
+    try {
+      // Add timeout to prevent hanging
+      final result = await _topicService.getTopicsFollowedByUser().timeout(
+        const Duration(seconds: 10),
+        onTimeout: () {
+          dev.log('Timeout fetching user topics', name: 'HomeController');
+          return ApiResponse<List<Topic>>.error(message: 'Timeout fetching user topics');
+        },
+      );
+      userTopics(result.data ?? []);
+    } catch (e) {
+      dev.log('Error in getAllUserTopics: $e', name: 'HomeController');
+      userTopics(<Topic>[]);
     }
   }
 }
