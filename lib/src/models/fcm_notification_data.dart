@@ -283,9 +283,9 @@ class RoomInviteData {
     required this.title,
     required this.inviteeName,
     required this.deepLink,
-    required this.expiry,
-    required this.topicDetails,
-    required this.userDetails,
+    this.expiry,
+    this.topicDetails,
+    this.userDetails,
   });
 
   factory RoomInviteData.fromJson(Map<String, dynamic> json) {
@@ -297,8 +297,8 @@ class RoomInviteData {
       inviteeName: json['invitee_name'] ?? '',
       deepLink: json['deep_link'] ?? '',
       expiry: DateTime.parse(json['expiry'] ?? DateTime.now().toIso8601String()),
-      topicDetails: _TopicData.fromJson(Map.from(json['topic_details'])),
-      userDetails: _UserData.fromJson(Map.from(json['user_details'])),
+      topicDetails: json['topic_details'] != null ? _TopicData.fromJson(Map.from(json['topic_details'])) : null,
+      userDetails: json['user_details'] != null ? _UserData.fromJson(Map.from(json['user_details'])) : null,
     );
   }
   final String roomId;
@@ -307,9 +307,9 @@ class RoomInviteData {
   final String title;
   final String inviteeName;
   final String deepLink;
-  final DateTime expiry;
-  final _TopicData topicDetails;
-  final _UserData userDetails;
+  final DateTime? expiry;
+  final _TopicData? topicDetails;
+  final _UserData? userDetails;
 }
 
 class _UserData {

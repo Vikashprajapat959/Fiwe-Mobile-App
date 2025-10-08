@@ -13,7 +13,7 @@ import '../utils/exceptions.dart';
 /// HTTP service for making API requests with error handling and logging
 class HttpService extends GetxService {
   HttpService({
-    this.baseUrl = 'http://10.207.182.250:8000/api',
+    this.baseUrl = 'http://192.168.29.16:8000/api',
     this.defaultHeaders = const <String, String>{'Content-Type': 'application/json', 'accept': 'application/json'},
     this.enableLogging = kDebugMode,
   });

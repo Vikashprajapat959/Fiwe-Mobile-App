@@ -1,5 +1,4 @@
 import 'dart:developer';
-import 'dart:typed_data';
 
 import 'package:fiwe/src/controllers/home_controller.dart';
 import 'package:fiwe/src/models/hmsvideo_room.dart';
@@ -8,8 +7,10 @@ import 'package:fiwe/src/utils/assets.dart';
 import 'package:fiwe/src/utils/colors.dart';
 import 'package:fiwe/src/utils/constants.dart';
 import 'package:fiwe/src/utils/helper.dart';
+import 'package:fiwe/src/views/home/leaderboard_view.dart';
 import 'package:fiwe/src/views/home/user_notification_view.dart';
 import 'package:fiwe/src/views/profile/profile_view.dart';
+import 'package:fiwe/src/views/search/search_view.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
@@ -41,7 +42,7 @@ class HomeScreen extends StatelessWidget {
                 // Header Section
                 _buildHeader(),
                 const SizedBox(height: 24),
-
+                _buildSearchBar(),
                 // Face of Week Section
                 _buildFaceOfWeekSection(),
                 // const SizedBox(height: 16),
@@ -74,13 +75,7 @@ class HomeScreen extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Row(
-                children: [
-                  Obx(() => Text('${controller.user?.name}', style: AppTextStyles.headerTitle)),
-                  const SizedBox(width: 4),
-                  const Icon(LucideIcons.star, color: AppColors.orange, size: 16),
-                ],
-              ),
+              Obx(() => Text('${controller.user?.name}', style: AppTextStyles.headerTitle)),
               Row(
                 children: [
                   Obx(
@@ -100,7 +95,9 @@ class HomeScreen extends StatelessWidget {
           children: [
             ActionButton(
               icon: const Icon(LucideIcons.medal, color: AppColors.secondaryYellow),
-              onTap: () {},
+              onTap: () {
+                Get.to(() => const LeaderboardView());
+              },
             ),
             const SizedBox(width: 8),
             ActionButton(
@@ -133,7 +130,7 @@ class HomeScreen extends StatelessWidget {
               return FaceOfWeekCard(
                 name: ['Hawkins', 'Lane', 'Fox', 'Edwards', 'Richa'][index],
                 rating: [4.5, 4.1, 4.2, 3.9, 4.0][index],
-                imageUrl: 'assets/face_$index.jpg',
+                imageBytes: null,
               );
             },
           ),
@@ -258,6 +255,38 @@ class HomeScreen extends StatelessWidget {
       ],
     );
   }
+
+  GestureDetector _buildSearchBar() {
+    return GestureDetector(
+      onTap: () {
+        Get.to(() => const SearchView());
+      },
+      child: Container(
+        height: 46,
+        width: double.infinity,
+        alignment: Alignment.centerLeft,
+        margin: const EdgeInsets.only(bottom: 16),
+        padding: const EdgeInsets.only(left: 12),
+        decoration: BoxDecoration(
+          color: AppColors.primary.withAlpha(15),
+          border: Border.all(color: AppColors.primary),
+          borderRadius: BorderRadius.circular(14),
+        ),
+        child: Row(
+          children: [
+            ShaderMask(
+              shaderCallback: (Rect bounds) {
+                return Constants.gradientDecoration.gradient!.createShader(bounds);
+              },
+              child: const Icon(LucideIcons.search, color: Colors.white),
+            ),
+            const SizedBox(width: 8),
+            const Text('Search', style: TextStyle(color: AppColors.textSecondary, fontSize: 16)),
+          ],
+        ),
+      ),
+    );
+  }
 }
 
 // Reusable Components
@@ -280,12 +309,12 @@ class ProfileAvatar extends StatelessWidget {
           shape: BoxShape.circle,
           color: AppColors.lightGray,
           image: DecorationImage(
-            image: MemoryImage(Helper.base64ToBytes(imageUrl) ?? Uint8List(255)),
+            image: MemoryImage(Helper.base64ToBytes(imageUrl)),
             fit: BoxFit.cover,
             onError: (exception, stackTrace) {},
           ),
         ),
-        child: imageUrl.isEmpty ? Icon(Icons.person, color: AppColors.gray, size: size * 0.6) : null,
+        child: imageUrl.isEmpty ? Icon(LucideIcons.user, color: AppColors.gray, size: size * 0.6) : null,
       ),
     );
   }
@@ -349,10 +378,10 @@ class ActionButton extends StatelessWidget {
 }
 
 class FaceOfWeekCard extends StatelessWidget {
-  const FaceOfWeekCard({super.key, required this.name, required this.rating, required this.imageUrl});
+  const FaceOfWeekCard({super.key, required this.name, required this.rating, required this.imageBytes});
   final String name;
   final double rating;
-  final String imageUrl;
+  final String? imageBytes;
 
   @override
   Widget build(BuildContext context) {
@@ -368,8 +397,8 @@ class FaceOfWeekCard extends StatelessWidget {
                 shape: BoxShape.circle,
                 color: AppColors.lightGray,
                 image: DecorationImage(
-                  image: AssetImage(imageUrl),
-                  fit: BoxFit.cover,
+                  image: MemoryImage(Helper.base64ToBytes(imageBytes)),
+                  fit: BoxFit.fill,
                   onError: (exception, stackTrace) {},
                 ),
               ),
@@ -443,7 +472,7 @@ class RoomCard extends StatelessWidget {
                   color: AppColors.lightGray,
                   borderRadius: const BorderRadius.all(Radius.circular(12)),
                   image: DecorationImage(
-                    image: MemoryImage(Helper.base64ToBytes(imageUrl) ?? Uint8List(255)),
+                    image: MemoryImage(Helper.base64ToBytes(imageUrl)),
                     fit: BoxFit.cover,
                     onError: (exception, stackTrace) {},
                   ),
@@ -591,7 +620,7 @@ class InterestCard extends StatelessWidget {
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(12),
                   image: DecorationImage(
-                    image: MemoryImage(Helper.base64ToBytes(imageUrl) ?? Uint8List(255)),
+                    image: MemoryImage(Helper.base64ToBytes(imageUrl)),
                     fit: BoxFit.cover,
                     onError: (exception, stackTrace) {},
                   ),

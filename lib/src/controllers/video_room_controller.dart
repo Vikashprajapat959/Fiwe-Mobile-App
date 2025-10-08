@@ -1,6 +1,7 @@
 import 'dart:developer';
 
 import 'package:fiwe/src/models/Interacted_participant.dart';
+import 'package:fiwe/src/models/fcm_notification_data.dart';
 import 'package:fiwe/src/models/hms_reaction.dart';
 import 'package:fiwe/src/models/hmsvideo_room.dart';
 import 'package:fiwe/src/services/crashlytics_service.dart';
@@ -9,6 +10,7 @@ import 'package:fiwe/src/services/room_state_monitor_service.dart';
 import 'package:fiwe/src/services/video_room_notification_service.dart';
 import 'package:fiwe/src/utils/constants.dart';
 import 'package:fiwe/src/views/rating/user_rating_screen.dart';
+import 'package:fiwe/src/views/video_room/video_room_view.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:hmssdk_flutter/hmssdk_flutter.dart';
@@ -480,5 +482,19 @@ class VideoRoomController extends GetxController with WidgetsBindingObserver {
     };
 
     _logAnalyticsEvent('video_room_$event', data);
+  }
+
+  void joinRoom(RoomInviteData inviteData) {
+    currentRoom = HMSVideoRoom(
+      roomGuestCode: inviteData.roomGuestCode,
+      title: inviteData.title,
+      objectId: inviteData.roomId,
+      hmsRoomId: '',
+    );
+    // call api
+    _roomRepository.joinRoom(inviteData.roomId, inviteData.roomGuestCode);
+    Get.to(() => const VideoRoomView());
+
+    _isInRoom(true);
   }
 }

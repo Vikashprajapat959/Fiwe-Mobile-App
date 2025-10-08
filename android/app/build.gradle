@@ -1,3 +1,4 @@
+
 plugins {
     id "com.android.application"
     // START: FlutterFire Configuration
@@ -8,6 +9,13 @@ plugins {
     // The Flutter Gradle Plugin must be applied after the Android and Kotlin Gradle plugins.
     id "dev.flutter.flutter-gradle-plugin"
 }
+
+def keystoreProperties = new Properties()
+def keystorePropertiesFile = rootProject.file("key.properties")
+if (keystorePropertiesFile.exists()) {
+    keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
+}
+
 
 android {
     namespace = "com.app.fiwe"
@@ -35,13 +43,23 @@ android {
         versionName "1.0.0"
         multiDexEnabled true
     }
+    signingConfigs {
+        release {
+            keyAlias keystoreProperties['keyAlias']
+            keyPassword keystoreProperties['keyPassword']
+            storeFile file(keystoreProperties['storeFile'])
+            storePassword keystoreProperties['storePassword']
+        }
+    }
 
     buildTypes {
         release {
             // TODO: Add your own signing config for the release build.
             // Signing with the debug keys for now, so `flutter run --release` works.
-            signingConfig signingConfigs.debug
-        }
+            signingConfig signingConfigs.release
+            minifyEnabled true
+            shrinkResources true
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'        }
     }
     
     // Ensure consistent JVM target across all build variants
@@ -78,6 +96,21 @@ subprojects {
         
         project.tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).configureEach {
             kotlinOptions.jvmTarget = "17"
+        }
+    }
+      configurations.all {
+        resolutionStrategy {
+            force "com.google.android.play:core:1.10.3"
+            force "com.google.android.play:core-common:2.0.3"
+
+            eachDependency { details ->
+                if (details.requested.group == "com.google.android.play" &&
+                        (details.requested.name == "core" || details.requested.name == "core-common")) {
+                    // Use only one version of play core libs everywhere
+                    details.useVersion "1.10.3"
+                    details.because("Avoid duplicate class definitions in play-core and play-core-common")
+                }
+            }
         }
     }
 }

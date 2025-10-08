@@ -2,6 +2,8 @@ import 'package:fiwe/src/controllers/profile_controller.dart';
 import 'package:fiwe/src/utils/app_text_styles.dart';
 import 'package:fiwe/src/utils/colors.dart';
 import 'package:fiwe/src/utils/constants.dart';
+import 'package:fiwe/src/views/profile/settings_view.dart' hide AppColors;
+import 'package:fiwe/src/widgets/app_back_button.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
@@ -176,16 +178,19 @@ class ProfileScreen extends StatelessWidget {
       appBar: AppBar(
         backgroundColor: CustomColors.surface,
         elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios, color: CustomColors.textPrimary),
-          onPressed: () => Get.back(),
+
+        leading: const Padding(
+          padding: EdgeInsets.all(8.0),
+          child: AppBackButton(theme: BackButtonTheme.dark),
         ),
         title: const Text('Profile', style: AppTextStyles.heading),
         centerTitle: true,
         actions: [
           IconButton(
-            icon: const Icon(Icons.settings, color: CustomColors.textSecondary),
-            onPressed: () {},
+            icon: const Icon(LucideIcons.settings, color: CustomColors.textSecondary),
+            onPressed: () {
+              Get.to(() => const SettingsScreen());
+            },
           ),
         ],
       ),

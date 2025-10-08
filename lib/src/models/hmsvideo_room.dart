@@ -43,12 +43,12 @@ class HMSVideoRoom {
     required this.objectId,
     required this.hmsRoomId,
     required this.title,
-    required this.description,
-    required this.status,
+    this.description,
+    this.status,
     this.capacity,
     this.currentOccupancy,
     this.availableSlots,
-    required this.isPublic,
+    this.isPublic,
     this.joinToken,
     this.expiresAt,
     this.createdAt,
@@ -90,12 +90,12 @@ class HMSVideoRoom {
   final String objectId;
   final String hmsRoomId;
   final String title;
-  final String description;
-  final String status;
+  final String? description;
+  final String? status;
   final int? capacity;
   final int? currentOccupancy;
   final int? availableSlots;
-  final bool isPublic;
+  final bool? isPublic;
   final String? joinToken;
   final DateTime? expiresAt;
   final DateTime? createdAt;

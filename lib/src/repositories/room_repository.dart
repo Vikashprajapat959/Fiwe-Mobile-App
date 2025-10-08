@@ -1,6 +1,7 @@
 import 'dart:developer' as dev;
 
 import 'package:fiwe/src/models/hmsvideo_room.dart';
+import 'package:fiwe/src/models/room_history.dart';
 import 'package:fiwe/src/models/standard_api_response.dart';
 import 'package:fiwe/src/services/forground_handler.dart';
 import 'package:fiwe/src/utils/endpoints.dart';
@@ -145,6 +146,44 @@ class RoomRepository extends GetxService {
         data: null,
         message: 'An error occurred while fetching active rooms: $e',
       );
+    }
+  }
+
+  Future<ApiResponse<RoomHistory?>> getRoomHistory() async {
+    try {
+      final response = await _httpService.get(Endpoints.roomHistory, isAuthorized: true);
+      if (response.success && response.data != null) {
+        final rooms = RoomHistory.fromJson(response.data!);
+        return ApiResponse<RoomHistory>(success: true, data: rooms, message: 'Room history fetched successfully');
+      } else {
+        return ApiResponse(success: false, data: null, message: response.message);
+      }
+    } catch (e) {
+      dev.log('Error fetching room history: $e', name: 'RoomRepository');
+      return ApiResponse.error(data: null, message: 'An error occurred while fetching room history: $e');
+    }
+  }
+
+  Future<ApiResponse<RoomDetail>> getRoomDetailById(String roomId) async {
+    final response = await _httpService.get('${Endpoints.roomHistory}$roomId', isAuthorized: true);
+    try {
+      if (response.success && response.data != null) {
+        return ApiResponse.success(message: response.message, data: RoomDetail.fromJson(response.data!));
+      } else {
+        return ApiResponse.error(message: response.message);
+      }
+    } on Exception catch (e) {
+      dev.log(e.toString(), name: 'RoomRepo');
+      rethrow;
+    }
+  }
+
+  void joinRoom(String rooId, String roomCode) async {
+    final response = await _httpService.post('/rooms/$rooId/join', isAuthorized: true, body: {'room_code': roomCode});
+    if (response.success) {
+      dev.log('Joined room successfully', name: 'RoomRepository');
+    } else {
+      dev.log('Failed to join room: ${response.message}', name: 'RoomRepository');
     }
   }
 }

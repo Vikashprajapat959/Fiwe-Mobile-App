@@ -19,7 +19,7 @@ class _VideoRoomViewState extends State<VideoRoomView> with WidgetsBindingObserv
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-    controller = Get.put(VideoRoomController());
+    controller = Get.find<VideoRoomController>();
   }
 
   @override

@@ -49,7 +49,7 @@ class CreateRoomController extends GetxController {
   bool isTopicSelected(String topicId) {
     return selectedTopicId() == topicId;
   }
-
+ 
   // Initialize with sample topics (in a real app, this would come from a service)
   @override
   void onInit() {

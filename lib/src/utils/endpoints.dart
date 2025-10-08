@@ -37,4 +37,6 @@ class Endpoints {
   static var rejectCommune = '/reject/';
 
   static String getTopicsFollowedByUser = '/user/followed-topics';
+
+  static String roomHistory = '/rooms/history/';
 }

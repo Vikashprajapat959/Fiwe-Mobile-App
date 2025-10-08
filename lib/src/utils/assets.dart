@@ -6,6 +6,10 @@ class AppIcons {
   String get starBadge => '${Assets._iconsPath}/star_badge.png';
   //leader_icon
   String get leaderIcon => '${Assets._iconsPath}/leader_icon.png';
+  //silver
+  String get silverMedal => '${Assets._iconsPath}/silver.png';
+  //bronze
+  String get bronzeMedal => '${Assets._iconsPath}/bronze.png';
 }
 
 /// Image assets class

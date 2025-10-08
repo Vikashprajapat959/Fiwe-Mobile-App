@@ -1,3 +1,4 @@
+import 'package:fiwe/src/widgets/app_back_button.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -74,9 +75,8 @@ class SettingsTile extends StatelessWidget {
 
 // Custom App Bar
 class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
-  const CustomAppBar({super.key, required this.title, this.onBackPressed});
+  const CustomAppBar({super.key, required this.title});
   final String title;
-  final VoidCallback? onBackPressed;
 
   @override
   Widget build(BuildContext context) {
@@ -84,14 +84,10 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
       backgroundColor: Colors.white,
       elevation: 0,
       systemOverlayStyle: SystemUiOverlayStyle.dark,
-      leading: IconButton(
-        icon: Container(
-          width: 36,
-          height: 36,
-          decoration: const BoxDecoration(color: AppColors.background, shape: BoxShape.circle),
-          child: const Icon(Icons.arrow_back_ios_new, size: 18, color: AppColors.textPrimary),
-        ),
-        onPressed: onBackPressed ?? () => Navigator.pop(context),
+
+      leading: const Padding(
+        padding: EdgeInsets.all(8.0),
+        child: AppBackButton(theme: BackButtonTheme.dark),
       ),
       title: Text(
         title,
@@ -162,13 +158,7 @@ class SettingsScreen extends StatelessWidget {
 
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: CustomAppBar(
-        title: 'Settings',
-        onBackPressed: () {
-          // Handle back navigation
-          Navigator.pop(context);
-        },
-      ),
+      appBar: const CustomAppBar(title: 'Settings'),
       body: SafeArea(
         child: Column(
           children: [
