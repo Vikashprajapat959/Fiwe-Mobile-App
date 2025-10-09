@@ -10,7 +10,56 @@ enum NotificationType {
   systemAlert,
   promotional,
   reminder,
-  roomInvite, // Added for room invite notifications
+  roomInvite,
+  communeAccepted,
+  communeRequest,
+  // Added for room invite notifications
+}
+
+// mapper for NotificatinType
+extension NotificationTypeMapper on NotificationType {
+  String get value {
+    switch (this) {
+      case NotificationType.userMessage:
+        return 'user_message';
+      case NotificationType.systemAlert:
+        return 'system_alert';
+      case NotificationType.promotional:
+        return 'promotional';
+      case NotificationType.reminder:
+        return 'reminder';
+      case NotificationType.roomInvite:
+        return 'room_invite';
+      case NotificationType.communeAccepted:
+        return 'commune_accepted';
+      case NotificationType.communeRequest:
+        return 'commune_request';
+      default:
+        throw ArgumentError('Invalid notification type');
+    }
+  }
+
+  NotificationType parse(String value) {
+    switch (value.toLowerCase()) {
+      case 'user_message':
+        return NotificationType.userMessage;
+      case 'system_alert':
+        return NotificationType.systemAlert;
+      case 'promotional':
+        return NotificationType.promotional;
+      case 'reminder':
+        return NotificationType.reminder;
+      case 'room_invite':
+        return NotificationType.roomInvite;
+      case 'commune_accepted':
+        return NotificationType.communeAccepted;
+      case 'commune_request':
+        return NotificationType.communeRequest;
+      // Added for room invite notifications
+      default:
+        throw ArgumentError('Invalid notification type: $value');
+    }
+  }
 }
 
 /// Enumeration for notification priorities

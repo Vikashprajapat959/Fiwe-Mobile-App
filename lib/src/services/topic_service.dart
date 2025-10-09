@@ -1,3 +1,4 @@
+import 'package:fiwe/src/models/face_of_week.dart';
 import 'package:fiwe/src/models/standard_api_response.dart'; // Add this import
 import 'package:fiwe/src/models/topic.model.dart';
 import 'package:fiwe/src/services/http_service.dart';
@@ -109,6 +110,34 @@ class TopicService extends GetxService {
       }
     } catch (e) {
       return ApiResponse<String>.error(message: 'Network error occurred while fetching random topic: $e');
+    }
+  }
+
+  //get face of the week
+  Future<FaceOfWeek> getFaceOfWeek() async {
+    try {
+      final response = await _httpService.get(Endpoints.faceOfWeek);
+      if (response.isSuccess && response.data != null) {
+        return FaceOfWeek.fromJson(response.data!);
+      } else {
+        throw Exception(response.message);
+      }
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  // getcurrentaffairs
+  Future<List<CurrentAffair>> getCurrentAffairs() async {
+    try {
+      final response = await _httpService.get(Endpoints.currentAffairs);
+      if (response.isSuccess && response.data != null) {
+        return List.from(response.data!['current_affairs']).map((e) => CurrentAffair.fromJson(e)).toList();
+      } else {
+        throw Exception(response.message);
+      }
+    } catch (e) {
+      rethrow;
     }
   }
 }

@@ -39,4 +39,8 @@ class Endpoints {
   static String getTopicsFollowedByUser = '/user/followed-topics';
 
   static String roomHistory = '/rooms/history/';
+
+  static String faceOfWeek = '/topics/face-of-week/';
+
+  static String currentAffairs = '/topics/current-affairs/';
 }

@@ -28,13 +28,13 @@ class CommuneController extends GetxController {
     super.onInit();
   }
 
-  bool isRequestSent(int userId) {
+  bool isRequestSent(String userId) {
     log('isRequestSent $userId');
     log(communeRequestSent.length.toString());
     return communeRequestSent.any((request) => request.toUser.id == userId);
   }
 
-  Future<void> sendCommuneRequest(int userId) async {
+  Future<void> sendCommuneRequest(String userId) async {
     LoadingOverlay.show();
     final result = await communeRepository.sendRequest(userId.toString());
     if (result.data != null) {
@@ -43,7 +43,7 @@ class CommuneController extends GetxController {
     LoadingOverlay.hide();
   }
 
-  Future<void> cancelRequest(int userId) async {
+  Future<void> cancelRequest(String userId) async {
     LoadingOverlay.show();
     final requestId = communeRequestSent.firstWhere((element) => element.toUser.id == userId).id;
     final res = await communeRepository.cancelCommuneRequest(requestId);
@@ -85,7 +85,7 @@ class CommuneUser {
   factory CommuneUser.fromJson(Map<String, dynamic> json) {
     return CommuneUser(json['id'], json['name'], json['email'], json['profile_image_base64']);
   }
-  int id;
+  String id;
   String name;
   String email;
   String? profileImageBase64;

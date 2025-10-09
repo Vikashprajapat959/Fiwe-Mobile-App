@@ -2,6 +2,7 @@ import 'dart:developer';
 
 import 'package:fiwe/src/controllers/home_controller.dart';
 import 'package:fiwe/src/models/hmsvideo_room.dart';
+import 'package:fiwe/src/services/topic_service.dart';
 import 'package:fiwe/src/utils/app_text_styles.dart';
 import 'package:fiwe/src/utils/assets.dart';
 import 'package:fiwe/src/utils/colors.dart';
@@ -69,7 +70,7 @@ class HomeScreen extends StatelessWidget {
     final HomeController controller = Get.find();
     return Row(
       children: [
-        Obx(() => ProfileAvatar(imageUrl: controller.user?.profileBase64 ?? '', size: 48)),
+        Obx(() => ProfileAvatar(imageBytes: controller.user?.profileBase64 ?? '', size: 48)),
         const SizedBox(width: 12),
         Expanded(
           child: Column(
@@ -114,28 +115,44 @@ class HomeScreen extends StatelessWidget {
   }
 
   Widget _buildFaceOfWeekSection() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        const Text('Face of Week', style: AppTextStyles.sectionTitle),
-        const SizedBox(height: 8),
-        SizedBox(
-          height: 120,
-          child: ListView.separated(
-            scrollDirection: Axis.horizontal,
-            itemCount: 5,
-            separatorBuilder: (context, index) => const SizedBox(width: 16),
-            itemBuilder: (context, index) {
-              return FaceOfWeekCard(
-                name: ['Hawkins', 'Lane', 'Fox', 'Edwards', 'Richa'][index],
-                rating: [4.5, 4.1, 4.2, 3.9, 4.0][index],
-                imageBytes: null,
-              );
-            },
-          ),
-        ),
-      ],
+    return FutureBuilder(
+      future: Get.find<TopicService>().getFaceOfWeek(),
+      builder: (context, asyncSnapshot) {
+        if (asyncSnapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: LinearProgressIndicator());
+        }
+        if (asyncSnapshot.connectionState == ConnectionState.done && asyncSnapshot.hasError) {
+          return Center(child: Text('Error: ${asyncSnapshot.error}'));
+        }
+        if (!asyncSnapshot.hasData || asyncSnapshot.data!.users.isEmpty) {
+          return const SizedBox.shrink();
+        }
+
+        final users = asyncSnapshot.data!.users;
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text('Face of Week', style: AppTextStyles.sectionTitle),
+            const SizedBox(height: 8),
+            SizedBox(
+              height: 120,
+              child: ListView.separated(
+                scrollDirection: Axis.horizontal,
+                itemCount: users.length,
+                separatorBuilder: (context, index) => const SizedBox(width: 16),
+                itemBuilder: (context, index) {
+                  return FaceOfWeekCard(
+                    name: users[index].user.name ?? '',
+                    rating: users[index].user.avgRating,
+                    imageBytes: users[index].user.profileBase64 ?? '',
+                  );
+                },
+              ),
+            ),
+          ],
+        );
+      },
     );
   }
 
@@ -193,38 +210,53 @@ class HomeScreen extends StatelessWidget {
   }
 
   Widget _buildTrendingSection() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    return FutureBuilder(
+      future: Get.find<TopicService>().getCurrentAffairs(),
+      builder: (context, asyncSnapshot) {
+        if (asyncSnapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: LinearProgressIndicator());
+        } else if (asyncSnapshot.connectionState == ConnectionState.done && asyncSnapshot.hasError) {
+          return Center(child: Text('Error: ${asyncSnapshot.error}'));
+        }
+        if (!asyncSnapshot.hasData || asyncSnapshot.data!.isEmpty) {
+          return const SizedBox.shrink();
+        }
+        final trendingTopics = asyncSnapshot.data!;
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('Trending', style: AppTextStyles.sectionTitle),
-            TextButton(
-              onPressed: () {},
-              child: const Text('View All', style: AppTextStyles.viewAll),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text('Trending', style: AppTextStyles.sectionTitle),
+                TextButton(
+                  onPressed: () {},
+                  child: const Text('View All', style: AppTextStyles.viewAll),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            SizedBox(
+              height: 180,
+              child: ListView.separated(
+                scrollDirection: Axis.horizontal,
+                itemCount: trendingTopics.length,
+                separatorBuilder: (context, index) => const SizedBox(width: 16),
+                itemBuilder: (context, index) {
+                  return TrendingCard(
+                    name: trendingTopics[index].title,
+                    description: trendingTopics[index].description,
+                    category: trendingTopics[index].category,
+                    createdRooms: trendingTopics[index].roomCreated,
+                    imageBytes: trendingTopics[index].image,
+                  );
+                },
+              ),
             ),
           ],
-        ),
-        const SizedBox(height: 16),
-        SizedBox(
-          height: 180,
-          child: ListView.separated(
-            scrollDirection: Axis.horizontal,
-            itemCount: 3,
-            separatorBuilder: (context, index) => const SizedBox(width: 16),
-            itemBuilder: (context, index) {
-              return TrendingCard(
-                roomName: 'Room name',
-                interestName: 'Interest Name',
-                category: 'Music',
-                createdRooms: 5,
-                imageUrl: 'assets/trending_$index.jpg',
-              );
-            },
-          ),
-        ),
-      ],
+        );
+      },
     );
   }
 
@@ -261,28 +293,33 @@ class HomeScreen extends StatelessWidget {
       onTap: () {
         Get.to(() => const SearchView());
       },
-      child: Container(
-        height: 46,
-        width: double.infinity,
-        alignment: Alignment.centerLeft,
-        margin: const EdgeInsets.only(bottom: 16),
-        padding: const EdgeInsets.only(left: 12),
-        decoration: BoxDecoration(
-          color: AppColors.primary.withAlpha(15),
-          border: Border.all(color: AppColors.primary),
-          borderRadius: BorderRadius.circular(14),
-        ),
-        child: Row(
-          children: [
-            ShaderMask(
-              shaderCallback: (Rect bounds) {
-                return Constants.gradientDecoration.gradient!.createShader(bounds);
-              },
-              child: const Icon(LucideIcons.search, color: Colors.white),
-            ),
-            const SizedBox(width: 8),
-            const Text('Search', style: TextStyle(color: AppColors.textSecondary, fontSize: 16)),
-          ],
+      child: Hero(
+        tag: 'search_bar',
+        transitionOnUserGestures: true,
+
+        child: Container(
+          height: 46,
+          width: double.infinity,
+          alignment: Alignment.centerLeft,
+          margin: const EdgeInsets.only(bottom: 16),
+          padding: const EdgeInsets.only(left: 12),
+          decoration: BoxDecoration(
+            color: AppColors.primary.withAlpha(15),
+            border: Border.all(color: AppColors.primary),
+            borderRadius: BorderRadius.circular(14),
+          ),
+          child: Row(
+            children: [
+              ShaderMask(
+                shaderCallback: (Rect bounds) {
+                  return Constants.gradientDecoration.gradient!.createShader(bounds);
+                },
+                child: const Icon(LucideIcons.search, color: Colors.white),
+              ),
+              const SizedBox(width: 8),
+              const Text('Search', style: TextStyle(color: AppColors.textSecondary, fontSize: 16)),
+            ],
+          ),
         ),
       ),
     );
@@ -292,8 +329,8 @@ class HomeScreen extends StatelessWidget {
 // Reusable Components
 
 class ProfileAvatar extends StatelessWidget {
-  const ProfileAvatar({super.key, required this.imageUrl, this.size = 48});
-  final String imageUrl;
+  const ProfileAvatar({super.key, required this.imageBytes, this.size = 48});
+  final String imageBytes;
   final double size;
 
   @override
@@ -308,13 +345,15 @@ class ProfileAvatar extends StatelessWidget {
         decoration: BoxDecoration(
           shape: BoxShape.circle,
           color: AppColors.lightGray,
-          image: DecorationImage(
-            image: MemoryImage(Helper.base64ToBytes(imageUrl)),
-            fit: BoxFit.cover,
-            onError: (exception, stackTrace) {},
-          ),
+          image: imageBytes.isEmpty
+              ? null
+              : DecorationImage(
+                  image: MemoryImage(Helper.base64ToBytes(imageBytes)),
+                  fit: BoxFit.cover,
+                  onError: (exception, stackTrace) {},
+                ),
         ),
-        child: imageUrl.isEmpty ? Icon(LucideIcons.user, color: AppColors.gray, size: size * 0.6) : null,
+        child: imageBytes.isEmpty ? Icon(LucideIcons.user, color: AppColors.gray, size: size * 0.6) : null,
       ),
     );
   }
@@ -538,55 +577,75 @@ class RoomCard extends StatelessWidget {
 class TrendingCard extends StatelessWidget {
   const TrendingCard({
     super.key,
-    required this.roomName,
-    required this.interestName,
+    required this.name,
+    required this.description,
     required this.category,
     required this.createdRooms,
-    required this.imageUrl,
+    required this.imageBytes,
   });
-  final String roomName;
-  final String interestName;
+  final String name;
+  final String description;
   final String category;
   final int createdRooms;
-  final String imageUrl;
+  final String? imageBytes;
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      width: 160,
+    return Container(
+      width: 150,
+      padding: const EdgeInsets.all(4),
+      decoration: const BoxDecoration(borderRadius: BorderRadius.all(Radius.circular(12)), color: AppColors.lightGray),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Stack(
             children: [
               Container(
-                height: 100,
+                height: 110,
                 width: double.infinity,
                 decoration: BoxDecoration(
-                  color: AppColors.lightGray,
+                  color: AppColors.darkText,
                   borderRadius: BorderRadius.circular(12),
                   image: DecorationImage(
-                    image: AssetImage(imageUrl),
-                    fit: BoxFit.cover,
+                    image: MemoryImage(Helper.base64ToBytes(imageBytes)),
+                    fit: BoxFit.fill,
                     onError: (exception, stackTrace) {},
                   ),
                 ),
               ),
               Positioned(
-                bottom: 8,
-                left: 8,
+                bottom: 0,
+                left: 0,
                 child: Container(
                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                  decoration: BoxDecoration(color: AppColors.teal, borderRadius: BorderRadius.circular(12)),
-                  child: Text('Created Rooms $createdRooms', style: AppTextStyles.badge),
+                  decoration: Constants.gradientDecoration.copyWith(
+                    borderRadius: const BorderRadius.only(
+                      bottomLeft: Radius.circular(12),
+                      topRight: Radius.circular(50),
+                    ),
+                  ),
+                  child: Text.rich(
+                    TextSpan(
+                      text: 'Created Rooms ',
+                      children: [
+                        TextSpan(
+                          text: '$createdRooms ',
+                          style: AppTextStyles.badge.copyWith(fontWeight: FontWeight.bold),
+                        ),
+                      ],
+                    ),
+                    style: AppTextStyles.badge,
+                  ),
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 8),
-          Text(roomName, style: AppTextStyles.cardTitle),
-          Text(interestName, style: AppTextStyles.cardSubtitle),
-          Text(category, style: AppTextStyles.cardSubtitleBold),
+          const SizedBox(height: 4),
+          ...[
+            Text(name, style: AppTextStyles.cardTitle, overflow: TextOverflow.ellipsis),
+            Text(description, style: AppTextStyles.cardSubtitle, overflow: TextOverflow.ellipsis),
+            Text(category, style: AppTextStyles.cardSubtitleBold, overflow: TextOverflow.ellipsis),
+          ].map((child) => Padding(padding: const EdgeInsets.symmetric(horizontal: 4), child: child)),
         ],
       ),
     );

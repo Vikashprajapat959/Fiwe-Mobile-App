@@ -143,3 +143,28 @@ class Topic {
   @override
   String toString() => 'Topic(id: $id, title: $title)';
 }
+
+class CurrentAffair {
+  const CurrentAffair({
+    required this.title,
+    required this.description,
+    required this.image,
+    required this.category,
+    required this.roomCreated,
+  });
+
+  factory CurrentAffair.fromJson(Map<String, dynamic> json) {
+    return CurrentAffair(
+      title: json['title'],
+      description: json['description'],
+      image: json['image'],
+      category: json['category'],
+      roomCreated: json['room_created'],
+    );
+  }
+  final String title;
+  final String description;
+  final String image;
+  final String category;
+  final int roomCreated;
+}
