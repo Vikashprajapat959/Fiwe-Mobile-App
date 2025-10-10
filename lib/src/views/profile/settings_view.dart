@@ -49,7 +49,7 @@ class SettingsTile extends StatelessWidget {
             Container(
               width: 40,
               height: 40,
-              decoration: BoxDecoration(color: item.iconColor.withOpacity(0.1), borderRadius: BorderRadius.circular(8)),
+              decoration: BoxDecoration(color: item.iconColor.withAlpha(25), borderRadius: BorderRadius.circular(8)),
               child: Icon(item.icon, color: item.iconColor, size: 22),
             ),
             const SizedBox(width: 16),
@@ -169,9 +169,7 @@ class SettingsScreen extends StatelessWidget {
               decoration: BoxDecoration(
                 color: AppColors.cardBackground,
                 borderRadius: BorderRadius.circular(12),
-                boxShadow: [
-                  BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 10, offset: const Offset(0, 2)),
-                ],
+                boxShadow: [BoxShadow(color: Colors.black.withAlpha(12), blurRadius: 10, offset: const Offset(0, 2))],
               ),
               child: Column(
                 children: [

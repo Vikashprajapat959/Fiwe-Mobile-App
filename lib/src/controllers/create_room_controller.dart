@@ -69,7 +69,7 @@ class CreateRoomController extends GetxController {
       if (response.success) {
         topics.value = response.data ?? <Topic>[];
         //  sort topics based on user topics followed
-        final userTopicIds = authController.userProfile?.topics?.map((t) => t.id).toSet() ?? <dynamic>{};
+        final userTopicIds = authController.userProfile()?.topics?.map((t) => t.id).toSet() ?? <dynamic>{};
         topics.sort((a, b) {
           final aFollowed = userTopicIds.contains(a.id);
           final bFollowed = userTopicIds.contains(b.id);

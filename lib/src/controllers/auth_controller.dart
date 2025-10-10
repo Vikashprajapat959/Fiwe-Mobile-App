@@ -29,7 +29,7 @@ class AuthController extends GetxController {
   // Observables
   final Rx<GoogleSignInAccount?> _googleUser = Rx<GoogleSignInAccount?>(null);
   final Rx<AuthorizationCredentialAppleID?> _appleUser = Rx<AuthorizationCredentialAppleID?>(null);
-  final Rx<User?> _userProfile = Rx<User?>(null);
+  final Rx<User?> userProfile = Rx<User?>(null);
   final Rx<LoginProvider?> _currentProvider = Rx<LoginProvider?>(null);
   final RxBool _isInitializing = RxBool(true);
   final RxBool _isSigningUp = RxBool(false);
@@ -37,8 +37,8 @@ class AuthController extends GetxController {
   final RxBool _isHandlingAuthentication = RxBool(false);
   // setter for user profile topics
   set userTopics(List<Topic>? topics) {
-    if (_userProfile.value != null) {
-      _userProfile.update((user) => user?.copyWith(topics: topics));
+    if (userProfile.value != null) {
+      userProfile.update((user) => user?.copyWith(topics: topics));
     }
   }
 
@@ -82,8 +82,8 @@ class AuthController extends GetxController {
   bool get isSplashComplete => _isSplashComplete.value;
   bool get supportsAuthenticate => _googleAuthService.supportsAuthenticate;
 
-  User? get userProfile => _userProfile.value;
-  set userProfile(User? user) => _userProfile(user);
+  // User? get userProfile => _userProfile.value;
+  // set userProfile(User? user) => _userProfile(user);
 
   /// Completes user sign up process
   Future<void> completeSignUp(Map<String, dynamic> data) async {
@@ -92,9 +92,9 @@ class AuthController extends GetxController {
 
       _isSigningUp(true);
 
-      _userProfile(User.fromJson(data['user'] as Map<String, dynamic>));
-      Logger.info('Completing sign up for user: ${userProfile?.email}');
-      CrashlyticsService.setUserIdentifier('${userProfile?.email}');
+      userProfile(User.fromJson(data['user'] as Map<String, dynamic>));
+      Logger.info('Completing sign up for user: ${userProfile()?.email}');
+      CrashlyticsService.setUserIdentifier('${userProfile()?.email}');
 
       Get.snackbar(Strings.success, Strings.signUpSuccess);
       _navigateToInterestSelection();
@@ -149,6 +149,7 @@ class AuthController extends GetxController {
               Constants.requestProviderKey: provider,
               'device_id': await _getDeviceId(),
             },
+            log: true,
           )
           .timeout(const Duration(seconds: Constants.apiTimeoutSeconds));
 
@@ -167,7 +168,7 @@ class AuthController extends GetxController {
           );
         }
         if (response.data!.containsKey('user')) {
-          _userProfile(User.fromJson(response.data?['user'] as Map<String, dynamic>));
+          userProfile(User.fromJson(response.data?['user'] as Map<String, dynamic>));
         }
 
         return data;

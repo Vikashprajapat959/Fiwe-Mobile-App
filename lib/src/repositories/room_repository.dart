@@ -48,7 +48,7 @@ class RoomRepository extends GetxService {
         dev.log('Room created successfully with ID: ${response.data!.objectId}', name: 'RoomRepository');
 
         // 3. Get current user's name from auth service
-        final userName = Get.find<AuthController>().userProfile?.name ?? 'User';
+        final userName = Get.find<AuthController>().userProfile()?.name ?? 'User';
         await ForegroundHandler().init();
         Get.toNamed(
           Constants.videoRoomRoute,

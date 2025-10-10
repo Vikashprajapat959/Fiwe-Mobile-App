@@ -8,8 +8,6 @@ import 'package:get/get.dart';
 class ProfileController extends GetxController {
   // Profile data
   final AuthController authController = Get.find<AuthController>();
-
-  User? get user => authController.userProfile;
   // Stats
   var totalRoomsCreated = 5.obs;
   var joinedRooms = 2.obs;
@@ -20,7 +18,7 @@ class ProfileController extends GetxController {
   var toppedRooms = 3.obs;
 
   void editProfile() {
-    Get.to(() => EditProfileScreen());
+    Get.to(() => const EditProfileScreen());
   }
 
   void logout() {
@@ -41,14 +39,15 @@ class ProfileController extends GetxController {
 
   double get profileCompletion {
     double completion = 0;
+    final User? user = authController.userProfile();
     if (user != null) {
-      if (!user!.name.isNullOrEmpty) completion += 14.28;
-      if (!user!.nickName.isNullOrEmpty) completion += 14.28;
-      if (!user!.bio.isNullOrEmpty) completion += 14.28;
-      if (!user!.profileBase64.isNullOrEmpty) completion += 14.28;
-      if (!user!.email.isNullOrEmpty) completion += 14.28;
-      if (!user!.dateOfBirth.isNullOrEmpty) completion += 14.28;
-      if (!user!.pincode.isNullOrEmpty) completion += 14.28;
+      if (!user.name.isNullOrEmpty) completion += 14.28;
+      if (!user.nickName.isNullOrEmpty) completion += 14.28;
+      if (!user.bio.isNullOrEmpty) completion += 14.28;
+      if (!user.profileBase64.isNullOrEmpty) completion += 14.28;
+      if (!user.email.isNullOrEmpty) completion += 14.28;
+      if (!user.dateOfBirth.isNullOrEmpty) completion += 14.28;
+      if (!user.pincode.isNullOrEmpty) completion += 14.28;
     }
     return completion;
   }

@@ -1,4 +1,6 @@
 // Controller for managing profile data
+import 'dart:developer';
+
 import 'package:fiwe/src/controllers/auth_controller.dart';
 import 'package:fiwe/src/services/user_service.dart';
 import 'package:fiwe/src/utils/helper.dart';
@@ -39,7 +41,7 @@ class EditProfileController extends GetxController {
   }
 
   void _loadUserData() {
-    final user = authController.userProfile;
+    final user = authController.userProfile();
     if (user != null) {
       nameController.text = user.name ?? '';
       nickNameController.text = user.nickName ?? '';
@@ -74,7 +76,7 @@ class EditProfileController extends GetxController {
 
   void updateProfile() async {
     // check if no updates made
-    final user = authController.userProfile;
+    final user = authController.userProfile();
     if (user != null &&
         nameController.text == (user.name ?? '') &&
         nickNameController.text == (user.nickName ?? '') &&
@@ -85,6 +87,7 @@ class EditProfileController extends GetxController {
         profileImage.value == (user.profileBase64 ?? '') &&
         bioController.text == (user.bio ?? '')) {
       Get.snackbar('Info', 'No changes made to update');
+      log('No changes made');
       return;
     }
 
@@ -101,10 +104,11 @@ class EditProfileController extends GetxController {
         bioController.text,
         imageBase64: profileImage.value,
       );
+
       if (response.success) {
         Get.snackbar('Success', 'Profile updated successfully', snackPosition: SnackPosition.BOTTOM);
         // Update local user profile
-        authController.userProfile = authController.userProfile?.copyWith(
+        authController.userProfile.value = authController.userProfile()?.copyWith(
           name: nameController.text,
           nickName: nickNameController.text,
           email: emailController.text,
@@ -114,6 +118,7 @@ class EditProfileController extends GetxController {
           bio: bioController.text,
           profileBase64: profileImage.value,
         );
+
         // Close the edit profile view
       } else {
         Get.snackbar('Error', response.message, snackPosition: SnackPosition.BOTTOM);

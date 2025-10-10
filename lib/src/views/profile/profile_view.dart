@@ -2,6 +2,7 @@ import 'package:fiwe/src/controllers/profile_controller.dart';
 import 'package:fiwe/src/utils/app_text_styles.dart';
 import 'package:fiwe/src/utils/colors.dart';
 import 'package:fiwe/src/utils/constants.dart';
+import 'package:fiwe/src/utils/helper.dart';
 import 'package:fiwe/src/views/profile/settings_view.dart' hide AppColors;
 import 'package:fiwe/src/widgets/app_back_button.dart';
 import 'package:flutter/material.dart';
@@ -130,7 +131,7 @@ class ProfileHeader extends StatelessWidget {
                   ? Container(
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
-                        image: DecorationImage(fit: BoxFit.cover, image: NetworkImage(avatarUrl!)),
+                        image: DecorationImage(fit: BoxFit.cover, image: MemoryImage(Helper.base64ToBytes(avatarUrl!))),
                       ),
                     )
                   : const Icon(LucideIcons.user, size: 30, color: CustomColors.textSecondary),
@@ -204,10 +205,11 @@ class ProfileScreen extends StatelessWidget {
                 CustomCard(
                   child: Obx(
                     () => ProfileHeader(
-                      name: controller.user?.name ?? 'Guest User',
+                      name: controller.authController.userProfile()?.name ?? 'Guest User',
                       rating: 4.5,
                       reviewCount: 32,
                       tagline: '',
+                      avatarUrl: controller.authController.userProfile()?.profileBase64,
                     ),
                   ),
                 ),

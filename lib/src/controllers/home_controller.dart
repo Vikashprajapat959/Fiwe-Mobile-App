@@ -29,7 +29,7 @@ class HomeController extends GetxController {
 
   final RoomRepository roomRepository = RoomRepository.instance;
   // get user
-  User? get user => Get.find<AuthController>().userProfile;
+  User? get user => Get.find<AuthController>().userProfile();
 
   // user topics followed
   var userTopics = <Topic>[].obs;
