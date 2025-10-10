@@ -60,8 +60,15 @@ class EditProfileController extends GetxController {
       lastDate: DateTime.now(),
     );
     if (picked != null) {
-      dobController.text =
-          '${picked.month.toString().padLeft(2, '0')}/${picked.day.toString().padLeft(2, '0')}/${picked.year}';
+      // dobController.text =
+      //     '${picked.month.toString().padLeft(2, '0')}/${picked.day.toString().padLeft(2, '0')}/${picked.year}';
+
+      // yyyy-mm-dd format
+      final formattedDate =
+          '${picked.year}-${picked.month.toString().padLeft(2, '0')}-${picked.day.toString().padLeft(2, '0')}';
+      if (formattedDate.isNotEmpty) {
+        dobController.text = formattedDate;
+      }
     }
   }
 

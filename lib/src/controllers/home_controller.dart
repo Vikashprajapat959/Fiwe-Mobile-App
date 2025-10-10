@@ -54,7 +54,7 @@ class HomeController extends GetxController {
 
   @override
   void onInit() {
-    // Get.put(NotificationService(), permanent: true);
+    Get.put(CommuneController(), permanent: true);
     _notificationService = FCMNotificationService.instance;
     super.onInit();
   }
@@ -62,7 +62,7 @@ class HomeController extends GetxController {
   @override
   void onReady() {
     fetchActiveRoomDetails();
-    Get.put(CommuneController(), permanent: true);
+
     dev.log('HomeController onReady called', name: 'HomeController');
     _notificationService.roomInviteStream.listen((event) {
       dev.log('Received notification event: ${event.title}', name: 'HomeController');
@@ -158,6 +158,7 @@ class HomeController extends GetxController {
               style: NotificationActionStyle.secondary,
               onPressed: () {
                 // leave room action
+                InAppNotificationManager.dismissAll();
                 controller.leaveRoom();
               },
             ),

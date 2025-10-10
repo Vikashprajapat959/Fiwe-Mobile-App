@@ -43,4 +43,7 @@ class Endpoints {
   static String faceOfWeek = '/topics/face-of-week/';
 
   static String currentAffairs = '/topics/current-affairs/';
+
+  static String communeRequestsReceived='/communes/requests';
+
 }

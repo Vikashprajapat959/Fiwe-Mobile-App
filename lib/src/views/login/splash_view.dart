@@ -41,6 +41,6 @@ class _SplashViewState extends State<SplashView> {
   @override
   void initState() {
     super.initState();
-    Get.put(AuthController(), permanent: true);
+    Get.put(AuthController());
   }
 }

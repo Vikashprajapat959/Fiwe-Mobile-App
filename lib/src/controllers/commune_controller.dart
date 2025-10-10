@@ -1,5 +1,6 @@
 import 'dart:developer';
 
+import 'package:fiwe/src/models/standard_api_response.dart';
 import 'package:fiwe/src/repositories/commune_repository.dart';
 import 'package:fiwe/src/utils/loading_overlay.dart';
 import 'package:get/get.dart';
@@ -53,6 +54,27 @@ class CommuneController extends GetxController {
       update();
     }
     LoadingOverlay.hide();
+  }
+
+  Future<ApiResponse<List<CommuneSummary>>> getAllCommunes() async {
+    try {
+      final result = await communeRepository.getAllCommunes();
+      return result;
+    } catch (e) {
+      log(e.toString());
+      rethrow;
+    }
+  }
+
+  // get al commune requests
+  Future<ApiResponse<List<CommuneSummary>>> getAllRequests() async {
+    try {
+      final result = await communeRepository.getAllCommuneRequests();
+      return result;
+    } catch (e) {
+      log(e.toString());
+      rethrow;
+    }
   }
 }
 

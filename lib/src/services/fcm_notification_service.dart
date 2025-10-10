@@ -594,6 +594,12 @@ class FCMNotificationService extends GetxService {
             final roomInviteData = data as RoomInviteData;
             _roomInviteStreamController.add(roomInviteData);
             break;
+          case NotificationType.communeAccepted:
+            // TODO: Handle this case.
+            throw UnimplementedError();
+          case NotificationType.communeRequest:
+            // TODO: Handle this case.
+            throw UnimplementedError();
         }
       }
 

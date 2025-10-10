@@ -97,7 +97,7 @@ class SearchView extends StatelessWidget {
                   itemBuilder: (context, index) {
                     final user = controller.searchResult[index];
                     return Card(
-                      margin: const EdgeInsets.only(left: 12),
+                      margin: const EdgeInsets.only(left: 12, bottom: 12),
                       child: ListTile(
                         leading: CircleAvatar(child: Image.memory(Helper.base64ToBytes(user.profileImageBase64))),
                         onTap: () => controller.fetchUser(user.id),

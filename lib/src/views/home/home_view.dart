@@ -2,6 +2,7 @@ import 'package:fiwe/src/controllers/home_controller.dart';
 import 'package:fiwe/src/utils/colors.dart';
 import 'package:fiwe/src/utils/constants.dart';
 import 'package:fiwe/src/views/commune/commune_view.dart';
+import 'package:fiwe/src/views/commune/follower_view.dart';
 import 'package:fiwe/src/views/history/room_history_screen.dart';
 import 'package:fiwe/src/views/home/create_room_view.dart';
 import 'package:fiwe/src/views/home/home_screen_view.dart';
@@ -51,13 +52,7 @@ class HomeView extends StatelessWidget {
       body: Obx(
         () => IndexedStack(
           index: controller.pageIndex(),
-          children: const [
-            HomeScreen(),
-
-            RoomHistoryScreen(),
-            MyCommunesScreen(),
-            Center(child: Text('Followers Page', style: TextStyle(fontSize: 24))),
-          ],
+          children: const [HomeScreen(), RoomHistoryScreen(), MyCommunesScreen(), FollowerScreen()],
         ),
       ),
     );
