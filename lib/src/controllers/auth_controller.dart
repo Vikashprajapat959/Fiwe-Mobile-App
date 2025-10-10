@@ -38,8 +38,13 @@ class AuthController extends GetxController {
   // setter for user profile topics
   set userTopics(List<Topic>? topics) {
     if (userProfile.value != null) {
-      userProfile.update((user) => user?.copyWith(topics: topics));
+      userProfile(userProfile.value!.copyWith(topics: topics));
     }
+  }
+
+  /// Updates the user profile with a new user object
+  void updateUserProfile(User newUser) {
+    userProfile.value = newUser;
   }
 
   AuthorizationCredentialAppleID? get appleUser => _appleUser.value;

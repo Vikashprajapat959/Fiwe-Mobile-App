@@ -119,7 +119,7 @@ class HomeScreen extends StatelessWidget {
       future: Get.find<TopicService>().getFaceOfWeek(),
       builder: (context, asyncSnapshot) {
         if (asyncSnapshot.connectionState == ConnectionState.waiting) {
-          return const Center(child: LinearProgressIndicator());
+          return const SizedBox.shrink();
         }
         if (asyncSnapshot.connectionState == ConnectionState.done && asyncSnapshot.hasError) {
           return Center(child: Text('Error: ${asyncSnapshot.error}'));

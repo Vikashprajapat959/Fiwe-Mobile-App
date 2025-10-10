@@ -41,7 +41,7 @@ class EditProfileController extends GetxController {
   }
 
   void _loadUserData() {
-    final user = authController.userProfile();
+    final user = authController.userProfile.value;
     if (user != null) {
       nameController.text = user.name ?? '';
       nickNameController.text = user.nickName ?? '';
@@ -76,7 +76,7 @@ class EditProfileController extends GetxController {
 
   void updateProfile() async {
     // check if no updates made
-    final user = authController.userProfile();
+    final user = authController.userProfile.value;
     if (user != null &&
         nameController.text == (user.name ?? '') &&
         nickNameController.text == (user.nickName ?? '') &&
@@ -106,20 +106,27 @@ class EditProfileController extends GetxController {
       );
 
       if (response.success) {
-        Get.snackbar('Success', 'Profile updated successfully', snackPosition: SnackPosition.BOTTOM);
         // Update local user profile
-        authController.userProfile.value = authController.userProfile()?.copyWith(
-          name: nameController.text,
-          nickName: nickNameController.text,
-          email: emailController.text,
-          dateOfBirth: dobController.text,
-          pincode: pinController.text,
-          fiveWords: fiveWordsController.text,
-          bio: bioController.text,
-          profileBase64: profileImage.value,
-        );
+        final currentUser = authController.userProfile.value;
+        if (currentUser != null) {
+          final updatedUser = currentUser.copyWith(
+            name: nameController.text,
+            nickName: nickNameController.text,
+            email: emailController.text,
+            dateOfBirth: dobController.text,
+            pincode: pinController.text,
+            fiveWords: fiveWordsController.text,
+            bio: bioController.text,
+            profileBase64: profileImage.value,
+          );
 
-        // Close the edit profile view
+          // Set the new user profile to trigger reactive updates
+          authController.updateUserProfile(updatedUser);
+        }
+
+        // Close the edit profile view and go back to profile
+        Get.back();
+        Get.snackbar('Success', 'Profile updated successfully', snackPosition: SnackPosition.BOTTOM);
       } else {
         Get.snackbar('Error', response.message, snackPosition: SnackPosition.BOTTOM);
       }

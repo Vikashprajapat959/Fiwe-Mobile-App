@@ -153,11 +153,30 @@ class User {
   @override
   bool operator ==(Object other) {
     if (identical(this, other)) return true;
-    return other is User && other.id == id && other.email == email;
+    return other is User && 
+           other.id == id && 
+           other.email == email &&
+           other.name == name &&
+           other.nickName == nickName &&
+           other.profileBase64 == profileBase64 &&
+           other.dateOfBirth == dateOfBirth &&
+           other.pincode == pincode &&
+           other.fiveWords == fiveWords &&
+           other.bio == bio;
   }
 
   @override
-  int get hashCode => id.hashCode ^ email.hashCode;
+  int get hashCode => Object.hash(
+        id,
+        email,
+        name,
+        nickName,
+        profileBase64,
+        dateOfBirth,
+        pincode,
+        fiveWords,
+        bio,
+      );
 
   @override
   String toString() {

@@ -1,3 +1,4 @@
+import 'package:fiwe/src/controllers/auth_controller.dart';
 import 'package:fiwe/src/controllers/profile_controller.dart';
 import 'package:fiwe/src/utils/app_text_styles.dart';
 import 'package:fiwe/src/utils/colors.dart';
@@ -174,6 +175,7 @@ class ProfileScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final controller = Get.put(ProfileController());
+    final authController = Get.find<AuthController>();
     return Scaffold(
       backgroundColor: AppColors.screenBackground,
       appBar: AppBar(
@@ -203,15 +205,17 @@ class ProfileScreen extends StatelessWidget {
               children: [
                 // Profile Header
                 CustomCard(
-                  child: Obx(
-                    () => ProfileHeader(
-                      name: controller.authController.userProfile()?.name ?? 'Guest User',
+                  child: Obx(() {
+                    // Access the reactive user profile directly from authController
+                    final user = authController.userProfile();
+                    return ProfileHeader(
+                      name: user?.name ?? 'Guest User',
                       rating: 4.5,
                       reviewCount: 32,
                       tagline: '',
-                      avatarUrl: controller.authController.userProfile()?.profileBase64,
-                    ),
-                  ),
+                      avatarUrl: user?.profileBase64,
+                    );
+                  }),
                 ),
 
                 // Progress Bar
