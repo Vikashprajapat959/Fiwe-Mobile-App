@@ -84,7 +84,7 @@ class RoomRepository extends GetxService {
   /// Leave a video room
   Future<ApiResponse<Map<String, dynamic>>> leaveRoom(String roomId) async {
     try {
-      final response = await _httpService.post('/rooms/$roomId/leave', isAuthorized: true);
+      final response = await _httpService.post('/rooms/$roomId/leave', isAuthorized: true,log: true);
 
       if (response.success) {
         return ApiResponse.success(message: response.message, data: response.data);
