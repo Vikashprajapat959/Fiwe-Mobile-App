@@ -1,5 +1,7 @@
 // ignore_for_file: library_private_types_in_public_api
 
+import 'dart:convert';
+
 import 'package:firebase_messaging/firebase_messaging.dart';
 
 import 'fcm_action.dart';
@@ -346,8 +348,12 @@ class RoomInviteData {
       inviteeName: json['invitee_name'] ?? '',
       deepLink: json['deep_link'] ?? '',
       expiry: DateTime.parse(json['expiry'] ?? DateTime.now().toIso8601String()),
-      topicDetails: json['topic_details'] != null ? _TopicData.fromJson(Map.from(json['topic_details'])) : null,
-      userDetails: json['user_details'] != null ? _UserData.fromJson(Map.from(json['user_details'])) : null,
+      topicDetails: json['topic_details'] != null
+          ? _TopicData.fromJson(jsonDecode(json['topic_details'].toString()))
+          : null,
+      userDetails: json['user_details'] != null
+          ? _UserData.fromJson(jsonDecode(json['user_details'].toString()))
+          : null,
     );
   }
   final String roomId;

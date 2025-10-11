@@ -37,11 +37,16 @@ class CommuneController extends GetxController {
 
   Future<void> sendCommuneRequest(String userId) async {
     LoadingOverlay.show();
-    final result = await communeRepository.sendRequest(userId.toString());
-    if (result.data != null) {
-      communeRequestSent.add(CommuneRequestSent.fromJson(result.data!));
+    try {
+      final result = await communeRepository.sendRequest(userId.toString());
+      if (result.data != null) {
+        communeRequestSent.add(CommuneRequestSent.fromJson(result.data!['commune_request']));
+      }
+    } on Exception catch (e) {
+      // TODO
+    } finally {
+      LoadingOverlay.hide();
     }
-    LoadingOverlay.hide();
   }
 
   Future<void> cancelRequest(String userId) async {

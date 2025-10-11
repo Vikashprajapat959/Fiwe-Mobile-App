@@ -1,6 +1,6 @@
-import 'dart:developer';
-
 import 'package:fiwe/src/controllers/home_controller.dart';
+import 'package:fiwe/src/controllers/video_room_controller.dart';
+import 'package:fiwe/src/models/fcm_notification_data.dart';
 import 'package:fiwe/src/models/hmsvideo_room.dart';
 import 'package:fiwe/src/services/topic_service.dart';
 import 'package:fiwe/src/utils/app_text_styles.dart';
@@ -76,13 +76,20 @@ class HomeScreen extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Obx(() => Text('${controller.user?.name}', style: AppTextStyles.headerTitle)),
+              Obx(
+                () =>
+                    Text('${controller.user?.name}', style: AppTextStyles.headerTitle, overflow: TextOverflow.ellipsis),
+              ),
               Row(
                 children: [
                   Obx(
-                    () => Text(
-                      controller.userTopics.firstWhereOrNull((t) => t.isPrimary ?? false)?.title ?? '',
-                      style: AppTextStyles.subtitle,
+                    () => SizedBox(
+                      width: 100,
+                      child: Text(
+                        controller.userTopics.firstWhereOrNull((t) => t.isPrimary ?? false)?.title ?? '',
+                        style: AppTextStyles.subtitle,
+                        overflow: TextOverflow.ellipsis,
+                      ),
                     ),
                   ),
                   const Icon(LucideIcons.star, color: AppColors.orange, size: 12),
@@ -191,12 +198,13 @@ class HomeScreen extends StatelessWidget {
                   child: Row(
                     spacing: 14,
                     children: List.generate(visibleCount, (index) {
-                      log(rooms[index].objectId.toString());
                       return RoomCard(
                         roomName: rooms[index].title,
                         createdBy: rooms[index].creator?.name ?? '',
                         joinedUsers: '${rooms[index].currentOccupancy}/${rooms[index].capacity ?? 5}',
                         imageUrl: rooms[index].topic?.thumbnail ?? '',
+                        roomCode: rooms[index].roomGuestCode ?? '',
+                        room: rooms[index],
                       );
                     }),
                   ),
@@ -481,12 +489,17 @@ class RoomCard extends StatelessWidget {
     required this.createdBy,
     required this.joinedUsers,
     required this.imageUrl,
+    required this.roomCode,
+    this.room,
   });
   final String roomName;
   final String createdBy;
   final String joinedUsers;
   final String imageUrl;
 
+  final HMSVideoRoom? room;
+
+  final String roomCode;
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -564,7 +577,28 @@ class RoomCard extends StatelessWidget {
                   ],
                 ),
                 const SizedBox(height: 12),
-                GradientButton(text: 'Join Now', onPressed: () {}),
+                GradientButton(
+                  text: 'Join Now',
+                  onPressed: () {
+                    if (roomCode.isNotEmpty && room != null) {
+                      final controller = Get.find<VideoRoomController>();
+                      controller.joinRoom(
+                        RoomInviteData(
+                          roomId: room?.objectId ?? '',
+                          roomGuestCode: room!.roomGuestCode ?? '',
+                          title: room!.title,
+                          inviteeName: 'Guest',
+                          deepLink: '',
+                          roomHostCode: '',
+                          expiry: null,
+                          topicDetails: null,
+                          userDetails: null, // Add deep link if available
+                        ),
+                        Get.find<HomeController>().user?.name ?? 'guest',
+                      );
+                    } else {}
+                  },
+                ),
               ],
             ),
           ),

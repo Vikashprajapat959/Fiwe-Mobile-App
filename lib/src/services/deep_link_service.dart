@@ -36,7 +36,7 @@ class DeepLinkService extends GetxService {
     try {
       dev.log('Handling room invite link for room: $roomId', name: 'DeepLinkService');
 
-      // Join the room using VideoRoomController TODO::
+      // Join the room using VideoRoomController TODO:
       // VideoRoomController.instance.joinRoom(roomId, 'User', "", "");
 
       // Navigate to the room view

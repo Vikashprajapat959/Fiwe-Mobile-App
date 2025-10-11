@@ -14,14 +14,14 @@ class InteractedParticipant {
       name: json['name'],
       profileImageBase64: json['profile_image_base64'],
       role: json['role'],
-      joinedAt: DateTime.parse(json['joined_at']),
-      leftAt: DateTime.parse(json['left_at']),
+      joinedAt: json['joined_at'] == null ? null : DateTime.parse(json['joined_at']),
+      leftAt: json['left_at'] == null ? null : DateTime.parse(json['left_at']),
     );
   }
   final String userId;
   final String name;
   final String? profileImageBase64;
   final String role;
-  final DateTime joinedAt;
-  final DateTime leftAt;
+  final DateTime? joinedAt;
+  final DateTime? leftAt;
 }

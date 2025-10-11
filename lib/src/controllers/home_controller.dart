@@ -101,8 +101,9 @@ class HomeController extends GetxController {
               label: 'Join',
 
               onPressed: () {
+                InAppNotificationManager.dismissAll();
                 final controller = Get.find<VideoRoomController>();
-                controller.joinRoom(inviteData);
+                controller.joinRoom(inviteData, user?.name ?? 'Guest');
 
                 // Handle join action, e.g., navigate to the room using inviteData.deepLink
                 dev.log('Join action pressed for room: ${inviteData.roomGuestCode}', name: 'HomeController');
@@ -167,10 +168,21 @@ class HomeController extends GetxController {
               onPressed: () {
                 InAppNotificationManager.dismiss();
                 final controller = Get.find<VideoRoomController>();
+                var roomCode = '';
+                try {
+                  if (room.creator?.id == user?.id) {
+                    roomCode = room.roomHostCode ?? ''; // Use objectId if roomGuestCode is empty
+                  } else {
+                    roomCode = room.roomGuestCode ?? ''; // Use roomGuestCode if it's not empty
+                  }
+                } finally {
+                  roomCode = room.roomGuestCode ?? ''; // Use roomGuestCode if it's not empty
+                }
+
                 controller.joinRoom(
                   RoomInviteData(
                     roomId: room.objectId,
-                    roomGuestCode: room.roomGuestCode ?? '',
+                    roomGuestCode: roomCode,
                     title: room.title,
                     inviteeName: user?.name ?? 'Guest',
                     deepLink: '',
@@ -179,6 +191,8 @@ class HomeController extends GetxController {
                     topicDetails: null,
                     userDetails: null, // Add deep link if available
                   ),
+                  isPreviousSession: true,
+                  user?.name ?? 'Guest',
                 );
               },
             ),

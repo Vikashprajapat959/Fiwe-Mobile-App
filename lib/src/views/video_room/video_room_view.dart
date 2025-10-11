@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_foreground_task/flutter_foreground_task.dart';
 import 'package:get/get.dart';
@@ -6,8 +8,9 @@ import 'package:hms_room_kit/hms_room_kit.dart';
 import '../../controllers/video_room_controller.dart';
 
 class VideoRoomView extends StatefulWidget {
-  const VideoRoomView({super.key});
-
+  const VideoRoomView({super.key, this.isGuest = false, required this.userName});
+  final bool isGuest;
+  final String userName;
   @override
   State<VideoRoomView> createState() => _VideoRoomViewState();
 }
@@ -31,7 +34,6 @@ class _VideoRoomViewState extends State<VideoRoomView> with WidgetsBindingObserv
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[900],
       // Add floating action button for manual PIP entry (for testing)
       // floatingActionButton: Obx(() {
       //   if (!controller.isInRoom) return const SizedBox.shrink();
@@ -75,17 +77,24 @@ class _VideoRoomViewState extends State<VideoRoomView> with WidgetsBindingObserv
 
         if (!controller.isInRoom) {
           return const Center(
-            child: Text('Not in a room', style: TextStyle(color: Colors.white)),
+            child: Text('Not in a room', style: TextStyle(color: Colors.black)),
           );
         }
-
+        log('Current room is ${controller.currentRoom?.toJson()}');
         // Use HMSPrebuilt widget instead of custom UI
         // Pass the room code and authentication token to HMSPrebuilt
+        var roomCode = '';
+        if (widget.isGuest) {
+          roomCode = controller.currentRoom?.roomGuestCode ?? '';
+        } else {
+          roomCode = controller.currentRoom?.roomHostCode ?? '';
+        }
+
         return WithForegroundTask(
           child: HMSPrebuilt(
-            roomCode: controller.currentRoom?.roomHostCode ?? '',
+            roomCode: roomCode,
             // authToken: controller.currentRoom?.joinToken ?? '',
-            options: HMSPrebuiltOptions(userName: Get.routing.args?['userName'] ?? ''),
+            options: HMSPrebuiltOptions(userName: widget.userName),
 
             onLeave: () {
               controller.leaveRoom();

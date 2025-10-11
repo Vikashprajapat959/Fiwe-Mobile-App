@@ -18,7 +18,6 @@ import 'crashlytics_service.dart';
 @pragma('vm:entry-point')
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   dev.log('Handling background message: ${message.messageId}', name: 'NotificationService');
-  CrashlyticsService.log('Handling background message: ${message.messageId}');
 
   try {
     // Initialize Firebase if not already done
@@ -35,6 +34,7 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
 /// Static method to handle background notifications without GetX dependency
 Future<void> _handleBackgroundNotificationStatic(RemoteMessage message) async {
   try {
+    CrashlyticsService.log('Handling background notification: ${message.data.toString()}');
     // Initialize local notifications for background processing
     final FlutterLocalNotificationsPlugin localNotifications = FlutterLocalNotificationsPlugin();
 
@@ -53,14 +53,12 @@ Future<void> _handleBackgroundNotificationStatic(RemoteMessage message) async {
       await _showLocalNotificationStatic(localNotifications, inviteData, NotificationType.roomInvite);
       // await _updateBadgeCountStatic();
       dev.log('Background room invite notification processed: ${inviteData.title}', name: 'NotificationService');
-      CrashlyticsService.log('Background room invite notification processed: ${inviteData.title}');
       return;
     }
     if (message.data['type'] == 'marketing') {
       final promoData = FCMNotificationData.fromRemoteMessage(message);
       await _showLocalNotificationStatic(localNotifications, promoData, NotificationType.promotional);
       dev.log('Background promotional notification processed: ${promoData.title}', name: 'NotificationService');
-      CrashlyticsService.log('Background promotional notification processed: ${promoData.title}');
       return;
     }
 
@@ -275,13 +273,11 @@ class FCMNotificationService extends GetxService {
     try {
       _deviceToken = await _messaging.getToken();
       dev.log('Device token: $_deviceToken', name: 'NotificationService');
-      CrashlyticsService.log('Device token: $_deviceToken');
 
       // Listen for token refresh
       _messaging.onTokenRefresh.listen((newToken) {
         _deviceToken = newToken;
         dev.log('Token refreshed: $newToken', name: 'NotificationService');
-        CrashlyticsService.log('Token refreshed: $newToken');
         // TODO: Send updated token to backend
       });
 
@@ -381,7 +377,6 @@ class FCMNotificationService extends GetxService {
       final RemoteMessage? initialMessage = await _messaging.getInitialMessage();
       if (initialMessage != null) {
         dev.log('App launched from notification: ${initialMessage.messageId}', name: 'NotificationService');
-        CrashlyticsService.log('App launched from notification: ${initialMessage.messageId}');
         _handleNotificationTap(initialMessage);
       }
     } catch (e, stack) {
@@ -502,7 +497,6 @@ class FCMNotificationService extends GetxService {
   Future<void> _initializeNotificationService() async {
     try {
       dev.log('Initializing notification service...', name: 'NotificationService');
-      CrashlyticsService.log('Initializing notification service...');
 
       // Initialize Firebase Messaging
       _messaging = FirebaseMessaging.instance;
@@ -530,7 +524,6 @@ class FCMNotificationService extends GetxService {
 
       _isInitialized = true;
       dev.log('Notification service initialized successfully', name: 'NotificationService');
-      CrashlyticsService.log('Notification service initialized successfully');
     } catch (e, stack) {
       dev.log('Error initializing notification service: $e', name: 'NotificationService');
       CrashlyticsService.recordError(e, stack, reason: 'Error initializing notification service');
@@ -604,7 +597,6 @@ class FCMNotificationService extends GetxService {
       }
 
       dev.log('Notification action handled: $data', name: 'NotificationService');
-      CrashlyticsService.log('Notification action handled: $data');
     } catch (e, stack) {
       dev.log('Error handling notification action: $e', name: 'NotificationService');
       CrashlyticsService.recordError(e, stack, reason: 'Error handling notification action');
@@ -630,7 +622,7 @@ class FCMNotificationService extends GetxService {
   //   }
   // }
 
-  /// Request notification permissions
+  /// Request notification permissionshom
   Future<bool> _requestPermissions() async {
     try {
       // Request Firebase Messaging permissions
@@ -645,13 +637,11 @@ class FCMNotificationService extends GetxService {
       );
 
       dev.log('FCM Permission status: ${settings.authorizationStatus}', name: 'NotificationService');
-      CrashlyticsService.log('FCM Permission status: ${settings.authorizationStatus}');
 
       // Request general notification permission
       if (Platform.isAndroid) {
         final status = await Permission.notification.request();
         dev.log('Android notification permission: $status', name: 'NotificationService');
-        CrashlyticsService.log('Android notification permission: $status');
       }
 
       return settings.authorizationStatus == AuthorizationStatus.authorized ||
@@ -668,14 +658,12 @@ class FCMNotificationService extends GetxService {
     // Foreground messages
     FirebaseMessaging.onMessage.listen((RemoteMessage message) {
       dev.log('Received foreground message: ${message.messageId}', name: 'NotificationService');
-      CrashlyticsService.log('Received foreground message: ${message.messageId}');
       _handleForegroundNotification(message);
     });
 
     // Background/terminated app opened from notification
     FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
       dev.log('App opened from notification: ${message.messageId}', name: 'NotificationService');
-      CrashlyticsService.log('App opened from notification: ${message.messageId}');
       _handleNotificationTap(message);
     });
 
@@ -806,7 +794,6 @@ class FCMNotificationService extends GetxService {
   Future<void> _updateBadgeCount() async {
     try {
       await BadgeService.instance.incrementBadge();
-      CrashlyticsService.log('Badge count updated successfully');
     } catch (e, stack) {
       dev.log('Error updating badge count: $e', name: 'NotificationService');
       CrashlyticsService.recordError(e, stack, reason: 'Error updating badge count');
