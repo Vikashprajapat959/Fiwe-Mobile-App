@@ -1,8 +1,8 @@
 import 'package:fiwe/src/controllers/edit_profile_controller.dart';
 import 'package:fiwe/src/utils/helper.dart';
+import 'package:fiwe/src/widgets/app_back_button.dart';
 import 'package:fiwe/src/widgets/custom_button.dart';
 import 'package:fiwe/src/widgets/custom_text_field.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
@@ -21,7 +21,10 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
     return AppBar(
       backgroundColor: Colors.white,
       elevation: 0,
-      leading: const BackButton(),
+      leading: const Padding(
+        padding: EdgeInsets.all(8.0),
+        child: AppBackButton(theme: BackButtonTheme.dark),
+      ),
       title: Text(
         title,
         style: const TextStyle(color: Colors.black87, fontSize: 18, fontWeight: FontWeight.w600),
@@ -269,10 +272,7 @@ class ProfileAvatar extends StatelessWidget {
             decoration: BoxDecoration(
               shape: BoxShape.circle,
               border: Border.all(color: Colors.grey[300]!, width: 2),
-              image: DecorationImage(
-                image: MemoryImage(Helper.base64ToBytes(imageData) ?? Uint8List(255)),
-                fit: BoxFit.cover,
-              ),
+              image: DecorationImage(image: MemoryImage(Helper.base64ToBytes(imageData)), fit: BoxFit.cover),
             ),
           ),
           Positioned(

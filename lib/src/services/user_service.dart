@@ -1,8 +1,9 @@
+import 'dart:developer';
+
 import 'package:fiwe/src/models/standard_api_response.dart'; // Add this import
+import 'package:fiwe/src/models/user_model.dart';
 import 'package:fiwe/src/models/user_notification.dart';
 import 'package:fiwe/src/services/http_service.dart';
-import 'package:fiwe/src/services/shared_pref_service.dart';
-import 'package:fiwe/src/utils/constants.dart';
 import 'package:fiwe/src/utils/endpoints.dart';
 import 'package:get/get.dart';
 
@@ -11,25 +12,24 @@ class UserService extends GetxService {
 
   static UserService get instance => Get.find<UserService>();
 
-  Future<ApiResponse<bool>> followTopics(List<String> topics, String primaryTopic) async {
+  Future<ApiResponse<Map<String, dynamic>?>> followTopics(List<String> topics, String primaryTopic) async {
     try {
-      final String token = await SharedPrefService.getString(Constants.storageBearerTokenKey) ?? '';
-
       final response = await _httService.post(
         Endpoints.followTopicsBulk,
         body: {
           'topics': topics
-              .map((topic) => {'topic_id': topic, 'set_interest_is_primary': topic == primaryTopic})
+              .map((topic) => {'topic_id': topic, 'set_as_primary_interest': topic == primaryTopic})
               .toList(),
         },
-        headers: {'Authorization': 'Bearer $token'},
+        isAuthorized: true,
+        log: false,
       );
-
+      log(response.data.toString(), name: 'followTopics');
       return response.success
-          ? ApiResponse<bool>.success(data: true, message: response.message)
-          : ApiResponse<bool>.error(message: response.message, data: false);
+          ? ApiResponse.success(message: response.message, data: response.data)
+          : ApiResponse.error(message: response.message, data: null);
     } catch (e) {
-      return ApiResponse<bool>.error(message: 'Network error occurred while following topics: $e', data: false);
+      return ApiResponse.error(message: 'Network error occurred while following topics: $e', data: null);
     }
   }
 
@@ -74,6 +74,16 @@ class UserService extends GetxService {
           : ApiResponse<bool>.error(message: response.message, data: false);
     } catch (e) {
       return ApiResponse<bool>.error(message: 'Network error occurred while updating profile: $e', data: false);
+    }
+  }
+
+  Future<User> fetchUser(String userId) async {
+    final response = await _httService.get('${Endpoints.users}/$userId', isAuthorized: true, log: true);
+    if (response.success && response.data != null) {
+      final user = User.fromJson(response.data!['user']);
+      return user;
+    } else {
+      throw Exception('Failed to fetch user: ${response.message}');
     }
   }
 }

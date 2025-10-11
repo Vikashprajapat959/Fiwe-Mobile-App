@@ -14,7 +14,6 @@ import '../utils/exceptions.dart';
 class HttpService extends GetxService {
   HttpService({
     this.baseUrl = 'https://fiwe.in/api',
-    //this.baseUrl = 'http://192.168.29.12:8000/api', // 'http://10.35.236.250:8000/api', // 'https://fiwe.in/api',
     this.defaultHeaders = const <String, String>{'Content-Type': 'application/json', 'accept': 'application/json'},
     this.enableLogging = kDebugMode,
   });
@@ -67,7 +66,7 @@ class HttpService extends GetxService {
     Map<String, dynamic>? queryParams,
     Map<String, String>? headers,
     bool isAuthorized = false,
-    bool log = true,
+    bool log = false,
   }) async {
     final uri = _buildUri(endpoint, queryParams);
     final requestHeaders = await _buildHeaders(headers, isAuthorized);
@@ -106,6 +105,7 @@ class HttpService extends GetxService {
     Map<String, dynamic>? body,
     Map<String, String>? headers,
     bool isAuthorized = false,
+    bool log = false,
   }) async {
     final uri = _buildUri(endpoint);
     final requestHeaders = await _buildHeaders(headers, isAuthorized);
@@ -120,8 +120,9 @@ class HttpService extends GetxService {
 
       stopwatch.stop();
 
-      _logResponse(response, stopwatch.elapsed);
-
+      if (log) {
+        _logResponse(response, stopwatch.elapsed);
+      }
       _handleError(response);
       return _parseApiResponse(response);
     } catch (e) {

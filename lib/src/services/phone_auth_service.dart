@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:convert';
 import 'dart:io';
 
 // FIREBASE_IMPLEMENTATION: Commented out Firebase imports
@@ -140,7 +139,7 @@ class PhoneAuthService {
         isAuthorized: true,
       );
 
-      final data = response.data ;
+      final data = response.data;
 
       if (response.success == true) {
         // final verified = data['verified'] ?? false;

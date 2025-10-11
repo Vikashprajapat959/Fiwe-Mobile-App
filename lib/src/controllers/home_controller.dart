@@ -5,10 +5,12 @@ import 'package:fiwe/src/controllers/commune_controller.dart';
 import 'package:fiwe/src/controllers/video_room_controller.dart';
 import 'package:fiwe/src/models/fcm_notification_data.dart';
 import 'package:fiwe/src/models/hmsvideo_room.dart';
+import 'package:fiwe/src/models/standard_api_response.dart';
+import 'package:fiwe/src/models/topic.model.dart';
 import 'package:fiwe/src/models/user_model.dart';
 import 'package:fiwe/src/repositories/room_repository.dart';
 import 'package:fiwe/src/services/fcm_notification_service.dart';
-import 'package:fiwe/src/utils/constants.dart';
+import 'package:fiwe/src/services/topic_service.dart';
 import 'package:fiwe_notification/fiwe_notification.dart';
 import 'package:flutter/widgets.dart';
 import 'package:get/get.dart';
@@ -22,9 +24,15 @@ class HomeController extends GetxController {
   // instance
   static HomeController get instance => Get.find<HomeController>();
 
+  // topic service
+  final TopicService _topicService = Get.find<TopicService>();
+
   final RoomRepository roomRepository = RoomRepository.instance;
   // get user
-  User? get user => Get.find<AuthController>().userProfile;
+  User? get user => Get.find<AuthController>().userProfile();
+
+  // user topics followed
+  var userTopics = <Topic>[].obs;
 
   // Method to set context from the view
   void setContext(BuildContext context) {
@@ -46,15 +54,15 @@ class HomeController extends GetxController {
 
   @override
   void onInit() {
-    // Get.put(NotificationService(), permanent: true);
+    Get.put(CommuneController(), permanent: true);
     _notificationService = FCMNotificationService.instance;
-    fetchActiveRoomDetails();
     super.onInit();
   }
 
   @override
   void onReady() {
-    Get.put(CommuneController(), permanent: true);
+    fetchActiveRoomDetails();
+
     dev.log('HomeController onReady called', name: 'HomeController');
     _notificationService.roomInviteStream.listen((event) {
       dev.log('Received notification event: ${event.title}', name: 'HomeController');
@@ -64,6 +72,10 @@ class HomeController extends GetxController {
       dev.log('Context available: ${context != null}', name: 'HomeController');
 
       _showRoomInviteNotification(event);
+    });
+    // Add error handling and timeout to getAllUserTopics
+    getAllUserTopics().catchError((error) {
+      dev.log('Error fetching user topics: $error', name: 'HomeController');
     });
     super.onReady();
   }
@@ -89,11 +101,12 @@ class HomeController extends GetxController {
               label: 'Join',
 
               onPressed: () {
-                // Get.off(()=>VideoRoomView(
+                InAppNotificationManager.dismissAll();
+                final controller = Get.find<VideoRoomController>();
+                controller.joinRoom(inviteData, user?.name ?? 'Guest');
 
-                // ));
                 // Handle join action, e.g., navigate to the room using inviteData.deepLink
-                dev.log('Join action pressed for room: ${inviteData.roomId}', name: 'HomeController');
+                dev.log('Join action pressed for room: ${inviteData.roomGuestCode}', name: 'HomeController');
                 // Example navigation (uncomment and implement navigation logic)
                 // Get.toNamed(inviteData.deepLink);
               },
@@ -146,6 +159,7 @@ class HomeController extends GetxController {
               style: NotificationActionStyle.secondary,
               onPressed: () {
                 // leave room action
+                InAppNotificationManager.dismissAll();
                 controller.leaveRoom();
               },
             ),
@@ -153,7 +167,33 @@ class HomeController extends GetxController {
               label: 'Join',
               onPressed: () {
                 InAppNotificationManager.dismiss();
-                Get.toNamed(Constants.videoRoomRoute, arguments: {'userName': user?.name ?? '  Guest'});
+                final controller = Get.find<VideoRoomController>();
+                var roomCode = '';
+                try {
+                  if (room.creator?.id == user?.id) {
+                    roomCode = room.roomHostCode ?? ''; // Use objectId if roomGuestCode is empty
+                  } else {
+                    roomCode = room.roomGuestCode ?? ''; // Use roomGuestCode if it's not empty
+                  }
+                } finally {
+                  roomCode = room.roomGuestCode ?? ''; // Use roomGuestCode if it's not empty
+                }
+
+                controller.joinRoom(
+                  RoomInviteData(
+                    roomId: room.objectId,
+                    roomGuestCode: roomCode,
+                    title: room.title,
+                    inviteeName: user?.name ?? 'Guest',
+                    deepLink: '',
+                    roomHostCode: '',
+                    expiry: null,
+                    topicDetails: null,
+                    userDetails: null, // Add deep link if available
+                  ),
+                  isPreviousSession: true,
+                  user?.name ?? 'Guest',
+                );
               },
             ),
           ],
@@ -179,6 +219,23 @@ class HomeController extends GetxController {
     } catch (e) {
       dev.log('Error fetching active rooms: $e', name: 'HomeController');
       rethrow;
+    }
+  }
+
+  Future<void> getAllUserTopics() async {
+    try {
+      // Add timeout to prevent hanging
+      final result = await _topicService.getTopicsFollowedByUser().timeout(
+        const Duration(seconds: 10),
+        onTimeout: () {
+          dev.log('Timeout fetching user topics', name: 'HomeController');
+          return ApiResponse<List<Topic>>.error(message: 'Timeout fetching user topics');
+        },
+      );
+      userTopics(result.data ?? []);
+    } catch (e) {
+      dev.log('Error in getAllUserTopics: $e', name: 'HomeController');
+      userTopics(<Topic>[]);
     }
   }
 }

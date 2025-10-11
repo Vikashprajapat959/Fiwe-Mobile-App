@@ -1,6 +1,8 @@
 import 'dart:developer';
 
+import 'package:fiwe/src/controllers/home_controller.dart';
 import 'package:fiwe/src/models/Interacted_participant.dart';
+import 'package:fiwe/src/models/fcm_notification_data.dart';
 import 'package:fiwe/src/models/hms_reaction.dart';
 import 'package:fiwe/src/models/hmsvideo_room.dart';
 import 'package:fiwe/src/services/crashlytics_service.dart';
@@ -8,7 +10,9 @@ import 'package:fiwe/src/services/pip_manager_service.dart';
 import 'package:fiwe/src/services/room_state_monitor_service.dart';
 import 'package:fiwe/src/services/video_room_notification_service.dart';
 import 'package:fiwe/src/utils/constants.dart';
+import 'package:fiwe/src/utils/loading_overlay.dart';
 import 'package:fiwe/src/views/rating/user_rating_screen.dart';
+import 'package:fiwe/src/views/video_room/video_room_view.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:hmssdk_flutter/hmssdk_flutter.dart';
@@ -85,6 +89,7 @@ class VideoRoomController extends GetxController with WidgetsBindingObserver {
   Future<void> createRoom(String title, String topicId, String randomTopic) async {
     try {
       _isLoading(true);
+      LoadingOverlay.show();
       //TODO: add topic id and random topic
       final success = await _roomRepository.createRoom(title, topicId);
 
@@ -99,12 +104,16 @@ class VideoRoomController extends GetxController with WidgetsBindingObserver {
         if (_currentRoom.value != null) {
           await _startRoomServices(_currentRoom.value!);
         }
-
+        LoadingOverlay.hide();
+        Get.off(() => VideoRoomView(userName: Get.find<HomeController>().user?.name ?? ''));
         // Success message and navigation will be handled by repository
         // Get.snackbar('Room Created', 'Video room created successfully', snackPosition: SnackPosition.BOTTOM);
       } else {
         Get.snackbar('Error', 'Failed to create video room', snackPosition: SnackPosition.BOTTOM);
       }
+    } catch (e, stack) {
+      LoadingOverlay.hide();
+      CrashlyticsService.recordError(e, stack);
     } finally {
       _isLoading(false);
     }
@@ -195,21 +204,26 @@ class VideoRoomController extends GetxController with WidgetsBindingObserver {
         Get.snackbar('Warning', 'Room may not have been properly left on server', snackPosition: SnackPosition.BOTTOM);
         return;
       }
-
-      // 2. Leave the 100ms room
-      _roomService.leaveRoom().then((response) {
-        if (response.success) {
-          // 3. Clean up local state
           _currentRoom(null);
           _isInRoom(false);
           _reactions.clear();
           _remotePeers.clear();
           _isPipActive(false);
           _hasActiveNotification(false);
-        } else {
-          CrashlyticsService.log('Error : ${response.message}');
-        }
-      });
+      // 2. Leave the 100ms room
+      // _roomService.leaveRoom().then((response) {
+      //   if (response.success) {
+      //     // 3. Clean up local state
+      //     _currentRoom(null);
+      //     _isInRoom(false);
+      //     _reactions.clear();
+      //     _remotePeers.clear();
+      //     _isPipActive(false);
+      //     _hasActiveNotification(false);
+      //   } else {
+      //     CrashlyticsService.log('Error : ${response.message}');
+      //   }
+      // });
     } catch (e, s) {
       CrashlyticsService.recordError(e, s);
     } finally {
@@ -217,7 +231,7 @@ class VideoRoomController extends GetxController with WidgetsBindingObserver {
       _trackRoomEvent('left');
 
       // Get participants before stopping services
-      final participants = _roomStateMonitor.participants;
+      // final participants = _roomStateMonitor.participants;
       // final roomId = _currentRoom.value?.objectId ?? '';
       // final roomTitle = _currentRoom.value?.title ?? '';
 
@@ -225,11 +239,18 @@ class VideoRoomController extends GetxController with WidgetsBindingObserver {
       await _stopRoomServices();
 
       // Navigate to rating screen if there are participants to rate
-      if (participants.isNotEmpty && response != null) {
+      if (response != null) {
         final participants = List.from(
           response['interacted_participants'] as List,
         ).map((e) => InteractedParticipant.fromJson(e)).toList();
-        Get.off(() => UserRatingScreen(interectedParticipants: participants));
+        if (participants.isNotEmpty) {
+          Get.off(
+            () => UserRatingScreen(interectedParticipants: participants, roomParticipationId: response?['room_id']),
+          );
+        }else
+        {
+          Get.offAllNamed('/home');
+        }
       } else {
         // Go directly to home if no participants to rate
         Get.offAndToNamed(Constants.homeViewRoute);
@@ -478,5 +499,21 @@ class VideoRoomController extends GetxController with WidgetsBindingObserver {
     };
 
     _logAnalyticsEvent('video_room_$event', data);
+  }
+
+  void joinRoom(RoomInviteData inviteData, String userName, {bool isPreviousSession = false}) {
+    currentRoom = HMSVideoRoom(
+      roomGuestCode: inviteData.roomGuestCode,
+      title: inviteData.title,
+      objectId: inviteData.roomId,
+      hmsRoomId: '',
+    );
+    // call api
+    if (!isPreviousSession) {
+      _roomRepository.joinRoom(inviteData.roomId, inviteData.roomGuestCode);
+    }
+    Get.to(() => VideoRoomView(isGuest: true, userName: userName));
+
+    _isInRoom(true);
   }
 }

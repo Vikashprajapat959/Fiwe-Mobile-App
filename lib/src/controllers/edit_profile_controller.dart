@@ -1,4 +1,6 @@
 // Controller for managing profile data
+import 'dart:developer';
+
 import 'package:fiwe/src/controllers/auth_controller.dart';
 import 'package:fiwe/src/services/user_service.dart';
 import 'package:fiwe/src/utils/helper.dart';
@@ -39,7 +41,7 @@ class EditProfileController extends GetxController {
   }
 
   void _loadUserData() {
-    final user = authController.userProfile;
+    final user = authController.userProfile.value;
     if (user != null) {
       nameController.text = user.name ?? '';
       nickNameController.text = user.nickName ?? '';
@@ -60,14 +62,21 @@ class EditProfileController extends GetxController {
       lastDate: DateTime.now(),
     );
     if (picked != null) {
-      dobController.text =
-          '${picked.month.toString().padLeft(2, '0')}/${picked.day.toString().padLeft(2, '0')}/${picked.year}';
+      // dobController.text =
+      //     '${picked.month.toString().padLeft(2, '0')}/${picked.day.toString().padLeft(2, '0')}/${picked.year}';
+
+      // yyyy-mm-dd format
+      final formattedDate =
+          '${picked.year}-${picked.month.toString().padLeft(2, '0')}-${picked.day.toString().padLeft(2, '0')}';
+      if (formattedDate.isNotEmpty) {
+        dobController.text = formattedDate;
+      }
     }
   }
 
   void updateProfile() async {
     // check if no updates made
-    final user = authController.userProfile;
+    final user = authController.userProfile.value;
     if (user != null &&
         nameController.text == (user.name ?? '') &&
         nickNameController.text == (user.nickName ?? '') &&
@@ -78,6 +87,7 @@ class EditProfileController extends GetxController {
         profileImage.value == (user.profileBase64 ?? '') &&
         bioController.text == (user.bio ?? '')) {
       Get.snackbar('Info', 'No changes made to update');
+      log('No changes made');
       return;
     }
 
@@ -94,20 +104,29 @@ class EditProfileController extends GetxController {
         bioController.text,
         imageBase64: profileImage.value,
       );
+
       if (response.success) {
-        Get.snackbar('Success', 'Profile updated successfully', snackPosition: SnackPosition.BOTTOM);
         // Update local user profile
-        authController.userProfile = authController.userProfile?.copyWith(
-          name: nameController.text,
-          nickName: nickNameController.text,
-          email: emailController.text,
-          dateOfBirth: dobController.text,
-          pincode: pinController.text,
-          fiveWords: fiveWordsController.text,
-          bio: bioController.text,
-          profileBase64: profileImage.value,
-        );
-        // Close the edit profile view
+        final currentUser = authController.userProfile.value;
+        if (currentUser != null) {
+          final updatedUser = currentUser.copyWith(
+            name: nameController.text,
+            nickName: nickNameController.text,
+            email: emailController.text,
+            dateOfBirth: dobController.text,
+            pincode: pinController.text,
+            fiveWords: fiveWordsController.text,
+            bio: bioController.text,
+            profileBase64: profileImage.value,
+          );
+
+          // Set the new user profile to trigger reactive updates
+          authController.updateUserProfile(updatedUser);
+        }
+
+        // Close the edit profile view and go back to profile
+        Get.back();
+        Get.snackbar('Success', 'Profile updated successfully', snackPosition: SnackPosition.BOTTOM);
       } else {
         Get.snackbar('Error', response.message, snackPosition: SnackPosition.BOTTOM);
       }

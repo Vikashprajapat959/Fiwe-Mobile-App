@@ -20,7 +20,7 @@ class Endpoints {
 
   static String currentActiveRoom = '/rooms/current-active-room';
 
-  static String submitRatings = '/ratings/submit';
+  static String submitRatings = '/ratings/batch-submit/';
 
   static String activeRooms = '/rooms/active';
 
@@ -35,4 +35,15 @@ class Endpoints {
   static String communes = '/communes/';
 
   static var rejectCommune = '/reject/';
+
+  static String getTopicsFollowedByUser = '/user/followed-topics';
+
+  static String roomHistory = '/rooms/history/';
+
+  static String faceOfWeek = '/topics/face-of-week/';
+
+  static String currentAffairs = '/topics/current-affairs/';
+
+  static String communeRequestsReceived='/communes/requests';
+
 }

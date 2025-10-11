@@ -3,8 +3,10 @@ import 'package:fiwe/src/models/topic.model.dart';
 import 'package:fiwe/src/models/user_model.dart';
 import 'package:fiwe/src/utils/colors.dart';
 import 'package:fiwe/src/utils/helper.dart';
+import 'package:fiwe/src/widgets/app_back_button.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 // Main Screen
 class UserProfileScreen extends StatelessWidget {
@@ -58,19 +60,7 @@ class CustomAppBar extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       child: Row(
         children: [
-          IconButton(
-            onPressed: () => Navigator.pop(context),
-            icon: Container(
-              width: 36,
-              height: 36,
-              decoration: BoxDecoration(
-                color: AppColors.white,
-                borderRadius: BorderRadius.circular(12),
-                boxShadow: const [BoxShadow(color: AppColors.shadow, blurRadius: 8, offset: Offset(0, 2))],
-              ),
-              child: const Icon(Icons.chevron_left, color: AppColors.textPrimary, size: 20),
-            ),
-          ),
+          const AppBackButton(theme: BackButtonTheme.dark),
           const Expanded(
             child: Text('User Profile', textAlign: TextAlign.center, style: AppTextStyles.title),
           ),
@@ -115,7 +105,7 @@ class ProfileHeader extends StatelessWidget {
           children: [
             Text('Rating', style: AppTextStyles.ratingLabel),
             SizedBox(width: 8),
-            Icon(Icons.star, color: AppColors.tertiary, size: 16),
+            Icon(LucideIcons.star, color: AppColors.tertiary, size: 16),
             SizedBox(width: 4),
             Text('4.5 (10)', style: AppTextStyles.ratingValue),
           ],
@@ -141,7 +131,7 @@ class BadgesSection extends StatelessWidget {
           children: [
             BadgeIcon(icon: Icons.star_border, color: AppColors.interestInactive),
             SizedBox(width: 12),
-            BadgeIcon(icon: Icons.star, color: AppColors.tertiary),
+            BadgeIcon(icon: LucideIcons.star, color: AppColors.tertiary),
             SizedBox(width: 12),
             BadgeIcon(icon: Icons.star_half, color: AppColors.quaternary),
           ],

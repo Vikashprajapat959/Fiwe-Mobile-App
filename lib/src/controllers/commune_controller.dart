@@ -1,5 +1,6 @@
 import 'dart:developer';
 
+import 'package:fiwe/src/models/standard_api_response.dart';
 import 'package:fiwe/src/repositories/commune_repository.dart';
 import 'package:fiwe/src/utils/loading_overlay.dart';
 import 'package:get/get.dart';
@@ -28,22 +29,27 @@ class CommuneController extends GetxController {
     super.onInit();
   }
 
-  bool isRequestSent(int userId) {
+  bool isRequestSent(String userId) {
     log('isRequestSent $userId');
     log(communeRequestSent.length.toString());
     return communeRequestSent.any((request) => request.toUser.id == userId);
   }
 
-  Future<void> sendCommuneRequest(int userId) async {
+  Future<void> sendCommuneRequest(String userId) async {
     LoadingOverlay.show();
-    final result = await communeRepository.sendRequest(userId.toString());
-    if (result.data != null) {
-      communeRequestSent.add(CommuneRequestSent.fromJson(result.data!));
+    try {
+      final result = await communeRepository.sendRequest(userId.toString());
+      if (result.data != null) {
+        communeRequestSent.add(CommuneRequestSent.fromJson(result.data!['commune_request']));
+      }
+    } on Exception catch (e) {
+      // TODO
+    } finally {
+      LoadingOverlay.hide();
     }
-    LoadingOverlay.hide();
   }
 
-  Future<void> cancelRequest(int userId) async {
+  Future<void> cancelRequest(String userId) async {
     LoadingOverlay.show();
     final requestId = communeRequestSent.firstWhere((element) => element.toUser.id == userId).id;
     final res = await communeRepository.cancelCommuneRequest(requestId);
@@ -53,6 +59,27 @@ class CommuneController extends GetxController {
       update();
     }
     LoadingOverlay.hide();
+  }
+
+  Future<ApiResponse<List<CommuneSummary>>> getAllCommunes() async {
+    try {
+      final result = await communeRepository.getAllCommunes();
+      return result;
+    } catch (e) {
+      log(e.toString());
+      rethrow;
+    }
+  }
+
+  // get al commune requests
+  Future<ApiResponse<List<CommuneSummary>>> getAllRequests() async {
+    try {
+      final result = await communeRepository.getAllCommuneRequests();
+      return result;
+    } catch (e) {
+      log(e.toString());
+      rethrow;
+    }
   }
 }
 
@@ -85,7 +112,7 @@ class CommuneUser {
   factory CommuneUser.fromJson(Map<String, dynamic> json) {
     return CommuneUser(json['id'], json['name'], json['email'], json['profile_image_base64']);
   }
-  int id;
+  String id;
   String name;
   String email;
   String? profileImageBase64;

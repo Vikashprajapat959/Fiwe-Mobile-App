@@ -240,6 +240,8 @@ class Strings {
 
   static const String createRoom = 'Create Room';
 
+  static String unableToAuthenticateUser='Unable to authenticate user. Please try again.';
+
   // Helper method to capitalize a string
   static String capitalize(String value) {
     if (value.isEmpty) return value;

@@ -1,5 +1,7 @@
 // ignore_for_file: library_private_types_in_public_api
 
+import 'dart:convert';
+
 import 'package:firebase_messaging/firebase_messaging.dart';
 
 import 'fcm_action.dart';
@@ -10,7 +12,56 @@ enum NotificationType {
   systemAlert,
   promotional,
   reminder,
-  roomInvite, // Added for room invite notifications
+  roomInvite,
+  communeAccepted,
+  communeRequest,
+  // Added for room invite notifications
+}
+
+// mapper for NotificatinType
+extension NotificationTypeMapper on NotificationType {
+  String get value {
+    switch (this) {
+      case NotificationType.userMessage:
+        return 'user_message';
+      case NotificationType.systemAlert:
+        return 'system_alert';
+      case NotificationType.promotional:
+        return 'promotional';
+      case NotificationType.reminder:
+        return 'reminder';
+      case NotificationType.roomInvite:
+        return 'room_invite';
+      case NotificationType.communeAccepted:
+        return 'commune_accepted';
+      case NotificationType.communeRequest:
+        return 'commune_request';
+      default:
+        throw ArgumentError('Invalid notification type');
+    }
+  }
+
+  NotificationType parse(String value) {
+    switch (value.toLowerCase()) {
+      case 'user_message':
+        return NotificationType.userMessage;
+      case 'system_alert':
+        return NotificationType.systemAlert;
+      case 'promotional':
+        return NotificationType.promotional;
+      case 'reminder':
+        return NotificationType.reminder;
+      case 'room_invite':
+        return NotificationType.roomInvite;
+      case 'commune_accepted':
+        return NotificationType.communeAccepted;
+      case 'commune_request':
+        return NotificationType.communeRequest;
+      // Added for room invite notifications
+      default:
+        throw ArgumentError('Invalid notification type: $value');
+    }
+  }
 }
 
 /// Enumeration for notification priorities
@@ -283,9 +334,9 @@ class RoomInviteData {
     required this.title,
     required this.inviteeName,
     required this.deepLink,
-    required this.expiry,
-    required this.topicDetails,
-    required this.userDetails,
+    this.expiry,
+    this.topicDetails,
+    this.userDetails,
   });
 
   factory RoomInviteData.fromJson(Map<String, dynamic> json) {
@@ -297,8 +348,12 @@ class RoomInviteData {
       inviteeName: json['invitee_name'] ?? '',
       deepLink: json['deep_link'] ?? '',
       expiry: DateTime.parse(json['expiry'] ?? DateTime.now().toIso8601String()),
-      topicDetails: _TopicData.fromJson(Map.from(json['topic_details'])),
-      userDetails: _UserData.fromJson(Map.from(json['user_details'])),
+      topicDetails: json['topic_details'] != null
+          ? _TopicData.fromJson(jsonDecode(json['topic_details'].toString()))
+          : null,
+      userDetails: json['user_details'] != null
+          ? _UserData.fromJson(jsonDecode(json['user_details'].toString()))
+          : null,
     );
   }
   final String roomId;
@@ -307,9 +362,9 @@ class RoomInviteData {
   final String title;
   final String inviteeName;
   final String deepLink;
-  final DateTime expiry;
-  final _TopicData topicDetails;
-  final _UserData userDetails;
+  final DateTime? expiry;
+  final _TopicData? topicDetails;
+  final _UserData? userDetails;
 }
 
 class _UserData {

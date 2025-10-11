@@ -101,7 +101,7 @@ class LoginController extends GetxController {
           );
         }
         if (response.data!.containsKey('user')) {
-          Get.find<AuthController>().userProfile = User.fromJson(response.data?['user'] as Map<String, dynamic>);
+          Get.find<AuthController>().userProfile.value = User.fromJson(response.data?['user'] as Map<String, dynamic>);
         }
 
         Get.offAllNamed(Constants.homeViewRoute);

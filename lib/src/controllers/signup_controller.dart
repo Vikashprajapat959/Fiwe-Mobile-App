@@ -113,10 +113,10 @@ class SignUpController extends GetxController {
       return;
     }
 
-    if (!_isPhoneVerified.value) {
-      Get.snackbar(Strings.phoneVerificationRequired, Strings.pleaseVerifyPhone);
-      return;
-    }
+    // if (!_isPhoneVerified.value) {
+    //   Get.snackbar(Strings.phoneVerificationRequired, Strings.pleaseVerifyPhone);
+    //   return;
+    // }
 
     if (!_acceptTerms.value) {
       Get.snackbar(Strings.termsRequiredTitle, Strings.termsRequired);
@@ -495,7 +495,8 @@ class SignUpController extends GetxController {
           validatePhone(phone) == null &&
           phone != otpSentTo) {
         // Automatically send OTP when 10 valid digits are entered
-        sendOtp();
+        //TODO:
+        // sendOtp();
       }
     });
   }

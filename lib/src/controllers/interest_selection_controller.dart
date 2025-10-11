@@ -1,8 +1,8 @@
 import 'package:fiwe/src/models/topic.model.dart';
 import 'package:fiwe/src/services/topic_service.dart';
 import 'package:fiwe/src/services/user_service.dart';
+import 'package:fiwe/src/utils/constants.dart';
 import 'package:fiwe/src/utils/loading_overlay.dart';
-import 'package:fiwe/src/views/home/home_view.dart';
 import 'package:flutter/widgets.dart';
 import 'package:get/get.dart';
 
@@ -105,12 +105,24 @@ class InterestSelectionController extends GetxController {
   }
 
   void updateUserInterests() async {
-    final response = await executeWithLoading(_userService.followTopics(selectedTopicIds(), primaryTopicSelection()));
+    try {
+      final response = await executeWithLoading(_userService.followTopics(selectedTopicIds(), primaryTopicSelection()));
 
-    if (response.success) {
-      Get.offAll(() => const HomeView());
-    } else {
-      Get.snackbar('Error', response.message);
+      if (response.success) {
+        // Ensure the loading overlay is properly hidden before navigation
+        hideLoading();
+
+        // Add a small delay to ensure proper cleanup
+        await Future.delayed(const Duration(milliseconds: 100));
+
+        Get.offAllNamed(Constants.homeViewRoute);
+      } else {
+        Get.snackbar('Error', response.message);
+      }
+    } on Exception catch (e) {
+      // Make sure to hide loading overlay in case of error
+      hideLoading();
+      Get.snackbar('Error', 'Failed to update interests: ${e.toString()}');
     }
   }
 }

@@ -1,32 +1,18 @@
+import 'package:fiwe/src/controllers/commune_controller.dart';
+import 'package:fiwe/src/repositories/commune_repository.dart' show CommuneSummary;
+import 'package:fiwe/src/utils/assets.dart';
 import 'package:fiwe/src/utils/colors.dart';
 import 'package:fiwe/src/utils/constants.dart';
+import 'package:fiwe/src/utils/helper.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
-// Color Theme
-
-// Community Member Model
-class CommunityMember {
-  CommunityMember({
-    required this.name,
-    required this.category,
-    required this.profileImage,
-    required this.rating,
-    this.hasVerifiedBadge = true,
-  });
-  final String name;
-  final String category;
-  final String profileImage;
-  final double rating;
-  final bool hasVerifiedBadge;
-}
-
 // Reusable Community Member Tile
-class CommunityMemberTile extends StatelessWidget {
-  const CommunityMemberTile({super.key, required this.member, this.onTap});
-  final CommunityMember member;
+class CommuneMemberTile extends StatelessWidget {
+  const CommuneMemberTile({super.key, required this.member, this.onTap});
+  final CommuneSummary member;
   final VoidCallback? onTap;
 
   @override
@@ -46,33 +32,23 @@ class CommunityMemberTile extends StatelessWidget {
                   height: 56,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    image: DecorationImage(image: AssetImage(member.profileImage), fit: BoxFit.cover),
+                    image: DecorationImage(
+                      image: MemoryImage(Helper.base64ToBytes(member.imageBytes)),
+                      fit: BoxFit.cover,
+                    ),
                     border: Border.all(color: AppColors.divider, width: 0.5),
                   ),
                   // Placeholder when image is not available
-                  child: member.profileImage.isEmpty
+                  child: member.imageBytes == null
                       ? Container(
                           decoration: const BoxDecoration(color: AppColors.divider, shape: BoxShape.circle),
-                          child: const Icon(Icons.person, color: AppColors.textSecondary, size: 28),
+                          child: const Icon(LucideIcons.user, color: AppColors.textSecondary, size: 28),
                         )
                       : null,
                 ),
+
                 // Verified Badge
-                if (member.hasVerifiedBadge)
-                  Positioned(
-                    right: 0,
-                    top: 0,
-                    child: Container(
-                      width: 20,
-                      height: 20,
-                      decoration: BoxDecoration(
-                        color: AppColors.badgeOrange,
-                        shape: BoxShape.circle,
-                        border: Border.all(color: Colors.white, width: 2),
-                      ),
-                      child: const Icon(Icons.star, size: 12, color: Colors.white),
-                    ),
-                  ),
+                Positioned(right: 0, top: 0, child: Image.asset(Assets.icons.starBadge, width: 18)),
               ],
             ),
             const SizedBox(width: 16),
@@ -83,11 +59,14 @@ class CommunityMemberTile extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    member.name,
+                    member.name ?? '',
                     style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500, color: AppColors.textPrimary),
                   ),
                   const SizedBox(height: 4),
-                  Text(member.category, style: const TextStyle(fontSize: 14, color: AppColors.primary)),
+                  Text(
+                    member.primaryInterest?.title ?? '',
+                    style: const TextStyle(fontSize: 14, color: AppColors.primary),
+                  ),
                 ],
               ),
             ),
@@ -95,10 +74,10 @@ class CommunityMemberTile extends StatelessWidget {
             // Rating
             Row(
               children: [
-                const Icon(Icons.star, size: 18, color: AppColors.starColor),
+                const Icon(LucideIcons.star, size: 18, color: AppColors.starColor),
                 const SizedBox(width: 4),
                 Text(
-                  member.rating.toString(),
+                  member.avgRating.toString(),
                   style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: AppColors.textPrimary),
                 ),
               ],
@@ -116,22 +95,6 @@ class MyCommunesScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Sample data - Replace with actual data from your backend
-    final List<CommunityMember> members = [
-      CommunityMember(
-        name: 'Albert Flores',
-        category: 'Fashion/lifestyle',
-        profileImage: '', // Add actual image path
-        rating: 4.5,
-      ),
-      CommunityMember(name: 'Marvin McKinney', category: 'Fashion/lifestyle', profileImage: '', rating: 4.5),
-      CommunityMember(name: 'Brooklyn Simmons', category: 'Fashion/lifestyle', profileImage: '', rating: 4.5),
-      CommunityMember(name: 'Bessie Cooper', category: 'Fashion/lifestyle', profileImage: '', rating: 4.5),
-      CommunityMember(name: 'Kathryn Murphy', category: 'Fashion/lifestyle', profileImage: '', rating: 4.5),
-      CommunityMember(name: 'Leslie Alexander', category: 'Fashion/lifestyle', profileImage: '', rating: 4.5),
-      CommunityMember(name: 'Devon Lane', category: 'Fashion/lifestyle', profileImage: '', rating: 4.5),
-      CommunityMember(name: 'Cameron Williamson', category: 'Fashion/lifestyle', profileImage: '', rating: 4.5),
-    ];
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
@@ -148,20 +111,33 @@ class MyCommunesScreen extends StatelessWidget {
         ],
       ),
       body: SafeArea(
-        child: ListView.separated(
-          padding: const EdgeInsets.only(top: 8, bottom: 80),
-          itemCount: members.length,
-          separatorBuilder: (context, index) => const Padding(
-            padding: EdgeInsets.symmetric(horizontal: 20),
-            child: Divider(height: 1, color: AppColors.divider),
-          ),
-          itemBuilder: (context, index) {
-            return CommunityMemberTile(
-              member: members[index],
-              onTap: () {
-                // Handle member tap
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('${members[index].name} clicked'), duration: const Duration(seconds: 1)),
+        child: FutureBuilder(
+          future: Get.find<CommuneController>().getAllCommunes(),
+          builder: (context, asyncSnapshot) {
+            if (asyncSnapshot.connectionState == ConnectionState.waiting || !asyncSnapshot.hasData) {
+              return const Center(child: CircularProgressIndicator());
+            }
+            if (asyncSnapshot.error != null) {
+              return Center(child: Text(asyncSnapshot.error.toString()));
+            }
+            if (asyncSnapshot.data!.data!.isEmpty) {
+              return const Center(child: Text('No commune found'));
+            }
+            //if error
+            final members = asyncSnapshot.data!.data!;
+            return ListView.separated(
+              padding: const EdgeInsets.only(top: 8, bottom: 80),
+              itemCount: members.length,
+              separatorBuilder: (context, index) => const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 20),
+                child: Divider(height: 1, color: AppColors.divider),
+              ),
+              itemBuilder: (context, index) {
+                return CommuneMemberTile(
+                  member: members[index],
+                  onTap: () {
+                    // Get.to(()=>UserProfileScreen(user: ))
+                  },
                 );
               },
             );
