@@ -45,10 +45,20 @@ android {
     }
     signingConfigs {
         release {
-            keyAlias keystoreProperties['keyAlias']
-            keyPassword keystoreProperties['keyPassword']
-            storeFile file(keystoreProperties['storeFile'])
-            storePassword keystoreProperties['storePassword']
+            // Only set signing config values if they are present in key.properties
+            if (keystoreProperties['keyAlias']) {
+                keyAlias keystoreProperties['keyAlias']
+            }
+            if (keystoreProperties['keyPassword']) {
+                keyPassword keystoreProperties['keyPassword']
+            }
+            def storeFilePath = keystoreProperties['storeFile']
+            if (storeFilePath != null && storeFilePath.toString().trim()) {
+                storeFile file(storeFilePath)
+            }
+            if (keystoreProperties['storePassword']) {
+                storePassword keystoreProperties['storePassword']
+            }
         }
     }
 
