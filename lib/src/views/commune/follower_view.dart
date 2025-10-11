@@ -5,8 +5,29 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 
-class FollowerScreen extends StatelessWidget {
+class FollowerScreen extends StatefulWidget {
   const FollowerScreen({super.key});
+
+  @override
+  State<FollowerScreen> createState() => _FollowerScreenState();
+}
+
+class _FollowerScreenState extends State<FollowerScreen> {
+  final CommuneController _controller = Get.find<CommuneController>();
+  late Future _future;
+
+  @override
+  void initState() {
+    super.initState();
+    _future = _controller.getAllRequests();
+  }
+
+  Future<void> _refresh() async {
+    final result = await _controller.getAllRequests();
+    setState(() {
+      _future = Future.value(result);
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -21,34 +42,50 @@ class FollowerScreen extends StatelessWidget {
       ),
       body: SafeArea(
         child: FutureBuilder(
-          future: Get.find<CommuneController>().getAllRequests(),
+          future: _future,
           builder: (context, asyncSnapshot) {
             if (asyncSnapshot.connectionState == ConnectionState.waiting || !asyncSnapshot.hasData) {
               return const Center(child: CircularProgressIndicator());
             }
             if (asyncSnapshot.error != null) {
-              return Center(child: Text(asyncSnapshot.error.toString()));
+              return RefreshIndicator(
+                onRefresh: _refresh,
+                child: ListView(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  children: [Center(child: Text(asyncSnapshot.error.toString()))],
+                ),
+              );
             }
-            if (asyncSnapshot.data!.data!.isEmpty) {
-              return const Center(child: Text('No Followers found'));
-            }
-            //if error
             final members = asyncSnapshot.data!.data!;
-            return ListView.separated(
-              padding: const EdgeInsets.only(top: 8, bottom: 80),
-              itemCount: members.length,
-              separatorBuilder: (context, index) => const Padding(
-                padding: EdgeInsets.symmetric(horizontal: 20),
-                child: Divider(height: 1, color: AppColors.divider),
+            if (members.isEmpty) {
+              return RefreshIndicator(
+                onRefresh: _refresh,
+                child: ListView(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  children: const [SizedBox(height: 200, child: Center(child: Text('No Followers found')))],
+                ),
+              );
+            }
+
+            return RefreshIndicator(
+              onRefresh: _refresh,
+              child: ListView.separated(
+                physics: const AlwaysScrollableScrollPhysics(),
+                padding: const EdgeInsets.only(top: 8, bottom: 80),
+                itemCount: members.length,
+                separatorBuilder: (context, index) => const Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 20),
+                  child: Divider(height: 1, color: AppColors.divider),
+                ),
+                itemBuilder: (context, index) {
+                  return CommuneMemberTile(
+                    member: members[index],
+                    onTap: () {
+                      // Get.to(()=>UserProfileScreen(user: ))
+                    },
+                  );
+                },
               ),
-              itemBuilder: (context, index) {
-                return CommuneMemberTile(
-                  member: members[index],
-                  onTap: () {
-                    // Get.to(()=>UserProfileScreen(user: ))
-                  },
-                );
-              },
             );
           },
         ),
