@@ -1,5 +1,3 @@
-import 'package:fiwe/src/models/fcm_notification_data.dart';
-
 class UserNotification {
   UserNotification({
     required this.id,
@@ -13,29 +11,76 @@ class UserNotification {
     this.expiresAt,
     this.roomId,
     this.actionData,
-    this.roomInviteData,
     this.campaignName,
+    this.creatorName,
+    this.profileImageUrl,
+    this.profileBase64,
   });
 
   factory UserNotification.fromJson(Map<String, dynamic> json) {
+    DateTime? parseDate(dynamic value) {
+      if (value is String) {
+        try {
+          return DateTime.parse(value);
+        } catch (_) {
+          return null;
+        }
+      }
+      return null;
+    }
+
+    final Map<String, dynamic>? actionData = json['action_data'] != null
+        ? Map<String, dynamic>.from(json['action_data'])
+        : null;
+
+    final String title = json['title'] as String;
+
+    String? extractedName;
+    if (title.contains(':')) {
+      extractedName = title.split(':').last.trim();
+    } else {
+      extractedName = title;
+    }
+
     return UserNotification(
       id: json['id'] as String,
       notificationType: json['notification_type'] as String,
       status: json['status'] as String,
-      title: json['title'] as String,
+      title: title,
       body: json['body'] as String,
-      sentAt: DateTime.parse(json['sent_at'] as String),
-      deliveredAt: json['delivered_at'] != null ? DateTime.parse(json['delivered_at'] as String) : null,
-      readAt: json['read_at'] != null ? DateTime.parse(json['read_at'] as String) : null,
-      expiresAt: json['expires_at'] != null ? DateTime.parse(json['expires_at'] as String) : null,
-      roomId: json['room_id'],
-      actionData: json['action_data'] != null ? Map<String, dynamic>.from(json['action_data']) : null,
-      campaignName: json['campaign_name'],
-      roomInviteData: json['action_data'] != null && json['notification_type'] == 'room_invite'
-          ? RoomInviteData.fromJson(Map<String, dynamic>.from(json['action_data']))
-          : null,
+      sentAt: parseDate(json['sent_at'])!,
+      deliveredAt: parseDate(json['delivered_at']),
+      readAt: parseDate(json['read_at']),
+      expiresAt: parseDate(json['expires_at']),
+      roomId: json['room_id'] as String?,
+      actionData: actionData,
+      campaignName: json['campaign_name'] as String?,
+      creatorName: json['creator_name'] as String? ?? extractedName,
+      profileImageUrl: json['profile_image_url'] as String?,
+      profileBase64: json['profile_image_base64'] as String?,
     );
   }
+
+  UserNotification copyWith({String? profileImageUrl, String? profileBase64}) {
+    return UserNotification(
+      id: id,
+      notificationType: notificationType,
+      status: status,
+      title: title,
+      body: body,
+      sentAt: sentAt,
+      deliveredAt: deliveredAt,
+      readAt: readAt,
+      expiresAt: expiresAt,
+      roomId: roomId,
+      actionData: actionData,
+      campaignName: campaignName,
+      creatorName: creatorName,
+      profileImageUrl: profileImageUrl ?? this.profileImageUrl,
+      profileBase64: profileBase64 ?? this.profileBase64,
+    );
+  }
+
   final String id;
   final String notificationType;
   final String status;
@@ -47,8 +92,10 @@ class UserNotification {
   final DateTime? expiresAt;
   final String? roomId;
   final Map<String, dynamic>? actionData;
-  final RoomInviteData? roomInviteData;
   final String? campaignName;
+  final String? creatorName;
+  final String? profileImageUrl;
+  final String? profileBase64;
 
   Map<String, dynamic> toJson() {
     return {
@@ -64,6 +111,9 @@ class UserNotification {
       'room_id': roomId,
       'action_data': actionData,
       'campaign_name': campaignName,
+      'creator_name': creatorName,
+      'profile_image_url': profileImageUrl,
+      'profile_image_base64': profileBase64,
     };
   }
 }
@@ -82,12 +132,13 @@ class UserNotificationPage {
       notifications: (json['notifications'] as List<dynamic>)
           .map((e) => UserNotification.fromJson(e as Map<String, dynamic>))
           .toList(),
-      totalCount: json['total_count'],
-      currentPage: json['current_page'],
-      totalPages: json['total_pages'],
-      pageSize: json['page_size'],
+      totalCount: json['total_count'] as int,
+      currentPage: json['current_page'] as int,
+      totalPages: json['total_pages'] as int,
+      pageSize: json['page_size'] as int,
     );
   }
+
   final List<UserNotification> notifications;
   final int totalCount;
   final int currentPage;

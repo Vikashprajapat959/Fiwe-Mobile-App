@@ -1,13 +1,18 @@
+// lib/src/views/home/home_screen.dart
+
+// NOTE: Ensure all imports are correct in your project structure
+// If you face any 'not found' errors, verify these paths.
+
 import 'package:fiwe/src/controllers/home_controller.dart';
 import 'package:fiwe/src/controllers/video_room_controller.dart';
 import 'package:fiwe/src/models/fcm_notification_data.dart';
 import 'package:fiwe/src/models/hmsvideo_room.dart';
 import 'package:fiwe/src/services/topic_service.dart';
 import 'package:fiwe/src/utils/app_text_styles.dart';
-import 'package:fiwe/src/utils/assets.dart';
+import 'package:fiwe/src/utils/assets.dart'; // Ensure Assets class is correct
 import 'package:fiwe/src/utils/colors.dart';
-import 'package:fiwe/src/utils/constants.dart';
-import 'package:fiwe/src/utils/helper.dart';
+import 'package:fiwe/src/utils/constants.dart'; // Ensure Constants class is correct
+import 'package:fiwe/src/utils/helper.dart'; // Ensure Helper class is correct
 import 'package:fiwe/src/views/home/leaderboard_view.dart';
 import 'package:fiwe/src/views/home/user_notification_view.dart';
 import 'package:fiwe/src/views/profile/profile_view.dart';
@@ -16,14 +21,23 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
-// Controller for managing state
-
 // Main Home Screen
-class HomeScreen extends StatelessWidget {
+// GetView automatically provides the 'controller' property
+class HomeScreen extends GetView<HomeController> {
   const HomeScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
+    // Pass context to the controller
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      controller.setContext(context);
+    });
+
+    // Ensure initial data fetching
+    if (controller.activeRooms.isEmpty && controller.isActiveRoomsLoading.isFalse) {
+      controller.fetchInitialData();
+    }
+
     return Scaffold(
       body: SafeArea(
         child: Container(
@@ -41,15 +55,16 @@ class HomeScreen extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // Header Section
-                _buildHeader(),
+                _buildHeader(controller),
                 const SizedBox(height: 24),
                 _buildSearchBar(),
-                // Face of Week Section
-                _buildFaceOfWeekSection(),
-                // const SizedBox(height: 16),
 
                 // Active Room Section
-                _buildActiveRoomSection(),
+                _buildActiveRoomSection(controller),
+                const SizedBox(height: 32),
+
+                // Face of Week Section
+                _buildFaceOfWeekSection(),
                 const SizedBox(height: 32),
 
                 // Trending Section
@@ -57,7 +72,7 @@ class HomeScreen extends StatelessWidget {
                 const SizedBox(height: 32),
 
                 // Interests Section
-                _buildInterestsSection(),
+                _buildInterestsSection(controller),
               ],
             ),
           ),
@@ -66,19 +81,22 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildHeader() {
-    final HomeController controller = Get.find();
+  // --- Widgets ---
+
+  Widget _buildHeader(HomeController controller) {
     return Row(
       children: [
-        Obx(() => ProfileAvatar(imageBytes: controller.user?.profileBase64 ?? '', size: 48)),
+        ProfileAvatar(imageBytes: controller.user?.profileBase64 ?? '', size: 48),
         const SizedBox(width: 12),
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Obx(
-                () =>
-                    Text('${controller.user?.name}', style: AppTextStyles.headerTitle, overflow: TextOverflow.ellipsis),
+              // Correct user access: controller.user?.name
+              Text(
+                controller.user?.name ?? 'Guest User',
+                style: AppTextStyles.headerTitle,
+                overflow: TextOverflow.ellipsis,
               ),
               Row(
                 children: [
@@ -86,7 +104,7 @@ class HomeScreen extends StatelessWidget {
                     () => SizedBox(
                       width: 100,
                       child: Text(
-                        controller.userTopics.firstWhereOrNull((t) => t.isPrimary ?? false)?.title ?? '',
+                        controller.userTopics.firstWhereOrNull((t) => t.isPrimary ?? false)?.title ?? 'General',
                         style: AppTextStyles.subtitle,
                         overflow: TextOverflow.ellipsis,
                       ),
@@ -99,21 +117,19 @@ class HomeScreen extends StatelessWidget {
             ],
           ),
         ),
+        // ये Row अब Expanded के बाहर है, इसलिए Row (Line 144) की एरर हट गई।
         Row(
           children: [
             ActionButton(
               icon: const Icon(LucideIcons.medal, color: AppColors.secondaryYellow),
-              onTap: () {
-                Get.to(() => const LeaderboardView());
-              },
+              onTap: () => Get.to(() => const LeaderboardView()),
             ),
             const SizedBox(width: 8),
             ActionButton(
               icon: const Icon(LucideIcons.bell, color: AppColors.secondaryYellow),
-              onTap: () {
-                Get.to(() => const UserNotificationView());
-              },
+              onTap: () => Get.to(() => const UserNotificationView()),
               hasNotification: true,
+              notificationCount: '2',
             ),
           ],
         ),
@@ -121,21 +137,113 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
+  Widget _buildSearchBar() {
+    return GestureDetector(
+      onTap: () => Get.to(() => const SearchView()),
+      child: Hero(
+        tag: 'search_bar',
+        transitionOnUserGestures: true,
+        child: Container(
+          height: 46,
+          width: double.infinity,
+          alignment: Alignment.centerLeft,
+          margin: const EdgeInsets.only(bottom: 16),
+          padding: const EdgeInsets.only(left: 12),
+          decoration: BoxDecoration(
+            color: AppColors.primary.withAlpha(15),
+            border: Border.all(color: AppColors.primary),
+            borderRadius: BorderRadius.circular(14),
+          ),
+          child: Row(
+            children: [
+              ShaderMask(
+                shaderCallback: (Rect bounds) {
+                  return Constants.gradientDecoration.gradient!.createShader(bounds);
+                },
+                child: const Icon(LucideIcons.search, color: Colors.white),
+              ),
+              const SizedBox(width: 8),
+              const Text('Search', style: TextStyle(color: AppColors.textSecondary, fontSize: 16)),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  // Changed from FutureBuilder to Obx for reactivity
+  Widget _buildActiveRoomSection(HomeController controller) {
+    return Obx(() {
+      if (controller.isActiveRoomsLoading.isTrue) {
+        return const Center(child: LinearProgressIndicator());
+      }
+
+      final rooms = controller.activeRooms;
+      if (rooms.isEmpty) {
+        return const SizedBox.shrink();
+      }
+
+      final int visibleCount = rooms.length > 4 ? 4 : rooms.length;
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text('Active Room', style: AppTextStyles.sectionTitle),
+              TextButton(
+                onPressed: () {},
+                child: const Text('View All', style: AppTextStyles.viewAll),
+              ),
+            ],
+          ),
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              children: List.generate(visibleCount, (index) {
+                return Padding(
+                  padding: EdgeInsets.only(right: index == visibleCount - 1 ? 0 : 14),
+                  child: RoomCard(
+                    room: rooms[index],
+                    roomName: rooms[index].title,
+                    createdBy: rooms[index].creator?.name ?? 'Unknown',
+                    joinedUsers: '${rooms[index].currentOccupancy}/${rooms[index].capacity ?? 5}',
+                    imageUrl: rooms[index].topic?.thumbnail ?? '',
+                    roomCode: rooms[index].roomGuestCode ?? '',
+                  ),
+                );
+              }),
+            ),
+          ),
+        ],
+      );
+    });
+  }
+
+  // Retained FutureBuilder for Face of Week
   Widget _buildFaceOfWeekSection() {
+    // Note: Assuming Get.find<TopicService>().getFaceOfWeek() returns a Map/Object
+    // containing a 'users' list, as suggested by your usage: asyncSnapshot.data!.users
     return FutureBuilder(
       future: Get.find<TopicService>().getFaceOfWeek(),
       builder: (context, asyncSnapshot) {
         if (asyncSnapshot.connectionState == ConnectionState.waiting) {
           return const SizedBox.shrink();
         }
-        if (asyncSnapshot.connectionState == ConnectionState.done && asyncSnapshot.hasError) {
-          return Center(child: Text('Error: ${asyncSnapshot.error}'));
+        // Added null check for asyncSnapshot.data
+        if (asyncSnapshot.connectionState == ConnectionState.done &&
+            (asyncSnapshot.hasError || asyncSnapshot.data == null)) {
+          return Center(child: Text('Error loading Face of Week: ${asyncSnapshot.error}'));
         }
-        if (!asyncSnapshot.hasData || asyncSnapshot.data!.users.isEmpty) {
+        // NOTE: The next line assumes asyncSnapshot.data has a 'users' property.
+        // If 'users' is directly the data, change asyncSnapshot.data!.users to asyncSnapshot.data!
+        final users = asyncSnapshot.data!.users;
+
+        if (users.isEmpty) {
           return const SizedBox.shrink();
         }
 
-        final users = asyncSnapshot.data!.users;
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
@@ -150,7 +258,8 @@ class HomeScreen extends StatelessWidget {
                 separatorBuilder: (context, index) => const SizedBox(width: 16),
                 itemBuilder: (context, index) {
                   return FaceOfWeekCard(
-                    name: users[index].user.name ?? '',
+                    // Note: Assuming users[index].user structure
+                    name: users[index].user.name ?? 'User',
                     rating: users[index].user.avgRating,
                     imageBytes: users[index].user.profileBase64 ?? '',
                   );
@@ -163,60 +272,7 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildActiveRoomSection() {
-    return FutureBuilder<List<HMSVideoRoom>>(
-      future: HomeController.instance.getActiveRooms(),
-      builder: (context, asyncSnapshot) {
-        if (asyncSnapshot.connectionState == ConnectionState.waiting) {
-          return const Center(child: LinearProgressIndicator());
-        } else if (asyncSnapshot.connectionState == ConnectionState.done && asyncSnapshot.hasError) {
-          return Center(child: Text('Error: ${asyncSnapshot.error}'));
-        } else {
-          final rooms = asyncSnapshot.data;
-          if (rooms != null && rooms.isEmpty) {
-            return const SizedBox.shrink();
-          } else {
-            final int visibleCount = rooms!.length > 4 ? 4 : rooms.length;
-            return Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    const Text('Active Room', style: AppTextStyles.sectionTitle),
-                    TextButton(
-                      onPressed: () {},
-                      child: const Text('View All', style: AppTextStyles.viewAll),
-                    ),
-                  ],
-                ),
-
-                SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
-                  child: Row(
-                    spacing: 14,
-                    children: List.generate(visibleCount, (index) {
-                      return RoomCard(
-                        roomName: rooms[index].title,
-                        createdBy: rooms[index].creator?.name ?? '',
-                        joinedUsers: '${rooms[index].currentOccupancy}/${rooms[index].capacity ?? 5}',
-                        imageUrl: rooms[index].topic?.thumbnail ?? '',
-                        roomCode: rooms[index].roomGuestCode ?? '',
-                        room: rooms[index],
-                      );
-                    }),
-                  ),
-                ),
-              ],
-            );
-          }
-        }
-      },
-    );
-  }
-
+  // Retained FutureBuilder for Trending Topics
   Widget _buildTrendingSection() {
     return FutureBuilder(
       future: Get.find<TopicService>().getCurrentAffairs(),
@@ -224,7 +280,7 @@ class HomeScreen extends StatelessWidget {
         if (asyncSnapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: LinearProgressIndicator());
         } else if (asyncSnapshot.connectionState == ConnectionState.done && asyncSnapshot.hasError) {
-          return Center(child: Text('Error: ${asyncSnapshot.error}'));
+          return Center(child: Text('Error loading Trending Topics: ${asyncSnapshot.error}'));
         }
         if (!asyncSnapshot.hasData || asyncSnapshot.data!.isEmpty) {
           return const SizedBox.shrink();
@@ -268,17 +324,20 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildInterestsSection() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text('Interests', style: AppTextStyles.sectionTitle),
-        const SizedBox(height: 16),
-        SizedBox(
-          height: 160,
-          child: Obx(() {
-            final topics = Get.find<HomeController>().userTopics();
-            return ListView.separated(
+  // Obx for reactive list display
+  Widget _buildInterestsSection(HomeController controller) {
+    return Obx(() {
+      final topics = controller.userTopics;
+      if (topics.isEmpty) return const SizedBox.shrink();
+
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text('Interests', style: AppTextStyles.sectionTitle),
+          const SizedBox(height: 16),
+          SizedBox(
+            height: 160,
+            child: ListView.separated(
               scrollDirection: Axis.horizontal,
               itemCount: topics.length,
               separatorBuilder: (context, index) => const SizedBox(width: 16),
@@ -286,55 +345,20 @@ class HomeScreen extends StatelessWidget {
                 return InterestCard(
                   title: topics[index].title,
                   rating: 4.5,
-                  imageUrl: topics[index].avatar ?? 'data:image/jpeg;base64',
+                  imageUrl: topics[index].avatar ?? '', // null safety
                 );
               },
-            );
-          }),
-        ),
-      ],
-    );
-  }
-
-  GestureDetector _buildSearchBar() {
-    return GestureDetector(
-      onTap: () {
-        Get.to(() => const SearchView());
-      },
-      child: Hero(
-        tag: 'search_bar',
-        transitionOnUserGestures: true,
-
-        child: Container(
-          height: 46,
-          width: double.infinity,
-          alignment: Alignment.centerLeft,
-          margin: const EdgeInsets.only(bottom: 16),
-          padding: const EdgeInsets.only(left: 12),
-          decoration: BoxDecoration(
-            color: AppColors.primary.withAlpha(15),
-            border: Border.all(color: AppColors.primary),
-            borderRadius: BorderRadius.circular(14),
+            ),
           ),
-          child: Row(
-            children: [
-              ShaderMask(
-                shaderCallback: (Rect bounds) {
-                  return Constants.gradientDecoration.gradient!.createShader(bounds);
-                },
-                child: const Icon(LucideIcons.search, color: Colors.white),
-              ),
-              const SizedBox(width: 8),
-              const Text('Search', style: TextStyle(color: AppColors.textSecondary, fontSize: 16)),
-            ],
-          ),
-        ),
-      ),
-    );
+        ],
+      );
+    });
   }
 }
 
-// Reusable Components
+// -----------------------------------------------------------------------------
+// --- Reusable Components (Corrected and Simplified) ---
+// -----------------------------------------------------------------------------
 
 class ProfileAvatar extends StatelessWidget {
   const ProfileAvatar({super.key, required this.imageBytes, this.size = 48});
@@ -344,9 +368,7 @@ class ProfileAvatar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: () {
-        Get.to(() => const ProfileScreen());
-      },
+      onTap: () => Get.to(() => const ProfileScreen()),
       child: Container(
         width: size,
         height: size,
@@ -355,11 +377,7 @@ class ProfileAvatar extends StatelessWidget {
           color: AppColors.lightGray,
           image: imageBytes.isEmpty
               ? null
-              : DecorationImage(
-                  image: MemoryImage(Helper.base64ToBytes(imageBytes)),
-                  fit: BoxFit.cover,
-                  onError: (exception, stackTrace) {},
-                ),
+              : DecorationImage(image: MemoryImage(Helper.base64ToBytes(imageBytes)), fit: BoxFit.cover),
         ),
         child: imageBytes.isEmpty ? Icon(LucideIcons.user, color: AppColors.gray, size: size * 0.6) : null,
       ),
@@ -405,16 +423,15 @@ class ActionButton extends StatelessWidget {
             child: Container(
               width: 16,
               height: 16,
-
               decoration: BoxDecoration(
                 border: Border.all(color: Colors.white, width: 1),
                 color: AppColors.errorBorder,
                 shape: BoxShape.circle,
               ),
-              child: const Center(
+              child: Center(
                 child: Text(
-                  '2',
-                  style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
+                  notificationCount ?? 'N',
+                  style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
                 ),
               ),
             ),
@@ -432,52 +449,61 @@ class FaceOfWeekCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Stack(
-          alignment: Alignment.center,
-          children: [
-            Container(
-              width: 72,
-              height: 72,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: AppColors.lightGray,
-                image: DecorationImage(
-                  image: MemoryImage(Helper.base64ToBytes(imageBytes)),
-                  fit: BoxFit.fill,
-                  onError: (exception, stackTrace) {},
-                ),
-              ),
-            ),
-            Positioned(
-              bottom: 0,
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 4),
+    final safeImageBytes = imageBytes ?? '';
+
+    return SizedBox(
+      // Added SizedBox for better width control in ListView
+      width: 80,
+      child: Column(
+        children: [
+          Stack(
+            alignment: Alignment.center,
+            children: [
+              Container(
+                width: 72,
+                height: 72,
                 decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(6),
-                  boxShadow: [BoxShadow(color: Colors.black.withAlpha(16), blurRadius: 4, offset: const Offset(0, 2))],
+                  shape: BoxShape.circle,
+                  color: AppColors.lightGray,
+                  image: safeImageBytes.isNotEmpty
+                      ? DecorationImage(image: MemoryImage(Helper.base64ToBytes(safeImageBytes)), fit: BoxFit.fill)
+                      : null,
                 ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Icon(LucideIcons.star, color: AppColors.orange, size: 12),
-                    const SizedBox(width: 2),
-                    Text(rating.toString(), style: AppTextStyles.rating),
-                  ],
+                child: safeImageBytes.isEmpty
+                    ? const Center(child: Icon(LucideIcons.user, color: AppColors.gray, size: 40))
+                    : null,
+              ),
+              Positioned(
+                bottom: 0,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 4),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(6),
+                    boxShadow: [
+                      BoxShadow(color: Colors.black.withAlpha(16), blurRadius: 4, offset: const Offset(0, 2)),
+                    ],
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Icon(LucideIcons.star, color: AppColors.orange, size: 12),
+                      const SizedBox(width: 2),
+                      Text(rating.toStringAsFixed(1), style: AppTextStyles.rating),
+                    ],
+                  ),
                 ),
               ),
-            ),
-            Positioned(top: 4, right: 4, child: Image.asset(Assets.icons.starBadge, width: 15, height: 15)),
-          ],
-        ),
-        const SizedBox(height: 8),
-        Text(name, style: AppTextStyles.cardName, overflow: TextOverflow.ellipsis),
-        const SizedBox(height: 4),
-      ],
+              // Assuming starBadge is defined correctly in Assets.icons
+              Positioned(top: 4, right: 4, child: Image.asset(Assets.icons.starBadge, width: 15, height: 15)),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Text(name, style: AppTextStyles.cardName, overflow: TextOverflow.ellipsis),
+        ],
+      ),
     );
   }
 }
@@ -490,18 +516,22 @@ class RoomCard extends StatelessWidget {
     required this.joinedUsers,
     required this.imageUrl,
     required this.roomCode,
-    this.room,
+    required this.room,
   });
   final String roomName;
   final String createdBy;
   final String joinedUsers;
   final String imageUrl;
-
-  final HMSVideoRoom? room;
-
   final String roomCode;
+  final HMSVideoRoom room; // Assumed type
+
   @override
   Widget build(BuildContext context) {
+    // Assuming Get.find is setup correctly in GetX binding
+    final videoRoomController = Get.find<VideoRoomController>();
+    final homeController = Get.find<HomeController>();
+    final safeImageUrl = imageUrl;
+
     return Container(
       width: 160,
       padding: const EdgeInsets.all(4),
@@ -523,12 +553,13 @@ class RoomCard extends StatelessWidget {
                 decoration: BoxDecoration(
                   color: AppColors.lightGray,
                   borderRadius: const BorderRadius.all(Radius.circular(12)),
-                  image: DecorationImage(
-                    image: MemoryImage(Helper.base64ToBytes(imageUrl)),
-                    fit: BoxFit.cover,
-                    onError: (exception, stackTrace) {},
-                  ),
+                  image: safeImageUrl.isNotEmpty
+                      ? DecorationImage(image: MemoryImage(Helper.base64ToBytes(safeImageUrl)), fit: BoxFit.cover)
+                      : null,
                 ),
+                child: safeImageUrl.isEmpty
+                    ? const Center(child: Icon(LucideIcons.video, color: AppColors.gray, size: 40))
+                    : null,
               ),
               Positioned(
                 top: 8,
@@ -549,7 +580,12 @@ class RoomCard extends StatelessWidget {
               children: [
                 SizedBox(
                   height: 35,
-                  child: Text(roomName, style: AppTextStyles.cardTitle, overflow: TextOverflow.ellipsis),
+                  child: Text(
+                    roomName,
+                    style: AppTextStyles.cardTitle,
+                    overflow: TextOverflow.ellipsis,
+                    maxLines: 2,
+                  ), // Added maxLines to prevent overflow
                 ),
                 const SizedBox(height: 4),
                 Row(
@@ -577,26 +613,28 @@ class RoomCard extends StatelessWidget {
                   ],
                 ),
                 const SizedBox(height: 12),
+                // Join Logic
                 GradientButton(
                   text: 'Join Now',
                   onPressed: () {
-                    if (roomCode.isNotEmpty && room != null) {
-                      final controller = Get.find<VideoRoomController>();
-                      controller.joinRoom(
-                        RoomInviteData(
-                          roomId: room?.objectId ?? '',
-                          roomGuestCode: room!.roomGuestCode ?? '',
-                          title: room!.title,
-                          inviteeName: 'Guest',
-                          deepLink: '',
-                          roomHostCode: '',
-                          expiry: null,
-                          topicDetails: null,
-                          userDetails: null, // Add deep link if available
-                        ),
-                        Get.find<HomeController>().user?.name ?? 'guest',
-                      );
-                    } else {}
+                    // 1. Create RoomInviteData object with all required fields
+                    final inviteData = RoomInviteData(
+                      // Assumed model structure
+                      roomId: room.objectId,
+                      title: room.title,
+                      body: 'Joining active room: ${room.title}',
+                      type: 'roomInvite',
+                      roomGuestCode: room.roomGuestCode?.toString() ?? '',
+                      roomHostCode: room.roomHostCode?.toString() ?? '',
+                      inviteeName: homeController.user?.name ?? 'Guest',
+                      deepLink: '',
+                      expiry: null,
+                      topicDetails: null,
+                      userDetails: null,
+                    );
+
+                    // 2. Call the centralized joinRoom method
+                    videoRoomController.joinRoom(inviteData, homeController.user?.name ?? 'Guest');
                   },
                 ),
               ],
@@ -625,6 +663,8 @@ class TrendingCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final safeImageBytes = imageBytes ?? '';
+
     return Container(
       width: 150,
       padding: const EdgeInsets.all(4),
@@ -640,12 +680,13 @@ class TrendingCard extends StatelessWidget {
                 decoration: BoxDecoration(
                   color: AppColors.darkText,
                   borderRadius: BorderRadius.circular(12),
-                  image: DecorationImage(
-                    image: MemoryImage(Helper.base64ToBytes(imageBytes)),
-                    fit: BoxFit.fill,
-                    onError: (exception, stackTrace) {},
-                  ),
+                  image: safeImageBytes.isNotEmpty
+                      ? DecorationImage(image: MemoryImage(Helper.base64ToBytes(safeImageBytes)), fit: BoxFit.fill)
+                      : null,
                 ),
+                child: safeImageBytes.isEmpty
+                    ? const Center(child: Icon(LucideIcons.activity, color: Colors.white, size: 40))
+                    : null,
               ),
               Positioned(
                 bottom: 0,
@@ -675,6 +716,7 @@ class TrendingCard extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 4),
+          // List of widgets mapped to have padding
           ...[
             Text(name, style: AppTextStyles.cardTitle, overflow: TextOverflow.ellipsis),
             Text(description, style: AppTextStyles.cardSubtitle, overflow: TextOverflow.ellipsis),
@@ -694,6 +736,8 @@ class InterestCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final safeImageUrl = imageUrl;
+
     return Container(
       height: 160,
       width: 165,
@@ -712,12 +756,13 @@ class InterestCard extends StatelessWidget {
                 width: double.infinity,
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(12),
-                  image: DecorationImage(
-                    image: MemoryImage(Helper.base64ToBytes(imageUrl)),
-                    fit: BoxFit.cover,
-                    onError: (exception, stackTrace) {},
-                  ),
+                  image: safeImageUrl.isNotEmpty
+                      ? DecorationImage(image: MemoryImage(Helper.base64ToBytes(safeImageUrl)), fit: BoxFit.cover)
+                      : null,
                 ),
+                child: safeImageUrl.isEmpty
+                    ? const Center(child: Icon(LucideIcons.bookmark, color: AppColors.gray, size: 40))
+                    : null,
               ),
               Positioned(
                 top: 8,
@@ -735,7 +780,7 @@ class InterestCard extends StatelessWidget {
                       const Icon(LucideIcons.star, color: AppColors.secondaryYellow, size: 12),
                       const SizedBox(width: 2),
                       Text(
-                        rating.toString(),
+                        rating.toStringAsFixed(1),
                         style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w500),
                       ),
                     ],

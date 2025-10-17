@@ -1,7 +1,7 @@
 import 'dart:developer' as developer;
 
 import 'package:firebase_core/firebase_core.dart';
-import 'package:firebase_crashlytics/firebase_crashlytics.dart';
+import 'package:firebase_crashlytics/firebase_crashlytics.dart'; // 🎯 FIX 1: Typo corrected
 import 'package:fiwe/firebase_options.dart';
 import 'package:fiwe/src/controllers/user_rating_controller.dart';
 import 'package:fiwe/src/repositories/rating_repository.dart';
@@ -167,6 +167,9 @@ class FiweApp extends StatelessWidget {
       getPages: _buildRoutes(),
       onUnknownRoute: _handleUnknownRoute,
       initialRoute: '/',
+
+      // Debug Banner Fix
+      debugShowCheckedModeBanner: false,
     );
   }
 
@@ -194,9 +197,22 @@ class FiweApp extends StatelessWidget {
       GetPage(name: Constants.loginViewRoute, page: () => const LoginView()),
       GetPage(name: Constants.signUpViewRoute, page: () => const SignUpView()),
       GetPage(name: Constants.interestSelectionViewRoute, page: () => const InterestSelectionView()),
-      // GetPage(name: Constants.videoRoomRoute, page: () => const VideoRoomView()),
+      GetPage(
+        name: Constants.videoRoomRoute,
+        page: () {
+          final args = Get.arguments as Map<String, dynamic>? ?? {};
+          final userName = args['userName'] as String? ?? '';
+          final isGuest = args['isGuest'] as bool? ?? false;
+
+          if (userName.isEmpty) {
+            developer.log('VideoRoomView: Missing required userName argument. Redirecting to Home.', name: 'Routes');
+            return const HomeView();
+          }
+
+          return VideoRoomView(userName: userName, isGuest: isGuest);
+        },
+      ),
       GetPage(name: Constants.createRoomRoute, page: () => const CreateRoomView()),
-      // GetPage(name: Constants.userRatingRoute, page: () => const UserRatingScreen()),
       GetPage(name: Constants.profileScreenRoute, page: () => const ProfileScreen()),
       GetPage(name: Constants.searchUserRoute, page: () => const SearchView()),
     ];

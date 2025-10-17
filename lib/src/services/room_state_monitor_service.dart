@@ -9,9 +9,7 @@ import 'package:hmssdk_flutter/hmssdk_flutter.dart';
 
 /// Room state monitor service for tracking video room state changes
 /// Coordinates between HMS Room Kit, PIP, and notification services
-class RoomStateMonitorService extends GetxService 
-    implements HMSUpdateListener, HMSActionResultListener {
-  
+class RoomStateMonitorService extends GetxService implements HMSUpdateListener, HMSActionResultListener {
   static RoomStateMonitorService get instance => Get.find<RoomStateMonitorService>();
 
   // Dependencies
@@ -25,7 +23,7 @@ class RoomStateMonitorService extends GetxService
 
   // Duration tracking
   Timer? _durationTimer;
-  
+
   // Getters
   VideoRoomState? get currentRoomState => _currentRoomState.value;
   List<Participant> get participants => _participants.toList();
@@ -42,11 +40,7 @@ class RoomStateMonitorService extends GetxService
   }
 
   /// Start monitoring room state for a specific room
-  Future<void> startMonitoring({
-    required String roomId,
-    required String roomTitle,
-    String? userId,
-  }) async {
+  Future<void> startMonitoring({required String roomId, required String roomTitle, String? userId}) async {
     try {
       if (_isMonitoring.value) {
         log('Already monitoring room state', name: 'RoomStateMonitorService');
@@ -54,11 +48,7 @@ class RoomStateMonitorService extends GetxService
       }
 
       // Create initial room state
-      final roomState = VideoRoomState(
-        roomId: roomId,
-        roomTitle: roomTitle,
-        joinTime: DateTime.now(),
-      );
+      final roomState = VideoRoomState(roomId: roomId, roomTitle: roomTitle, joinTime: DateTime.now());
 
       _currentRoomState.value = roomState;
       _isMonitoring.value = true;
@@ -104,11 +94,9 @@ class RoomStateMonitorService extends GetxService
       final roomState = _currentRoomState.value;
       if (roomState != null) {
         roomState.participantCount.value = count;
-        
+
         // Update notification
-        _notificationService.updateNotification(
-          participantCount: count,
-        );
+        _notificationService.updateNotification(participantCount: count);
       }
     } catch (e) {
       log('Error updating participant count: $e', name: 'RoomStateMonitorService');
@@ -121,11 +109,9 @@ class RoomStateMonitorService extends GetxService
       final roomState = _currentRoomState.value;
       if (roomState != null) {
         roomState.connectionStatus.value = status;
-        
+
         // Update notification
-        _notificationService.updateNotification(
-          connectionStatus: status,
-        );
+        _notificationService.updateNotification(connectionStatus: status);
       }
     } catch (e) {
       log('Error updating connection status: $e', name: 'RoomStateMonitorService');
@@ -150,11 +136,9 @@ class RoomStateMonitorService extends GetxService
       final roomState = _currentRoomState.value;
       if (roomState != null) {
         roomState.isInPip.value = isInPip;
-        
+
         // Update notification
-        _notificationService.updateNotification(
-          isInPip: isInPip,
-        );
+        _notificationService.updateNotification(isInPip: isInPip);
       }
     } catch (e) {
       log('Error updating PIP status: $e', name: 'RoomStateMonitorService');
@@ -166,7 +150,7 @@ class RoomStateMonitorService extends GetxService
     try {
       _participants.add(participant);
       updateParticipantCount(_participants.length);
-      
+
       log('Participant joined: ${participant.displayName}', name: 'RoomStateMonitorService');
     } catch (e) {
       log('Error adding participant: $e', name: 'RoomStateMonitorService');
@@ -180,7 +164,7 @@ class RoomStateMonitorService extends GetxService
       if (participant != null) {
         _participants.remove(participant);
         updateParticipantCount(_participants.length);
-        
+
         log('Participant left: ${participant.displayName}', name: 'RoomStateMonitorService');
       }
     } catch (e) {
@@ -227,7 +211,7 @@ class RoomStateMonitorService extends GetxService
     try {
       updateConnectionStatus(ConnectionStatus.connected);
       updateParticipantCount(room.peerCount ?? 0);
-      
+
       log('Joined room: ${room.name}', name: 'RoomStateMonitorService');
     } catch (e) {
       log('Error in onJoin: $e', name: 'RoomStateMonitorService');
@@ -286,16 +270,12 @@ class RoomStateMonitorService extends GetxService
       // Update participant media state when tracks change
       if (peer.isLocal) {
         final currentMediaState = _currentRoomState.value?.mediaState.value ?? const MediaState();
-        
+
         if (track.kind == HMSTrackKind.kHMSTrackKindAudio) {
-          final updatedMediaState = currentMediaState.copyWith(
-            isMicrophoneOn: !(track.isMute ?? true),
-          );
+          final updatedMediaState = currentMediaState.copyWith(isMicrophoneOn: !(track.isMute ?? true));
           updateMediaState(updatedMediaState);
         } else if (track.kind == HMSTrackKind.kHMSTrackKindVideo) {
-          final updatedMediaState = currentMediaState.copyWith(
-            isCameraOn: !(track.isMute ?? true),
-          );
+          final updatedMediaState = currentMediaState.copyWith(isCameraOn: !(track.isMute ?? true));
           updateMediaState(updatedMediaState);
         }
       }
@@ -350,9 +330,7 @@ class RoomStateMonitorService extends GetxService
     try {
       if (currentAudioDevice != null) {
         final currentMediaState = _currentRoomState.value?.mediaState.value ?? const MediaState();
-        final updatedMediaState = currentMediaState.copyWith(
-          activeAudioDevice: currentAudioDevice.name,
-        );
+        final updatedMediaState = currentMediaState.copyWith(activeAudioDevice: currentAudioDevice.name);
         updateMediaState(updatedMediaState);
       }
     } catch (e) {
@@ -379,7 +357,7 @@ class RoomStateMonitorService extends GetxService
         );
         addParticipant(participant);
       }
-      
+
       for (final peer in removedPeers) {
         removeParticipant(peer.peerId);
       }
@@ -412,7 +390,11 @@ class RoomStateMonitorService extends GetxService
   }
 
   @override
-  void onException({required HMSActionResultListenerMethod methodType, Map<String, dynamic>? arguments, required HMSException hmsException}) {
+  void onException({
+    required HMSActionResultListenerMethod methodType,
+    Map<String, dynamic>? arguments,
+    required HMSException hmsException,
+  }) {
     try {
       updateConnectionStatus(ConnectionStatus.failed);
       log('HMS Action Exception: ${hmsException.message}', name: 'RoomStateMonitorService');

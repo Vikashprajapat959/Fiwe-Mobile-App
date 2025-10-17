@@ -204,12 +204,12 @@ class VideoRoomController extends GetxController with WidgetsBindingObserver {
         Get.snackbar('Warning', 'Room may not have been properly left on server', snackPosition: SnackPosition.BOTTOM);
         return;
       }
-          _currentRoom(null);
-          _isInRoom(false);
-          _reactions.clear();
-          _remotePeers.clear();
-          _isPipActive(false);
-          _hasActiveNotification(false);
+      _currentRoom(null);
+      _isInRoom(false);
+      _reactions.clear();
+      _remotePeers.clear();
+      _isPipActive(false);
+      _hasActiveNotification(false);
       // 2. Leave the 100ms room
       // _roomService.leaveRoom().then((response) {
       //   if (response.success) {
@@ -247,8 +247,7 @@ class VideoRoomController extends GetxController with WidgetsBindingObserver {
           Get.off(
             () => UserRatingScreen(interectedParticipants: participants, roomParticipationId: response?['room_id']),
           );
-        }else
-        {
+        } else {
           Get.offAllNamed('/home');
         }
       } else {
@@ -508,10 +507,11 @@ class VideoRoomController extends GetxController with WidgetsBindingObserver {
       objectId: inviteData.roomId,
       hmsRoomId: '',
     );
-    // call api
+
     if (!isPreviousSession) {
-      _roomRepository.joinRoom(inviteData.roomId, inviteData.roomGuestCode);
+      _roomRepository.joinRoom(inviteData.roomId, inviteData.roomGuestCode ?? '');
     }
+
     Get.to(() => VideoRoomView(isGuest: true, userName: userName));
 
     _isInRoom(true);

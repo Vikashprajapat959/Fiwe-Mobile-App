@@ -1,3 +1,5 @@
+// lib/src/controllers/home_controller.dart
+
 import 'dart:developer' as dev;
 
 import 'package:fiwe/src/controllers/auth_controller.dart';
@@ -17,22 +19,24 @@ import 'package:get/get.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 class HomeController extends GetxController {
-  var pageIndex = 0.obs;
-  late FCMNotificationService _notificationService;
-  BuildContext? _context;
+  // Reactive States for Home Screen Data
+  final RxInt pageIndex = 0.obs;
+  final RxList<Topic> userTopics = <Topic>[].obs;
+  final RxList<HMSVideoRoom> activeRooms = <HMSVideoRoom>[].obs;
+  final RxBool isActiveRoomsLoading = true.obs;
 
-  // instance
-  static HomeController get instance => Get.find<HomeController>();
-
-  // topic service
+  // Dependencies and Services
   final TopicService _topicService = Get.find<TopicService>();
-
   final RoomRepository roomRepository = RoomRepository.instance;
-  // get user
+  late FCMNotificationService _notificationService;
+
+  // Get user profile from AuthController
   User? get user => Get.find<AuthController>().userProfile();
 
-  // user topics followed
-  var userTopics = <Topic>[].obs;
+  // Context for In-App Notifications
+  BuildContext? _context;
+
+  static HomeController get instance => Get.find<HomeController>();
 
   // Method to set context from the view
   void setContext(BuildContext context) {
@@ -61,23 +65,81 @@ class HomeController extends GetxController {
 
   @override
   void onReady() {
-    fetchActiveRoomDetails();
+    fetchInitialData();
 
     dev.log('HomeController onReady called', name: 'HomeController');
     _notificationService.roomInviteStream.listen((event) {
       dev.log('Received notification event: ${event.title}', name: 'HomeController');
-
-      // Use the context set by the view or fallback to overlay context
-      final context = _context ?? Get.overlayContext;
-      dev.log('Context available: ${context != null}', name: 'HomeController');
-
       _showRoomInviteNotification(event);
     });
-    // Add error handling and timeout to getAllUserTopics
-    getAllUserTopics().catchError((error) {
-      dev.log('Error fetching user topics: $error', name: 'HomeController');
-    });
+
     super.onReady();
+  }
+
+  // Combined Initial Data Fetch (Centralized Data Loading)
+  Future<void> fetchInitialData() async {
+    // Fetch active rooms and user topics simultaneously
+    await Future.wait([
+      _fetchActiveRoomsForHome(),
+      getAllUserTopics().catchError((error) {
+        dev.log('Error fetching user topics: $error', name: 'HomeController');
+      }),
+    ]);
+
+    // Check for previous active room after initial data is loaded
+    await fetchActiveRoomDetails();
+  }
+
+  // Reactive Active Rooms Fetch
+  Future<void> _fetchActiveRoomsForHome() async {
+    isActiveRoomsLoading.value = true;
+    try {
+      final response = await roomRepository.getActiveRooms();
+      if (response.success && response.data != null) {
+        dev.log('Active rooms fetched successfully: ${response.data!.length}', name: 'HomeController');
+        activeRooms.assignAll(response.data!); // Populate reactive list
+      } else {
+        dev.log('No active rooms found or failed to fetch: ${response.message}', name: 'HomeController');
+        activeRooms.clear();
+      }
+    } catch (e) {
+      dev.log('Error fetching active rooms: $e', name: 'HomeController');
+      activeRooms.clear();
+    } finally {
+      isActiveRoomsLoading.value = false;
+    }
+  }
+
+  Future<List<HMSVideoRoom>> getActiveRooms() async {
+    try {
+      final response = await roomRepository.getActiveRooms();
+      if (response.success && response.data != null) {
+        dev.log('Non-reactive Active rooms fetched successfully: ${response.data!.length}', name: 'HomeController');
+        return response.data!;
+      } else {
+        throw Exception('No active rooms found or failed to fetch: ${response.message}');
+      }
+    } catch (e) {
+      dev.log('Error fetching active rooms non-reactive: $e', name: 'HomeController');
+      rethrow;
+    }
+  }
+
+  // User Topics Fetch
+  Future<void> getAllUserTopics() async {
+    try {
+      final result = await _topicService.getTopicsFollowedByUser().timeout(
+        const Duration(seconds: 10),
+        onTimeout: () {
+          dev.log('Timeout fetching user topics', name: 'HomeController');
+          return ApiResponse<List<Topic>>.error(message: 'Timeout fetching user topics');
+        },
+      );
+      userTopics(result.data ?? []); // Populate reactive list
+    } catch (e) {
+      dev.log('Error in getAllUserTopics: $e', name: 'HomeController');
+      userTopics(<Topic>[]);
+    }
   }
 
   void _showRoomInviteNotification(RoomInviteData inviteData) {
@@ -93,22 +155,16 @@ class HomeController extends GetxController {
               label: 'Dismiss',
               style: NotificationActionStyle.secondary,
               onPressed: () {
-                // Handle dismiss action
                 dev.log('Dismiss action pressed for room: ${inviteData.roomId}', name: 'HomeController');
               },
             ),
             NotificationAction(
               label: 'Join',
-
               onPressed: () {
                 InAppNotificationManager.dismissAll();
                 final controller = Get.find<VideoRoomController>();
                 controller.joinRoom(inviteData, user?.name ?? 'Guest');
-
-                // Handle join action, e.g., navigate to the room using inviteData.deepLink
                 dev.log('Join action pressed for room: ${inviteData.roomGuestCode}', name: 'HomeController');
-                // Example navigation (uncomment and implement navigation logic)
-                // Get.toNamed(inviteData.deepLink);
               },
             ),
           ],
@@ -122,11 +178,9 @@ class HomeController extends GetxController {
   // get user active room details
   Future<void> fetchActiveRoomDetails() async {
     try {
-      final roomRepository = RoomRepository.instance;
       final response = await roomRepository.getActiveRoomDetails();
       if (response.success && response.data != null) {
         dev.log('Active room details fetched successfully: ${response.data!.title}', name: 'HomeController');
-        // You can store the room details in a variable or state management solution as needed
         showJoinPreviousRoomNotification(response.data!);
       } else {
         dev.log('No active room found or failed to fetch: ${response.message}', name: 'HomeController');
@@ -142,6 +196,7 @@ class HomeController extends GetxController {
     controller.currentRoom = room;
     controller.isInRoom = true;
     final context = _context ?? Get.overlayContext;
+
     if (context != null) {
       InAppNotificationManager.setContext(context).show(
         NotificationConfig(
@@ -149,7 +204,6 @@ class HomeController extends GetxController {
           description: 'You have an active room: ${room.title}.\nWould you like to rejoin?',
           icon: const Icon(LucideIcons.video),
           onDismiss: () {
-            // Clear current room if user dismisses the notification
             InAppNotificationManager.dismiss();
             controller.leaveRoom();
           },
@@ -158,7 +212,6 @@ class HomeController extends GetxController {
               label: 'Dismiss',
               style: NotificationActionStyle.secondary,
               onPressed: () {
-                // leave room action
                 InAppNotificationManager.dismissAll();
                 controller.leaveRoom();
               },
@@ -167,33 +220,26 @@ class HomeController extends GetxController {
               label: 'Join',
               onPressed: () {
                 InAppNotificationManager.dismiss();
-                final controller = Get.find<VideoRoomController>();
-                var roomCode = '';
-                try {
-                  if (room.creator?.id == user?.id) {
-                    roomCode = room.roomHostCode ?? ''; // Use objectId if roomGuestCode is empty
-                  } else {
-                    roomCode = room.roomGuestCode ?? ''; // Use roomGuestCode if it's not empty
-                  }
-                } finally {
-                  roomCode = room.roomGuestCode ?? ''; // Use roomGuestCode if it's not empty
-                }
 
-                controller.joinRoom(
-                  RoomInviteData(
-                    roomId: room.objectId,
-                    roomGuestCode: roomCode,
-                    title: room.title,
-                    inviteeName: user?.name ?? 'Guest',
-                    deepLink: '',
-                    roomHostCode: '',
-                    expiry: null,
-                    topicDetails: null,
-                    userDetails: null, // Add deep link if available
-                  ),
-                  isPreviousSession: true,
-                  user?.name ?? 'Guest',
+                // FIX: Added required 'body' and 'type' fields.
+                final inviteData = RoomInviteData(
+                  roomId: room.objectId,
+                  // Required fields from your FCMNotificationData model:
+                  title: 'Rejoin Room', // Use the notification title
+                  body: 'Rejoining active room: ${room.title}', // Use a descriptive body
+                  type: 'roomInvite', // Set the type string as expected by your model
+                  // Ensure these are Non-nullable Strings
+                  roomGuestCode: room.roomGuestCode?.toString() ?? '',
+                  roomHostCode: room.roomHostCode?.toString() ?? '',
+
+                  inviteeName: user?.name ?? 'Guest',
+                  deepLink: '',
+                  expiry: null,
+                  topicDetails: null,
+                  userDetails: null,
                 );
+
+                controller.joinRoom(inviteData, isPreviousSession: true, user?.name ?? 'Guest');
               },
             ),
           ],
@@ -201,41 +247,6 @@ class HomeController extends GetxController {
       );
     } else {
       dev.log('No context available to show rejoin room notification for room: ${room.title}', name: 'HomeController');
-    }
-  }
-
-  Future<List<HMSVideoRoom>> getActiveRooms() async {
-    try {
-      final roomRepository = RoomRepository.instance;
-      final response = await roomRepository.getActiveRooms();
-      if (response.success && response.data != null) {
-        dev.log('Active rooms fetched successfully: ${response.data!.length}', name: 'HomeController');
-        return response.data!;
-        // You can store the room details in a variable or state management solution as needed
-      } else {
-        dev.log('No active rooms found or failed to fetch: ${response.message}', name: 'HomeController');
-        throw Exception('No active rooms found or failed to fetch: ${response.message}');
-      }
-    } catch (e) {
-      dev.log('Error fetching active rooms: $e', name: 'HomeController');
-      rethrow;
-    }
-  }
-
-  Future<void> getAllUserTopics() async {
-    try {
-      // Add timeout to prevent hanging
-      final result = await _topicService.getTopicsFollowedByUser().timeout(
-        const Duration(seconds: 10),
-        onTimeout: () {
-          dev.log('Timeout fetching user topics', name: 'HomeController');
-          return ApiResponse<List<Topic>>.error(message: 'Timeout fetching user topics');
-        },
-      );
-      userTopics(result.data ?? []);
-    } catch (e) {
-      dev.log('Error in getAllUserTopics: $e', name: 'HomeController');
-      userTopics(<Topic>[]);
     }
   }
 }
