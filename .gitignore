@@ -1,0 +1,24 @@
+
+
+# Firebase configuration
+/firebase.json
+/lib/firebase_options.dart
+/android/app/google-services.json
+/ios/Runner/GoogleService-Info.plist
+
+# Signing credentials
+/android/key.properties
+*.jks
+*.keystore
+*.p12
+*.pfx
+
+# Environment secrets
+.env
+.env.*
+# Flutter generated files
+.flutter-plugins-dependencies
+.flutter-plugins
+
+# Kotlin generated files
+/android/.kotlin/
