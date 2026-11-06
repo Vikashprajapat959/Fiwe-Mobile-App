@@ -1,0 +1,2 @@
+# Include Dart files in GitHub language statistics
+*.dart linguist-detectable=true
