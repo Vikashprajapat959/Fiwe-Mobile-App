@@ -22,3 +22,7 @@
 
 # Kotlin generated files
 /android/.kotlin/
+
+# Dart generated files
+.dart_tool/
+build/
